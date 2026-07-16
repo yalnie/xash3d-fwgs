@@ -45,12 +45,13 @@ class DownloadPanelFragment : Fragment() {
     private var isDeleting = false
     
     private var activeGameId: String? = null
+    private val menuSourceSelectorId = View.generateViewId()
 
     enum class DownloadSource(val brandName: String, val speedResId: Int, val urlPattern: String) {
         GITLAB("GitLab", R.string.source_speed_fastest, "https://gitlab.com/steamdepot/goldsrc-valve/-/archive/{branch}/goldsrc-valve-{branch}.zip"),
         GITHUB_RELEASES("GitHub Releases", R.string.source_speed_fast, "https://github.com/steamdepot/goldsrc-valve/releases/download/uploads/{branch}.zip"),
-        GITHUB_ARCHIVE("GitHub Archive", R.string.source_speed_medium, "https://github.com/steamdepot/goldsrc-valve/archive/refs/heads/{branch}.zip"),
-        ARCHIVE_ORG("Archive.org", R.string.source_speed_slow, "https://archive.org/download/goldsrc-valve/{branch}.zip");
+        GITHUB_ARCHIVE("GitHub", R.string.source_speed_medium, "https://github.com/steamdepot/goldsrc-valve/archive/refs/heads/{branch}.zip"),
+        ARCHIVE_ORG("archive.org", R.string.source_speed_slow, "https://archive.org/download/goldsrc-valve/{branch}.zip");
 
         fun getFormattedName(context: Context): String {
             return "$brandName (${context.getString(speedResId)})"
@@ -155,14 +156,14 @@ class DownloadPanelFragment : Fragment() {
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menu.clear()
-                val menuItem = menu.add(Menu.NONE, R.id.menu_source_selector, Menu.NONE, R.string.settings_download_source)
+                val menuItem = menu.add(Menu.NONE, menuSourceSelectorId, Menu.NONE, R.string.settings_download_source)
                 menuItem.setIcon(R.drawable.ic_baseline_cloud_24px)
                 menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS or MenuItem.SHOW_AS_ACTION_WITH_TEXT)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
-                    R.id.menu_source_selector -> {
+                    menuSourceSelectorId -> {
                         showSourceSelectionDialog()
                         true
                     }
