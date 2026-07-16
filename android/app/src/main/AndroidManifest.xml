@@ -46,8 +46,11 @@
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<!-- Allow internet access -->
 	<uses-permission android:name="android.permission.INTERNET" />
-	<!-- Dedicated server -->
+	<!-- Dedicated server and game downloader -->
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+	<!-- Game downloader notification -->
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<!-- Self-update: install downloaded APK -->
 	<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
@@ -65,10 +68,10 @@
 		android:enableOnBackInvokedCallback="true">
 		<activity
 			android:name=".MainActivity"
-			android:exported="true">
+			android:exported="true"
+			android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
-
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
@@ -102,6 +105,13 @@
 				<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
 			</intent-filter>
 		</activity>
+
+		<service
+			android:name=".ui.downloader.DownloadService"
+			android:enabled="true"
+			android:exported="false"
+			android:foregroundServiceType="dataSync">
+		</service>
 	</application>
 	<queries>
 		<intent>
