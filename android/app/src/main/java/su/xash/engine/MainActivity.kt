@@ -1,11 +1,16 @@
 package su.xash.engine
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -14,6 +19,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import su.xash.engine.databinding.ActivityMainBinding
 import su.xash.engine.model.AppUpdater
@@ -30,6 +36,13 @@ class MainActivity : AppCompatActivity() {
 	private lateinit var appBarConfiguration: AppBarConfiguration
 	private lateinit var navController: NavController
 
+	private val requestPermissionLauncher = registerForActivityResult(
+		ActivityResultContracts.RequestPermission()
+	) { isGranted: Boolean ->
+		if (!isGranted) {
+		}
+	}
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
@@ -44,10 +57,24 @@ class MainActivity : AppCompatActivity() {
 		appBarConfiguration = AppBarConfiguration(navController.graph)
 		setupActionBarWithNavController(navController, appBarConfiguration)
 
+		checkNotificationPermission()
+
 		CrashReports.prune(this)
 		showPendingCrashReport()
 
 		checkForEngineUpdate()
+	}
+
+	private fun checkNotificationPermission() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			if (ContextCompat.checkSelfPermission(
+					this,
+					Manifest.permission.POST_NOTIFICATIONS
+				) != PackageManager.PERMISSION_GRANTED
+			) {
+				requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+			}
+		}
 	}
 
 	private fun checkForEngineUpdate() {
@@ -111,7 +138,15 @@ class MainActivity : AppCompatActivity() {
 			titleRes = R.string.engine_update_downloading,
 			cancelable = true,
 			scope = lifecycleScope,
-			download = { onProgress -> updater.downloadAndInstall(onProgress) },
+			download = { onProgress -> 
+				lifecycleScope.launch(Dispatchers.IO) {
+					updater.downloadAndInstall { progress ->
+						lifecycleScope.launch(Dispatchers.Main) {
+							onProgress(progress)
+						}
+					}
+				}
+			},
 		)
 	}
 
