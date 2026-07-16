@@ -4,31 +4,59 @@
 	android:id="@+id/nav_graph"
 	android:label="@string/library"
 	app:startDestination="@id/libraryFragment">
+	
 	<fragment
 		android:id="@+id/libraryFragment"
 		android:name="su.xash.engine.ui.library.LibraryFragment"
 		android:label="@string/library">
 		<action
 			android:id="@+id/action_libraryFragment_to_gameSettingsFragment"
-			app:destination="@id/gameSettingsFragment" />
+			app:destination="@id/gameSettingsFragment"
+			app:enterAnim="@animator/fragment_open_enter"
+			app:exitAnim="@animator/fragment_open_exit"
+			app:popEnterAnim="@animator/fragment_close_enter"
+			app:popExitAnim="@animator/fragment_close_exit" />
 		<action
 			android:id="@+id/action_libraryFragment_to_appSettingsFragment"
-			app:destination="@id/appSettingsFragment" />
+			app:destination="@id/appSettingsFragment"
+			app:enterAnim="@animator/fragment_open_enter"
+			app:exitAnim="@animator/fragment_open_exit"
+			app:popEnterAnim="@animator/fragment_close_enter"
+			app:popExitAnim="@animator/fragment_close_exit" />
+		<action
+			android:id="@+id/action_libraryFragment_to_downloadPanelFragment"
+			app:destination="@id/downloadPanelFragment"
+			app:enterAnim="@animator/fragment_open_enter"
+			app:exitAnim="@animator/fragment_open_exit"
+			app:popEnterAnim="@animator/fragment_close_enter"
+			app:popExitAnim="@animator/fragment_close_exit" />
 	</fragment>
+	
 	<fragment
 		android:id="@+id/gameSettingsFragment"
 		android:name="su.xash.engine.ui.settings.GameSettingsFragment"
 		android:label="@string/game_settings" />
+		
 	<fragment
 		android:id="@+id/appSettingsFragment"
 		android:name="su.xash.engine.ui.settings.AppSettingsFragment"
 		android:label="@string/app_settings">
 		<action
 			android:id="@+id/action_appSettingsFragment_to_crashLogsFragment"
-			app:destination="@id/crashLogsFragment" />
+			app:destination="@id/crashLogsFragment"
+			app:enterAnim="@animator/fragment_open_enter"
+			app:exitAnim="@animator/fragment_open_exit"
+			app:popEnterAnim="@animator/fragment_close_enter"
+			app:popExitAnim="@animator/fragment_close_exit" />
 	</fragment>
+	
 	<fragment
 		android:id="@+id/crashLogsFragment"
 		android:name="su.xash.engine.ui.settings.CrashLogsFragment"
 		android:label="@string/crash_logs" />
+		
+	<fragment
+		android:id="@+id/downloadPanelFragment"
+		android:name="su.xash.engine.ui.downloader.DownloadPanelFragment"
+		android:label="@string/app_downloader" /> 
 </navigation>

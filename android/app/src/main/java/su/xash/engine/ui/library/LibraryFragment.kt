@@ -28,7 +28,6 @@ import su.xash.engine.R
 import su.xash.engine.adapters.GameAdapter
 import su.xash.engine.databinding.FragmentLibraryBinding
 
-
 class LibraryFragment : Fragment(), MenuProvider {
 	private var _binding: FragmentLibraryBinding? = null
 	private val binding get() = _binding!!
@@ -140,6 +139,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
 		binding.swipeRefresh.setOnRefreshListener { libraryViewModel.reloadGames(requireContext()) }
 
 		libraryViewModel.isReloading.observe(viewLifecycleOwner) {
@@ -165,13 +165,17 @@ class LibraryFragment : Fragment(), MenuProvider {
 	}
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-		when (menuItem.itemId) {
+		return when (menuItem.itemId) {
+			R.id.action_download_panel -> {
+				findNavController().navigate(R.id.action_libraryFragment_to_downloadPanelFragment)
+				true
+			}
 			R.id.action_settings -> {
 				findNavController().navigate(R.id.action_libraryFragment_to_appSettingsFragment)
+				true
 			}
+			else -> false
 		}
-
-		return false
 	}
 
 	override fun onResume() {

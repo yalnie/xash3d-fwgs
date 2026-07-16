@@ -2,11 +2,14 @@ package su.xash.engine.ui.settings
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.core.net.toUri
+import android.view.LayoutInflater
+import android.view.View
+import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import su.xash.engine.R
 import su.xash.engine.model.Game
 import su.xash.engine.model.GameLibDownloader
@@ -52,6 +55,60 @@ class GameSettingsPreferenceFragment(val game: Game) : PreferenceFragmentCompat(
 		}
 	}
 
+	override fun onDisplayPreferenceDialog(preference: Preference) {
+		if (preference is EditTextPreference) {
+			val contextWithTheme = activity ?: requireContext()
+			val builder = MaterialAlertDialogBuilder(contextWithTheme)
+				.setTitle(preference.dialogTitle)
+				.setIcon(preference.dialogIcon)
+				.setNegativeButton(android.R.string.cancel, null)
+
+			val inflater = LayoutInflater.from(contextWithTheme)
+			val dialogView = inflater.inflate(androidx.preference.R.layout.preference_dialog_edittext, null)
+			val editText = dialogView?.findViewById<android.widget.EditText>(android.R.id.edit)
+			val messageView = dialogView?.findViewById<android.widget.TextView>(android.R.id.message)
+
+			if (editText != null && dialogView != null) {
+				editText.setText(preference.text)
+				editText.setSelection(editText.text.length)
+
+				editText.isSingleLine = true
+				editText.maxLines = 1
+				editText.imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
+
+				messageView?.visibility = View.GONE
+
+				val orangeColor = androidx.core.content.ContextCompat.getColor(contextWithTheme, R.color.hl_orange)
+				editText.backgroundTintList = android.content.res.ColorStateList.valueOf(orangeColor)
+				
+				if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+					editText.textCursorDrawable?.setTint(orangeColor)
+					editText.textSelectHandle?.setTint(orangeColor)
+					editText.textSelectHandleLeft?.setTint(orangeColor)
+					editText.textSelectHandleRight?.setTint(orangeColor)
+				}
+
+				builder.setView(dialogView)
+
+				builder.setPositiveButton(android.R.string.ok) { dialog, _ ->
+					val newValue = editText.text.toString()
+					if (preference.callChangeListener(newValue)) {
+						preference.text = newValue
+					}
+					dialog.dismiss()
+				}
+			} else {
+				builder.setMessage(preference.dialogMessage)
+				builder.setPositiveButton(android.R.string.ok, null)
+			}
+
+			val dialog = builder.create()
+			dialog.show()
+		} else {
+			super.onDisplayPreferenceDialog(preference)
+		}
+	}
+
 	private fun populateDownloadedBuildInfo() {
 		val downloader = GameLibDownloader(requireContext())
 		val source = downloader.getSourceInfo(game.basedir.name) ?: return
@@ -63,7 +120,7 @@ class GameSettingsPreferenceFragment(val game: Game) : PreferenceFragmentCompat(
 		urlPref.isEnabled = source.url != null
 		urlPref.setOnPreferenceClickListener {
 			source.url?.let {
-				startActivity(Intent(Intent.ACTION_VIEW, it.toUri()))
+				startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(it)))
 			}
 			true
 		}
@@ -79,7 +136,7 @@ class GameSettingsPreferenceFragment(val game: Game) : PreferenceFragmentCompat(
 		commitPref.setOnPreferenceClickListener {
 			// FIXME: GitHub-styled URL!
 			val target = "${source.url!!.trimEnd('/')}/commit/${source.commit}"
-			startActivity(Intent(Intent.ACTION_VIEW, target.toUri()))
+			startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(target)))
 			true
 		}
 

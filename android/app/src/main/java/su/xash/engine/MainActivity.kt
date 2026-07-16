@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
@@ -156,11 +155,12 @@ class MainActivity : AppCompatActivity() {
 		moveOrCopy(CrashReports.pendingEngineLog(this), File(entryDir, CrashReports.ENGINELOG_NAME))
 
 		val entry = CrashReports.Entry(entryDir)
-		AlertDialog.Builder(this)
+		MaterialAlertDialogBuilder(this)
 			.setTitle(R.string.crash_dialog_title)
 			.setView(monospaceTextView(this, entry.summary()))
-			.setPositiveButton(R.string.crash_send_to_developers) { _, _ -> CrashReports.sendByEmail(this, entry) }
-			.setNeutralButton(R.string.crash_share) { _, _ -> CrashReports.share(this, entry) }
+			.setPositiveButton(R.string.crash_share) { _, _ -> 
+				CrashReports.share(this, entry) 
+			}
 			.setNegativeButton(R.string.crash_dismiss, null)
 			.show()
 	}

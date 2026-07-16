@@ -14,5 +14,10 @@
 		<!--        <item name="colorOnSurfaceVariant">@android:color/white</item>-->
 
 		<!--        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>-->
+		
+		<!-- more colors -->
+		<item name="colorOnPrimaryContainer">@color/hl_orange</item>
+		<item name="colorPrimaryContainer">@color/hl_orange_dark</item>
 	</style>
+	
 </resources>

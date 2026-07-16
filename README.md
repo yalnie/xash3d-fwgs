@@ -1,10 +1,7 @@
-> [!CAUTION]
-> **Only download Xash3D FWGS from official sources.** Third-party builds, "modded launchers", "optimized" repacks and random mirrors are frequently bundled with malware, miners, spyware and credential stealers. We cannot vouch for anything we did not build. Get official binaries only from the [releases page](https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous).
-
-# Xash3D FWGS Engine <img align="right" width="128" height="128" src="https://github.com/FWGS/xash3d-fwgs/raw/master/game_launch/icon-xash-material.png" alt="Xash3D FWGS icon" />
-[![GitHub Actions Status](https://github.com/FWGS/xash3d-fwgs/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/FWGS/xash3d-fwgs/actions/workflows/c-cpp.yml) [![FreeBSD Build Status](https://img.shields.io/cirrus/github/FWGS/xash3d-fwgs?label=freebsd%20build)](https://cirrus-ci.com/github/FWGS/xash3d-fwgs) \
+# Xash3D FWGS Engine <img align="right" width="128" height="128" src="https://github.com/yalnie/xash3d-fwgs/raw/master/game_launch/icon-xash-material.png" alt="Xash3D FWGS icon" />
+[![GitHub Actions Status](https://github.com/yalnie/xash3d-fwgs/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/yalnie/xash3d-fwgs/actions/workflows/c-cpp.yml) [![FreeBSD Build Status](https://img.shields.io/cirrus/github/yalnie/xash3d-fwgs?label=freebsd%20build)](https://cirrus-ci.com/github/yalnie/xash3d-fwgs) \
 [![Discord Server](https://img.shields.io/discord/355697768582610945?logo=Discord&label=International%20Discord%20chat)](http://xash.su/discord/) [![Russian speakers Telegram Chat](https://img.shields.io/badge/Russian_speakers_Telegram_chat-gray?logo=Telegram)](https://t.me/flyingwithgauss) \
-[![Download Daily Build](https://img.shields.io/badge/downloads-testing-orange)](https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous)
+[![Download Daily Build](https://img.shields.io/badge/downloads-testing-orange)](https://github.com/yalnie/xash3d-fwgs/releases/tag/continuous)
 
 Xash3D ([pronounced](https://ipa-reader.com/?text=ks%C9%91%CA%82) `[ksɑʂ]`) FWGS is a game engine, aimed to provide compatibility with Half-Life Engine and extend it, as well as to give game developers well known workflow.
 
@@ -14,7 +11,14 @@ Xash3D FWGS is a heavily modified fork of an original [Xash3D Engine](https://ww
 [![Donate to FWGS button](https://img.shields.io/badge/Donate_to_FWGS-%3C3-magenta)](Documentation/donate.md) \
 If you like Xash3D FWGS, consider supporting individual engine maintainers. By supporting us, you help to continue developing this game engine further. The sponsorship links are available in [documentation](Documentation/donate.md).
 
-## Fork features
+## yalnie's fork features
+* `cl_advertise_engine_in_name` removed. This was adding [Xash3D] to the player name on GoldSrc servers.
+* Added Game Downloader. Legal version soon.
+* Changed Xash3D app icon.
+* Legacy `AlertDialog` structures for Command-line arguments and Crash reports have been completely deprecated and rewritten using `MaterialAlertDialogBuilder` (Material 3).
+* Fixed colors.
+
+## FWGS fork features
 * Steam Half-Life (HLSDK 2.5) support.
 * Crossplatform and modern compilers support: supports Windows, Linux, BSD & Android on x86 & ARM and [many more](Documentation/ports.md).
 * Better multiplayer: multiple master servers, headless dedicated server, voice chat, [GoldSrc protocol support](Documentation/goldsrc-protocol-support.md) and IPv6 support.
@@ -29,7 +33,7 @@ If you like Xash3D FWGS, consider supporting individual engine maintainers. By s
 * [A set of small improvements](Documentation/), without broken compatibility.
 
 ## Installation & Running
-0) Get Xash3D FWGS binaries: you can use [testing](https://github.com/FWGS/xash3d-fwgs/releases/tag/continuous) build or you can compile engine from source code.
+0) Get Xash3D FWGS binaries: you can use [testing](https://github.com/yalnie/xash3d-fwgs/releases/tag/continuous) build or you can compile engine from source code.
 1) Copy engine binaries to some directory.
 2) Copy `valve` directory from [Half-Life](https://store.steampowered.com/app/70/HalfLife/) to directory with engine binaries.
 If your CPU is NOT x86 compatible or you're running 64-bit version of the engine, you may want to compile [Half-Life SDK](https://github.com/FWGS/hlsdk-portable).
@@ -68,7 +72,7 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 * Install latest [Python](https://python.org) **OR** run `cinst python.install` if you have Chocolatey.
 * Install latest [Git](https://git-scm.com/download/win) **OR** run `cinst git.install` if you have Chocolatey.
 * Download [SDL2](https://libsdl.org/download-2.0.php) development package for Visual Studio.
-* Clone this repository: `git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repository: `git clone --recursive https://github.com/yalnie/xash3d-fwgs`.
 * Make sure you have at least 12GB of free space to store all build-time dependencies: ~10GB for Visual Studio, 300 MB for Git, 100 MB for Python and other.
 
 #### GNU/Linux
@@ -82,7 +86,7 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 * For 64-bit engine on 64-bit x86 and other non-x86 systems:
   * Install development tools: `$ sudo apt install git build-essential python libsdl2-dev libfreetype6-dev libopus-dev libbz2-dev libvorbis-dev libopusfile-dev libogg-dev`.
 
-* Clone this repostory: `$ git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repostory: `$ git clone --recursive https://github.com/yalnie/xash3d-fwgs`.
 
 ##### RedHat/Fedora
 * Only for 32-bit engine on 64-bit x86 operating system:
@@ -92,7 +96,7 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 * For 64-bit engine on 64-bit x86 and other non-x86 systems:
   * Install development tools: `$ sudo dnf install git gcc gcc-c++ SDL3-devel sdl2-compat-devel opus-devel freetype-devel bzip2-devel libvorbis-devel opusfile-devel libogg-devel`.
 
-* Clone this repostory: `$ git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repostory: `$ git clone --recursive https://github.com/yalnie/xash3d-fwgs`.
 
 #### Android (Windows/Linux/macOS)
 * Install [Android Studio](https://developer.android.com/studio) (or the command line tools).
@@ -101,7 +105,7 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 * Install [Ninja](https://ninja-build.org/).
 * Install [CMake](https://cmake.org/) (for some dependencies).
 
-* Clone this repostory: `$ git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repostory: `$ git clone --recursive https://github.com/yalnie/xash3d-fwgs`.
 
 #### iOS/iPadOS
 * Install Xcode from the appstore.
@@ -111,7 +115,7 @@ This repository contains our fork of HLSDK and restored source code for Half-Lif
 
 * Clone the SDL2 repo `$ git clone --recursive https://github.com/libsdl-org/SDL.git -b SDL2` and compile the iOS framework by navigating to SDL/Xcode/SDL and opening the Xcode project.
 
-* Clone this repository: `$ git clone --recursive https://github.com/FWGS/xash3d-fwgs`.
+* Clone this repository: `$ git clone --recursive https://github.com/yalnie/xash3d-fwgs`.
 
 ### Building
 #### Windows (Visual Studio)
