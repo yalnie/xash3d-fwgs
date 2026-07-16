@@ -87,15 +87,14 @@
 	<string name="downloader_status_format">%1$s indiriliyor: %2$s MB / %3$s MB (%%4$d)</string>
 	<string name="downloader_extracting_format">%1$s çıkarılıyor…</string>
 	<string name="downloader_deleting_format">%1$s siliniyor…</string>
+	<string name="downloader_deleting_format">İşlem iptal ediliyor...</string>
 	<string name="download_stage_base">Oyun</string>
 	<string name="download_stage_hd">HD paketi</string>
 	<string name="hl_required_title">Half-Life Gerekli</string>
 	<string name="hl_required_message">Half-Life (valve) klasörü bulunamadı veya boş. %1$s oyununun düzgün çalışabilmesi için Half-Life dosyaları gereklidir. Yine de indirmek istiyor musunuz?</string>
 	<string name="btn_install_anyway">Yine de yükle</string>
-	<string name="operation_cancelled">İşlem iptal ediliyor...</string>
 	<string name="settings_download_source">İndirme Kaynağı</string>
 	<string name="dialog_select_source_title">İndirme Sunucusunu Seçin</string>
-	<string name="dialog_select_source_message">Lütfen indirme hızınıza ve konumunuza en uygun sunucuyu seçin. GitLab genellikle en hızlı indirme deneyimini sunarken, sorun yaşamanız durumunda diğer alternatif aynaları kullanabilirsiniz.</string>
 	<string name="source_speed_fastest">En Hızlı</string>
 	<string name="source_speed_fast">Hızlı</string>
 	<string name="source_speed_medium">Orta</string>

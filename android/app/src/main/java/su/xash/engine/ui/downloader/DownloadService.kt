@@ -50,6 +50,7 @@ class DownloadService : Service() {
 		const val STATUS_DOWNLOADING = "STATUS_DOWNLOADING"
 		const val STATUS_UNZIPPING = "STATUS_UNZIPPING"
 		const val STATUS_DELETING = "STATUS_DELETING"
+		const val STATUS_CANCELING = "STATUS_CANCELING"
 		const val STATUS_SUCCESS = "STATUS_SUCCESS"
 		const val STATUS_FAILED = "STATUS_FAILED"
 		
@@ -245,6 +246,9 @@ class DownloadService : Service() {
 
 	private fun cancelAndCleanup() {
 		downloadJob?.cancel()
+		
+		updateState(STATUS_CANCELING, 0, getString(R.string.downloader_canceling_format, activeGameName))
+		
 		serviceScope.launch(Dispatchers.IO) {
 			cacheDir?.listFiles()?.forEach { file -> 
 				if (file.name.endsWith("_temp.zip")) file.delete() 
@@ -254,7 +258,7 @@ class DownloadService : Service() {
 				File(outputDir, activeGameId!!).deleteRecursively()
 			}
 			withContext(Dispatchers.Main) {
-				updateState(STATUS_FAILED, 0, getString(R.string.operation_cancelled))
+				updateState(STATUS_FAILED, 0, "Operation cancelled")
 				stopSelf()
 			}
 		}
@@ -269,6 +273,7 @@ class DownloadService : Service() {
 			STATUS_DOWNLOADING -> getString(R.string.downloader_status_format, stageLabel, currentMb, totalMb, progress)
 			STATUS_UNZIPPING -> getString(R.string.downloader_extracting_format, stageLabel)
 			STATUS_DELETING -> stageLabel
+			STATUS_CANCELING -> stageLabel
 			else -> stageLabel
 		}
 		notificationManager.notify(NOTIFICATION_ID, buildNotification(message, progress))
@@ -288,11 +293,14 @@ class DownloadService : Service() {
 	}
 
 	private fun buildNotification(content: String, progress: Int): Notification {
-		val isIndeterminate = lastKnownStatus == STATUS_UNZIPPING || lastKnownStatus == STATUS_DELETING
+		val isIndeterminate = lastKnownStatus == STATUS_UNZIPPING || 
+							  lastKnownStatus == STATUS_DELETING || 
+							  lastKnownStatus == STATUS_CANCELING
+							  
 		return NotificationCompat.Builder(this, CHANNEL_ID)
 			.setContentTitle(activeGameName.ifEmpty { getString(R.string.app_name) })
 			.setContentText(content)
-			.setSmallIcon(R.drawable.ic_baseline_cloud_24px)
+			.setSmallIcon(android.R.drawable.stat_sys_download)
 			.setProgress(100, progress, isIndeterminate)
 			.setOngoing(true)
 			.build()

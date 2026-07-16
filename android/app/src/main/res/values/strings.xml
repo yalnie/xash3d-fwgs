@@ -87,15 +87,14 @@
 	<string name="downloader_status_format">Downloading %1$s: %2$s MB / %3$s MB (%4$d%%)</string>
 	<string name="downloader_extracting_format">Extracting %1$s…</string>
 	<string name="downloader_deleting_format">Deleting %1$s…</string>
+	<string name="downloader_canceling_format">Operation is being cancelled...</string>
 	<string name="download_stage_base">game</string>
 	<string name="download_stage_hd">HD pack</string>
 	<string name="hl_required_title">Half-Life Required</string>
 	<string name="hl_required_message">Half-Life (valve) folder is missing or empty. %1$s requires Half-Life files to run properly. Do you want to download it anyway?</string>
 	<string name="btn_install_anyway">Install Anyway</string>
-	<string name="operation_cancelled">Operation is being cancelled...</string>
 	<string name="settings_download_source">Download Source</string>
 	<string name="dialog_select_source_title">Select Download Server</string>
-	<string name="dialog_select_source_message">You can use other alternative mirrors if you encounter any issues</string>
 	<string name="source_speed_fastest">Fastest</string>
 	<string name="source_speed_fast">Fast</string>
 	<string name="source_speed_medium">Medium</string>
