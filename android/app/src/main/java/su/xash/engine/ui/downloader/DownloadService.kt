@@ -3,6 +3,7 @@ package su.xash.engine.ui.downloader
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -16,6 +17,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.ZipInputStream
 
@@ -68,6 +70,12 @@ class DownloadService : Service() {
 			private set
 		var lastKnownGameName = ""
 			private set
+		var lastKnownStageLabel = ""
+			private set
+		var lastKnownCurrentMb = ""
+			private set
+		var lastKnownTotalMb = ""
+			private set
 	}
 
 	override fun onCreate() {
@@ -100,8 +108,8 @@ class DownloadService : Service() {
 				if (lastKnownStatus == STATUS_DOWNLOADING) {
 					val paused = !isPaused.get()
 					isPaused.set(paused)
-					val labelRes = if (paused) R.string.source_speed_slow else R.string.downloading
-					sendProgressBroadcast(STATUS_DOWNLOADING, lastKnownProgress, getString(labelRes), "", "")
+					val labelText = if (paused) getString(R.string.btn_resume) else lastKnownStageLabel
+					updateState(STATUS_DOWNLOADING, lastKnownProgress, labelText, lastKnownCurrentMb, lastKnownTotalMb)
 				}
 			}
 			ACTION_STOP -> {
@@ -165,7 +173,7 @@ class DownloadService : Service() {
 				val data = ByteArray(4096)
 				var total: Long = 0
 				var count: Int
-				val totalMbText = if (definedSize > 0) String.format("%.2f", definedSize.toDouble() / (1024 * 1024)) else "?.??"
+				val totalMbText = if (definedSize > 0) String.format(Locale.US, "%.2f", definedSize.toDouble() / (1024 * 1024)) else "?.??"
 
 				while (input.read(data).also { count = it } != -1) {
 					if (downloadJob?.isCancelled == true) {
@@ -179,7 +187,7 @@ class DownloadService : Service() {
 					}
 
 					total += count
-					val currentMbText = String.format("%.2f", total.toDouble() / (1024 * 1024))
+					val currentMbText = String.format(Locale.US, "%.2f", total.toDouble() / (1024 * 1024))
 					val progressPercent = if (definedSize > 0) (total * 100 / definedSize).toInt().coerceAtMost(100) else 0
 
 					if (downloadJob?.isCancelled != true) {
@@ -267,6 +275,9 @@ class DownloadService : Service() {
 	private fun updateState(status: String, progress: Int, stageLabel: String, currentMb: String = "", totalMb: String = "") {
 		lastKnownStatus = status
 		lastKnownProgress = progress
+		lastKnownStageLabel = stageLabel
+		lastKnownCurrentMb = currentMb
+		lastKnownTotalMb = totalMb
 		
 		val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 		val message = when(status) {
@@ -296,14 +307,33 @@ class DownloadService : Service() {
 		val isIndeterminate = lastKnownStatus == STATUS_UNZIPPING || 
 							  lastKnownStatus == STATUS_DELETING || 
 							  lastKnownStatus == STATUS_CANCELING
+
+		val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+		} else {
+			PendingIntent.FLAG_UPDATE_CURRENT
+		}
+
+		val pauseIntent = Intent(this, DownloadService::class.java).apply { action = ACTION_PAUSE_RESUME }
+		val pendingPause = PendingIntent.getService(this, 0, pauseIntent, flags)
+
+		val stopIntent = Intent(this, DownloadService::class.java).apply { action = ACTION_STOP }
+		val pendingStop = PendingIntent.getService(this, 1, stopIntent, flags)
 							  
-		return NotificationCompat.Builder(this, CHANNEL_ID)
+		val builder = NotificationCompat.Builder(this, CHANNEL_ID)
 			.setContentTitle(activeGameName.ifEmpty { getString(R.string.app_name) })
 			.setContentText(content)
 			.setSmallIcon(android.R.drawable.stat_sys_download)
 			.setProgress(100, progress, isIndeterminate)
 			.setOngoing(true)
-			.build()
+
+		if (lastKnownStatus == STATUS_DOWNLOADING) {
+			val actionText = if (isPaused.get()) getString(R.string.btn_resume) else getString(R.string.btn_pause)
+			builder.addAction(android.R.drawable.ic_media_pause, actionText, pendingPause)
+			builder.addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.btn_cancel), pendingStop)
+		}
+
+		return builder.build()
 	}
 
 	private fun createNotificationChannel() {
