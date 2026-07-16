@@ -49,13 +49,13 @@ Legend:
 
 INTERNAL RESOURCE - function contain hardcoded path to resource that engine required (optional in most cases)
 OBSOLETE, UNUSED  - this function no longer used and leaved here for keep binary compatibility
-TODO              - some functionality not impemented but planned
-FIXME             - code doesn't working properly in some rare cases
-HACKHACK          - unexpected behavior on some input params (or something like)
-BUGBUG            - code doesn't working properly in most cases!
-TESTTEST          - this code may be unstable and needs to be more tested
-g-cont:           - notes from engine author
-XASH SPECIFIC     - sort of hack that works only in Xash3D not in GoldSrc
+TODO			  - some functionality not impemented but planned
+FIXME			 - code doesn't working properly in some rare cases
+HACKHACK		  - unexpected behavior on some input params (or something like)
+BUGBUG			- code doesn't working properly in most cases!
+TESTTEST		  - this code may be unstable and needs to be more tested
+g-cont:		   - notes from engine author
+XASH SPECIFIC	 - sort of hack that works only in Xash3D not in GoldSrc
 ===================================================================================================================================
 */
 
@@ -102,9 +102,9 @@ typedef enum instance_e
 #endif
 
 // PERFORMANCE INFO
-#define MIN_FPS         20.0f    // host minimum fps value for maxfps.
-#define MAX_FPS_SOFT    200.0f   // soft limit for maxfps.
-#define MAX_FPS_HARD    1000.0f  // multiplayer hard limit for maxfps.
+#define MIN_FPS		 20.0f	// host minimum fps value for maxfps.
+#define MAX_FPS_SOFT	200.0f   // soft limit for maxfps.
+#define MAX_FPS_HARD	1000.0f  // multiplayer hard limit for maxfps.
 #define HOST_FPS		100.0f		// multiplayer games typical fps
 
 #define MAX_FRAMETIME	0.25f
@@ -131,9 +131,9 @@ typedef enum instance_e
 #endif
 
 #define MAX_SERVERINFO_STRING 512  // server handles too many settings. expand to 1024?
-#define MAX_PRINT_MSG         8192 // how many symbols can handle single call of Con_Printf or Con_DPrintf
-#define MAX_TOKEN             2048 // parse token length
-#define MAX_USERMSG_LENGTH    2048 // don't modify it's relies on a client-side definitions
+#define MAX_PRINT_MSG		 8192 // how many symbols can handle single call of Con_Printf or Con_DPrintf
+#define MAX_TOKEN			 2048 // parse token length
+#define MAX_USERMSG_LENGTH	2048 // don't modify it's relies on a client-side definitions
 
 #define GameState		(&host.game)
 
@@ -240,11 +240,11 @@ typedef struct field_e
 typedef struct host_redirect_s
 {
 	rdtype_t target;
-	char     *buffer;
+	char	 *buffer;
 	size_t   buffersize;
 	netadr_t address;
-	void     (*flush)( netadr_t adr, rdtype_t target, char *buffer );
-	int      lines;
+	void	 (*flush)( netadr_t adr, rdtype_t target, char *buffer );
+	int	  lines;
 } host_redirect_t;
 
 typedef struct soundlist_e
@@ -281,64 +281,64 @@ typedef enum bugcomp_e
 typedef struct host_parm_s
 {
 	// ==== shared through RefAPI's ref_host_t
-	double realtime;    // host.curtime
+	double realtime;	// host.curtime
 	double frametime;   // time between engine frames
-	uint   features;    // custom features that enables by mod-maker request
+	uint   features;	// custom features that enables by mod-maker request
 	// ==== shared through RefAPI's ref_host_t
 
-	host_status_t status;           // global host state
-	game_status_t game;             // game manager
-	instance_t    type;             // running at
-	poolhandle_t  mempool;          // static mempool for misc allocations
-	poolhandle_t  imagepool;        // imagelib mempool
-	poolhandle_t  soundpool;        // soundlib mempool
-	string        downloadfile;     // filename to be downloading
-	int           downloadcount;    // how many files remain to downloading
-	char          deferred_cmd[128];// deferred commands
+	host_status_t status;		   // global host state
+	game_status_t game;			 // game manager
+	instance_t	type;			 // running at
+	poolhandle_t  mempool;		  // static mempool for misc allocations
+	poolhandle_t  imagepool;		// imagelib mempool
+	poolhandle_t  soundpool;		// soundlib mempool
+	string		downloadfile;	 // filename to be downloading
+	int		   downloadcount;	// how many files remain to downloading
+	char		  deferred_cmd[128];// deferred commands
 
 	host_redirect_t rd; // remote console
 
-	void   *hWnd;          // main window
+	void   *hWnd;		  // main window
 
 	// command line parms
 	const char **argv;
 	int	 argc;
 
-	uint     framecount;     // global framecount
-	uint     errorframe;     // to prevent multiple host error
+	uint	 framecount;	 // global framecount
+	uint	 errorframe;	 // to prevent multiple host error
 	uint32_t bugcomp; // bug compatibility level, for very "special" games
 	double   realframetime;  // for some system events, e.g. console animations
-	double   starttime;      // measure time to first frame
+	double   starttime;	  // measure time to first frame
 	double   pureframetime;  // count of sleeps can be inserted between frames
 	double   force_draw_version_time;
 
 	char   draw_decals[MAX_DECALS][MAX_QPATH]; // list of unique decal indexes
-	vec3_t player_mins[MAX_MAP_HULLS];         // 4 hulls allowed
-	vec3_t player_maxs[MAX_MAP_HULLS];         // 4 hulls allowed
+	vec3_t player_mins[MAX_MAP_HULLS];		 // 4 hulls allowed
+	vec3_t player_maxs[MAX_MAP_HULLS];		 // 4 hulls allowed
 
 	// for CL_{Push,Pop}TraceBounds
 	vec3_t player_mins_backup[MAX_MAP_HULLS];
 	vec3_t player_maxs_backup[MAX_MAP_HULLS];
 
 	uint trace_bounds_pushed : 1;
-	uint allow_console       : 1; // allow console in dev-mode or multiplayer game
+	uint allow_console	   : 1; // allow console in dev-mode or multiplayer game
 	uint allow_console_init  : 1; // initial value to allow the console
-	uint key_overstrike      : 1; // key overstrike mode
+	uint key_overstrike	  : 1; // key overstrike mode
 	uint stuffcmds_pending   : 1; // should execute stuff commands
-	uint allow_cheats        : 1; // this host will allow cheating
-	uint change_game         : 1; // initialize when game is changed
-	uint mouse_visible       : 1; // vgui override cursor control (never change outside Platform_SetCursorType!)
-	uint shutdown_issued     : 1; // engine is shutting down
+	uint allow_cheats		: 1; // this host will allow cheating
+	uint change_game		 : 1; // initialize when game is changed
+	uint mouse_visible	   : 1; // vgui override cursor control (never change outside Platform_SetCursorType!)
+	uint shutdown_issued	 : 1; // engine is shutting down
 	uint apply_opengl_config : 1; // when true apply only to opengl cvars and ignore all other commands
-	uint config_executed     : 1; // a bit who indicated was config.cfg already executed e.g. from valve.rc
-	uint textmode            : 1;
-	uint userinfo_changed    : 1; // some settings were changed and needs to global update
-	uint movevars_changed    : 1;
+	uint config_executed	 : 1; // a bit who indicated was config.cfg already executed e.g. from valve.rc
+	uint textmode			: 1;
+	uint userinfo_changed	: 1; // some settings were changed and needs to global update
+	uint movevars_changed	: 1;
 	uint renderinfo_changed  : 1;
 
 	// for IN_MouseMove() easy access
-	int      window_center_x;
-	int      window_center_y;
+	int	  window_center_x;
+	int	  window_center_y;
 	string   gamedll;
 	string   clientlib;
 	string   menulib;
@@ -354,7 +354,7 @@ extern host_parm_t	host;
 #define CMD_GAMEUIDLL   BIT( 2 ) // added by GameUI.dll
 #define CMD_PRIVILEGED  BIT( 3 ) // only available in privileged mode
 #define CMD_FILTERABLE  BIT( 4 ) // filtered in unprivileged mode if cl_filterstuffcmd is 1
-#define CMD_REFDLL      BIT( 5 ) // added by ref.dll
+#define CMD_REFDLL	  BIT( 5 ) // added by ref.dll
 #define CMD_OVERRIDABLE BIT( 6 ) // can be removed by DLLs if name matches
 
 typedef void (*xcommand_t)( void );
@@ -533,15 +533,15 @@ typedef enum sndFlags_e
 
 typedef struct wavdata_s
 {
-	size_t  size;      // for bounds checking
-	uint    loop_start; // offset at this point sound will be looping while playing more than only once
-	uint    samples;   // total samplecount in wav
-	uint    type;      // compression type
-	uint    flags;     // misc sound flags
-	word    rate;      // num samples per second (e.g. 11025 - 11 khz)
-	byte    width;     // resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
-	byte    channels;  // num channels (1 - mono, 2 - stereo)
-	byte    buffer[];  // sound buffer
+	size_t  size;	  // for bounds checking
+	uint	loop_start; // offset at this point sound will be looping while playing more than only once
+	uint	samples;   // total samplecount in wav
+	uint	type;	  // compression type
+	uint	flags;	 // misc sound flags
+	word	rate;	  // num samples per second (e.g. 11025 - 11 khz)
+	byte	width;	 // resolution - bum bits divided by 8 (8 bit is 1, 16 bit is 2)
+	byte	channels;  // num channels (1 - mono, 2 - stereo)
+	byte	buffer[];  // sound buffer
 } wavdata_t;
 
 //

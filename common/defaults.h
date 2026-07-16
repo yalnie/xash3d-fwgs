@@ -31,24 +31,24 @@ SETUP BACKENDS DEFINITIONS
 //
 #if !XASH_DEDICATED // when compiling client, we need to pick video, audio and input implementations
 	#if XASH_SDL // we are building with SDL
-		#define XASH_VIDEO     VIDEO_SDL
-		#define XASH_INPUT     INPUT_SDL
-		#define XASH_SOUND     SOUND_SDL
+		#define XASH_VIDEO	 VIDEO_SDL
+		#define XASH_INPUT	 INPUT_SDL
+		#define XASH_SOUND	 SOUND_SDL
 	#elif XASH_LINUX // we are building for Linux without SDL, only framebuffer is supported for now
-		#define XASH_VIDEO     VIDEO_FBDEV
-		#define XASH_INPUT     INPUT_EVDEV
-		#define XASH_SOUND     SOUND_ALSA
+		#define XASH_VIDEO	 VIDEO_FBDEV
+		#define XASH_INPUT	 INPUT_EVDEV
+		#define XASH_SOUND	 SOUND_ALSA
 		#define XASH_USE_EVDEV 1
 	#elif XASH_DOS4GW
-		#define XASH_VIDEO     VIDEO_DOS
+		#define XASH_VIDEO	 VIDEO_DOS
 		#define XASH_REDUCE_FD 1 // usually only 10-20 fds available
 	#elif XASH_PSP
-		#define XASH_VIDEO     VIDEO_PSP
-		#define XASH_INPUT     INPUT_PSP
-		#define XASH_SOUND     SOUND_PSP
+		#define XASH_VIDEO	 VIDEO_PSP
+		#define XASH_INPUT	 INPUT_PSP
+		#define XASH_SOUND	 SOUND_PSP
 		#define XASH_REDUCE_FD 1
 		#define XASH_NO_TOUCH  1
-		#define XASH_NO_ZIP    1
+		#define XASH_NO_ZIP	1
 	#endif
 #endif // !XASH_DEDICATED
 
@@ -139,13 +139,13 @@ Default build-depended cvar and constant values
 	#define DEFAULT_FULLSCREEN   "0"
 #elif XASH_NSWITCH
 	#define DEFAULT_TOUCH_ENABLE "1"
-	#define DEFAULT_M_IGNORE     "1"
+	#define DEFAULT_M_IGNORE	 "1"
 	#define DEFAULT_MODE_WIDTH   1280
 	#define DEFAULT_MODE_HEIGHT  720
 	#define DEFAULT_ALLOWCONSOLE 1
 #elif XASH_PSVITA
 	#define DEFAULT_TOUCH_ENABLE "1"
-	#define DEFAULT_M_IGNORE     "1"
+	#define DEFAULT_M_IGNORE	 "1"
 	#define DEFAULT_MODE_WIDTH   960
 	#define DEFAULT_MODE_HEIGHT  544
 	#define DEFAULT_ALLOWCONSOLE 1
@@ -153,7 +153,7 @@ Default build-depended cvar and constant values
 	#define DEFAULT_TOUCH_ENABLE "1"
 #elif XASH_MOBILE_PLATFORM
 	#define DEFAULT_TOUCH_ENABLE "1"
-	#define DEFAULT_M_IGNORE     "1"
+	#define DEFAULT_M_IGNORE	 "1"
 #endif // !XASH_MOBILE_PLATFORM && !XASH_NSWITCH
 
 // Defaults

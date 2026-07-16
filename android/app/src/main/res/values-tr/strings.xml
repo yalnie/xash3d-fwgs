@@ -93,11 +93,11 @@
 	<string name="hl_required_message">Half-Life (valve) klasörü bulunamadı veya boş. %1$s oyununun düzgün çalışabilmesi için Half-Life dosyaları gereklidir. Yine de indirmek istiyor musunuz?</string>
 	<string name="btn_install_anyway">Yine de yükle</string>
 	<string name="operation_cancelled">İşlem iptal ediliyor...</string>
-    <string name="settings_download_source">İndirme Kaynağı</string>
-    <string name="dialog_select_source_title">İndirme Sunucusunu Seçin</string>
-    <string name="dialog_select_source_message">Lütfen indirme hızınıza ve konumunuza en uygun sunucuyu seçin. GitLab genellikle en hızlı indirme deneyimini sunarken, sorun yaşamanız durumunda diğer alternatif aynaları kullanabilirsiniz.</string>
-    <string name="source_speed_fastest">En Hızlı</string>
-    <string name="source_speed_fast">Hızlı</string>
-    <string name="source_speed_medium">Orta</string>
-    <string name="source_speed_slow">Yavaş</string>
+	<string name="settings_download_source">İndirme Kaynağı</string>
+	<string name="dialog_select_source_title">İndirme Sunucusunu Seçin</string>
+	<string name="dialog_select_source_message">Lütfen indirme hızınıza ve konumunuza en uygun sunucuyu seçin. GitLab genellikle en hızlı indirme deneyimini sunarken, sorun yaşamanız durumunda diğer alternatif aynaları kullanabilirsiniz.</string>
+	<string name="source_speed_fastest">En Hızlı</string>
+	<string name="source_speed_fast">Hızlı</string>
+	<string name="source_speed_medium">Orta</string>
+	<string name="source_speed_slow">Yavaş</string>
 </resources>

@@ -21,7 +21,7 @@ typedef struct tlsctx_s tlsctx_t;
 
 enum
 {
-	HTTP_TLS_OK    =  0, // handshake/op completed
+	HTTP_TLS_OK	=  0, // handshake/op completed
 	HTTP_TLS_WANT  = -1, // would block, retry next frame
 	HTTP_TLS_ERROR = -2  // permanent failure, tear the connection down
 };

@@ -114,7 +114,7 @@ typedef struct server_physics_api_s
 	const char *(*pfnGetModelName)( int modelindex );
 
 	// FWGS extension
-	void       *(*pfnGetNativeObject)( const char *object );
+	void	   *(*pfnGetNativeObject)( const char *object );
 } server_physics_api_t;
 
 // physic callbacks

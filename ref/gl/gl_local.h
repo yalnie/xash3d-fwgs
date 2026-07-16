@@ -51,7 +51,7 @@ void VGL_ShimEndFrame( void );
 #include <stdio.h>
 
 // make mod_ref.h?
-#define LM_SAMPLE_SIZE             16
+#define LM_SAMPLE_SIZE			 16
 
 
 
@@ -59,7 +59,7 @@ void VGL_ShimEndFrame( void );
 #define BLOCK_SIZE_DEFAULT	128		// for keep backward compatibility
 #define BLOCK_SIZE_MAX	1024
 
-#define MAX_TEXTURES            8192	// a1ba: increased by users request
+#define MAX_TEXTURES			8192	// a1ba: increased by users request
 #define MAX_DETAIL_TEXTURES	256
 #define MAX_LIGHTMAPS	256
 #define SUBDIVIDE_SIZE	64

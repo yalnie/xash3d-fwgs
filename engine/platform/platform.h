@@ -29,7 +29,7 @@ GNU General Public License for more details.
 /*
 ==============================================================================
 
-                       SYSTEM UTILS
+					   SYSTEM UTILS
 
 ==============================================================================
 */
@@ -352,13 +352,13 @@ typedef enum ref_graphic_apis_e ref_graphic_apis_t;
 
 // Window
 qboolean  R_Init_Video( ref_graphic_apis_t type );
-void      R_Free_Video( void );
+void	  R_Free_Video( void );
 qboolean  VID_SetMode( void );
 rserr_t   R_ChangeDisplaySettings( int width, int height, window_mode_t window_mode );
-int       R_MaxVideoModes( void );
+int	   R_MaxVideoModes( void );
 struct vidmode_s *R_GetVideoMode( int num );
-void*     GL_GetProcAddress( const char *name ); // RenderAPI requirement
-void      GL_UpdateSwapInterval( void );
+void*	 GL_GetProcAddress( const char *name ); // RenderAPI requirement
+void	  GL_UpdateSwapInterval( void );
 int GL_SetAttribute( int attr, int val );
 int GL_GetAttribute( int attr, int *val );
 void GL_SwapBuffers( void );

@@ -6,11 +6,11 @@
  * modification, are permitted provided that the following conditions
  * are met:
  *  * Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *	notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ *	notice, this list of conditions and the following disclaimer in
+ *	the documentation and/or other materials provided with the
+ *	distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -65,7 +65,7 @@
 
 struct link_map_t {
 	uintptr_t  l_addr;
-	char       *l_name;
+	char	   *l_name;
 	uintptr_t  l_ld;
 	struct link_map_t *l_next;
 	struct link_map_t *l_prev;
@@ -78,8 +78,8 @@ enum {
 	RT_DELETE
 };
 #define FLAG_LINKED 0x00000001
-#define FLAG_EXE    0x00000004     // The main executable
-#define FLAG_LINKER 0x00000010     // The linker itself
+#define FLAG_EXE	0x00000004	 // The main executable
+#define FLAG_LINKER 0x00000010	 // The linker itself
 
 #define SOINFO_NAME_LEN 128
 
@@ -91,34 +91,34 @@ typedef void (*linker_function_t)( void );
 #endif
 
 struct soinfo {
-	char           name[SOINFO_NAME_LEN];
+	char		   name[SOINFO_NAME_LEN];
 	const Elf_Phdr *phdr;
-	size_t         phnum;
-	Elf_Addr       entry;
-	Elf_Addr       base;
-	unsigned       size;
+	size_t		 phnum;
+	Elf_Addr	   entry;
+	Elf_Addr	   base;
+	unsigned	   size;
 
 #ifndef __LP64__
-	uint32_t       unused1; // DO NOT USE, maintained for compatibility.
+	uint32_t	   unused1; // DO NOT USE, maintained for compatibility.
 #endif
 
-	Elf_Dyn        *dynamic;
+	Elf_Dyn		*dynamic;
 
 #ifndef __LP64__
-	uint32_t       unused2; // DO NOT USE, maintained for compatibility
-	uint32_t       unused3; // DO NOT USE, maintained for compatibility
+	uint32_t	   unused2; // DO NOT USE, maintained for compatibility
+	uint32_t	   unused3; // DO NOT USE, maintained for compatibility
 #endif
 
 	struct soinfo  *next;
-	unsigned       flags;
+	unsigned	   flags;
 
-	const char     *strtab;
-	Elf_Sym        *symtab;
+	const char	 *strtab;
+	Elf_Sym		*symtab;
 
-	size_t         nbucket;
-	size_t         nchain;
-	unsigned       *bucket;
-	unsigned       *chain;
+	size_t		 nbucket;
+	size_t		 nchain;
+	unsigned	   *bucket;
+	unsigned	   *chain;
 
 #if !defined( __LP64__ )
 	// This is only used by 32-bit MIPS, but needs to be here for
@@ -127,26 +127,26 @@ struct soinfo {
 #endif
 
 #if defined( USE_RELA )
-	Elf_RelA          *plt_rela;
-	size_t            plt_rela_count;
+	Elf_RelA		  *plt_rela;
+	size_t			plt_rela_count;
 
-	Elf_RelA          *rela;
-	size_t            rela_count;
+	Elf_RelA		  *rela;
+	size_t			rela_count;
 #else
-	Elf_Rel           *plt_rel;
-	size_t            plt_rel_count;
+	Elf_Rel		   *plt_rel;
+	size_t			plt_rel_count;
 
-	Elf_Rel           *rel;
-	size_t            rel_count;
+	Elf_Rel		   *rel;
+	size_t			rel_count;
 #endif
 
 	linker_function_t *preinit_array;
-	size_t            preinit_array_count;
+	size_t			preinit_array_count;
 
 	linker_function_t *init_array;
-	size_t            init_array_count;
+	size_t			init_array_count;
 	linker_function_t *fini_array;
-	size_t            fini_array_count;
+	size_t			fini_array_count;
 
 	linker_function_t init_func;
 	linker_function_t fini_func;
@@ -154,26 +154,26 @@ struct soinfo {
 #if defined( __arm__ )
 	// ARM EABI section used for stack unwinding.
 	unsigned   *ARM_exidx;
-	size_t     ARM_exidx_count;
+	size_t	 ARM_exidx_count;
 #elif defined( __mips__ )
 	unsigned   mips_symtabno;
 	unsigned   mips_local_gotno;
 	unsigned   mips_gotsym;
 #endif
 
-	size_t            ref_count;
+	size_t			ref_count;
 	struct link_map_t link_map;
 
-	bool       constructors_called;
+	bool	   constructors_called;
 
 	// When you read a virtual address from the ELF file, add this
 	// value to get the corresponding address in the process' address space.
 	Elf_Addr load_bias;
 
 #if !defined( __LP64__ )
-	bool     has_text_relocations;
+	bool	 has_text_relocations;
 #endif
-	bool     has_DT_SYMBOLIC;
+	bool	 has_DT_SYMBOLIC;
 };
 
 #endif

@@ -50,10 +50,10 @@ typedef void (*pfnChangeGame)( const char *progname );
 typedef int  (*pfnInit)( int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func );
 typedef void (*pfnShutdown)( void );
 
-static pfnInit     Host_Main;
+static pfnInit	 Host_Main;
 static pfnShutdown Host_Shutdown = NULL;
-static int         szArgc;
-static char        **szArgv;
+static int		 szArgc;
+static char		**szArgv;
 static HINSTANCE   hEngine;
 
 static void Launch_Error( const char *szFmt, ... )

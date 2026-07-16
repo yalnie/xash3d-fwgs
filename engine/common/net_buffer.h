@@ -22,7 +22,7 @@ GNU General Public License for more details.
 ==============================================================================
 
 			MESSAGE IO FUNCTIONS
-	       Handles byte ordering and avoids alignment errors
+		   Handles byte ordering and avoids alignment errors
 ==============================================================================
 */
 
@@ -37,24 +37,24 @@ static inline int BitByte( int bits )
 
 struct sizebuf_s
 {
-	byte        *pData;
-	qboolean    bOverflow;   // overflow reading or writing
-	int         iCurBit;
-	int         nDataBits;
+	byte		*pData;
+	qboolean	bOverflow;   // overflow reading or writing
+	int		 iCurBit;
+	int		 nDataBits;
 	const char	*pDebugName; // buffer name (pointer to const name)
 
 	// to support GoldSrc broken signed integers
 	int iAlternateSign;
 };
 
-#define MSG_StartReading     MSG_StartWriting
+#define MSG_StartReading	 MSG_StartWriting
 #define MSG_GetNumBytesRead  MSG_GetNumBytesWritten
 #define MSG_GetRealBytesRead MSG_GetRealBytesWritten
 #define MSG_GetNumBitsRead   MSG_GetNumBitsWritten
-#define MSG_ReadBitAngles    MSG_ReadBitVec3Coord
-#define MSG_ReadAngle( sb )               (float)( MSG_ReadChar( sb ) * ( 360.0f / 256.0f ))
+#define MSG_ReadBitAngles	MSG_ReadBitVec3Coord
+#define MSG_ReadAngle( sb )			   (float)( MSG_ReadChar( sb ) * ( 360.0f / 256.0f ))
 #define MSG_Init( sb, name, data, bytes ) MSG_InitExt( sb, name, data, bytes, -1 )
-#define MSG_CheckOverflow( sb )           MSG_Overflow( sb, 0 )
+#define MSG_CheckOverflow( sb )		   MSG_Overflow( sb, 0 )
 
 // common functions
 static inline void MSG_Clear( sizebuf_t *sb )

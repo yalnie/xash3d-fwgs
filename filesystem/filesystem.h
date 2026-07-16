@@ -38,18 +38,18 @@ extern "C"
 // search path flags
 enum
 {
-	FS_STATIC_PATH    = BIT( 0 ), // FS_ClearSearchPath will be ignore this path
+	FS_STATIC_PATH	= BIT( 0 ), // FS_ClearSearchPath will be ignore this path
 	FS_NOWRITE_PATH   = BIT( 1 ), // default behavior - last added gamedir set as writedir. This flag disables it
 	FS_GAMEDIR_PATH   = BIT( 2 ), // just a marker for gamedir path
-	FS_CUSTOM_PATH    = BIT( 3 ), // gamedir but with custom/mod data
+	FS_CUSTOM_PATH	= BIT( 3 ), // gamedir but with custom/mod data
 	FS_GAMERODIR_PATH = BIT( 4 ), // gamedir but read-only
-	FS_EXEC_PATH      = BIT( 5 ), // this directory is allowed to have executable code
+	FS_EXEC_PATH	  = BIT( 5 ), // this directory is allowed to have executable code
 
 	FS_SKIP_ARCHIVED_WADS = BIT( 16 ), // don't mount wads inside archives automatically
-	FS_LOAD_PACKED_WAD    = BIT( 17 ), // this wad is packed inside other archive
+	FS_LOAD_PACKED_WAD	= BIT( 17 ), // this wad is packed inside other archive
 
-	FS_MOUNT_HD    = BIT( 24 ), // mount high definition content folder
-	FS_MOUNT_LV    = BIT( 25 ), // mount low violence content folder
+	FS_MOUNT_HD	= BIT( 24 ), // mount high definition content folder
+	FS_MOUNT_LV	= BIT( 25 ), // mount low violence content folder
 	FS_MOUNT_ADDON = BIT( 26 ), // mount addon folder
 	FS_MOUNT_L10N  = BIT( 27 ), // mount localization folder
 
@@ -247,11 +247,11 @@ typedef struct fs_api_t
 typedef struct fs_interface_t
 {
 	// logging
-	void    (*_Con_Printf)( const char *fmt, ... ) FORMAT_CHECK( 1 ); // typical console allowed messages
-	void    (*_Con_DPrintf)( const char *fmt, ... ) FORMAT_CHECK( 1 ); // -dev 1
-	void    (*_Con_Reportf)( const char *fmt, ... ) FORMAT_CHECK( 1 ); // -dev 2
+	void	(*_Con_Printf)( const char *fmt, ... ) FORMAT_CHECK( 1 ); // typical console allowed messages
+	void	(*_Con_DPrintf)( const char *fmt, ... ) FORMAT_CHECK( 1 ); // -dev 1
+	void	(*_Con_Reportf)( const char *fmt, ... ) FORMAT_CHECK( 1 ); // -dev 2
 
-	void    (*_Sys_Error)( const char *fmt, ... ) FORMAT_CHECK( 1 );
+	void	(*_Sys_Error)( const char *fmt, ... ) FORMAT_CHECK( 1 );
 
 	// memory
 	poolhandle_t (*_Mem_AllocPool)( const char *name, unsigned int flags, const char *filename, int fileline );

@@ -33,52 +33,52 @@ STATIC_CHECK_SIZEOF( pmplane_t, 16, 16 );
 
 typedef struct pmtrace_s
 {
-	qboolean  allsolid;        // if true, plane is not valid
-	qboolean  startsolid;      // if true, the initial point was in a solid area
+	qboolean  allsolid;		// if true, plane is not valid
+	qboolean  startsolid;	  // if true, the initial point was in a solid area
 	qboolean  inopen, inwater;
-	float     fraction;        // time completed, 1.0 = didn't hit anything
-	vec3_t    endpos;          // final position
-	pmplane_t plane;           // surface normal at impact
-	int       ent;             // entity the surface is on
-	vec3_t    deltavelocity;
-	int       hitgroup;
+	float	 fraction;		// time completed, 1.0 = didn't hit anything
+	vec3_t	endpos;		  // final position
+	pmplane_t plane;		   // surface normal at impact
+	int	   ent;			 // entity the surface is on
+	vec3_t	deltavelocity;
+	int	   hitgroup;
 } pmtrace_t;
 
 STATIC_CHECK_SIZEOF( pmtrace_t, 68, 68 );
 
 typedef struct movevars_s
 {
-	float    gravity;
-	float    stopspeed;
-	float    maxspeed;
-	float    spectatormaxspeed;
-	float    accelerate;
-	float    airaccelerate;
-	float    wateraccelerate;
-	float    friction;
-	float    edgefriction; // goldsrc binary compat
-	float    waterfriction;
-	float    entgravity;
+	float	gravity;
+	float	stopspeed;
+	float	maxspeed;
+	float	spectatormaxspeed;
+	float	accelerate;
+	float	airaccelerate;
+	float	wateraccelerate;
+	float	friction;
+	float	edgefriction; // goldsrc binary compat
+	float	waterfriction;
+	float	entgravity;
 
 	// goldsrc additions
-	float    bounce;
-	float    stepsize;
-	float    maxvelocity;
-	float    zmax;
-	float    waveHeight;
+	float	bounce;
+	float	stepsize;
+	float	maxvelocity;
+	float	zmax;
+	float	waveHeight;
 	qboolean footsteps;
-	char     skyName[32];
-	float    rollangle;
-	float    rollspeed;
+	char	 skyName[32];
+	float	rollangle;
+	float	rollspeed;
 	vec3_t   skycolor;
 	vec3_t   skyvec;
 
 	// xash extensions
-	int      features;
-	int      fog_settings;
-	float    wateralpha;
+	int	  features;
+	int	  fog_settings;
+	float	wateralpha;
 	vec3_t   skydir; // unused
-	float    skyangle; // unused
+	float	skyangle; // unused
 } movevars_t;
 
 STATIC_CHECK_SIZEOF( movevars_t, 160, 160 );

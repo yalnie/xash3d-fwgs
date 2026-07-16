@@ -26,7 +26,7 @@ typedef struct vidmode_s
 
 typedef struct
 {
-	void     *context; // handle to GL rendering context
+	void	 *context; // handle to GL rendering context
 	ref_safegl_context_t safe;
 	qboolean software;
 } glwstate_t;

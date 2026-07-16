@@ -216,49 +216,49 @@ typedef enum
 
 typedef struct dds_pf_s
 {
-	uint32_t    dwSize;
-	uint32_t    dwFlags;
-	uint32_t    dwFourCC;
-	uint32_t    dwRGBBitCount;
-	uint32_t    dwRBitMask;
-	uint32_t    dwGBitMask;
-	uint32_t    dwBBitMask;
-	uint32_t    dwABitMask;
+	uint32_t	dwSize;
+	uint32_t	dwFlags;
+	uint32_t	dwFourCC;
+	uint32_t	dwRGBBitCount;
+	uint32_t	dwRBitMask;
+	uint32_t	dwGBitMask;
+	uint32_t	dwBBitMask;
+	uint32_t	dwABitMask;
 } dds_pixf_t;
 
 //  DDCAPS2
 typedef struct dds_caps_s
 {
-	uint32_t    dwCaps1;
-	uint32_t    dwCaps2;
-	uint32_t    dwCaps3;			// currently unused
-	uint32_t    dwCaps4;			// currently unused
+	uint32_t	dwCaps1;
+	uint32_t	dwCaps2;
+	uint32_t	dwCaps3;			// currently unused
+	uint32_t	dwCaps4;			// currently unused
 } dds_caps_t;
 
 typedef struct dds_header_dxt10_s
 {
 	dxgi_format_t dxgiFormat;
 	dds_resource_dimension_t resourceDimension;
-	uint32_t    miscFlag;
-	uint32_t    arraySize;
-	uint32_t    miscFlags2;
+	uint32_t	miscFlag;
+	uint32_t	arraySize;
+	uint32_t	miscFlags2;
 } dds_header_dxt10_t;
 
 typedef struct dds_s
 {
-	uint32_t    dwIdent;		// must matched with DDSHEADER
-	uint32_t    dwSize;
-	uint32_t    dwFlags;		// determines what fields are valid
-	uint32_t    dwHeight;
-	uint32_t    dwWidth;
-	uint32_t    dwLinearSize;	// Formless late-allocated optimized surface size
-	uint32_t    dwDepth;		// depth if a volume texture
-	uint32_t    dwMipMapCount;	// number of mip-map levels requested
-	uint32_t    dwAlphaBitDepth;	// depth of alpha buffer requested
-	uint32_t    dwReserved1[10];	// reserved for future expansions
+	uint32_t	dwIdent;		// must matched with DDSHEADER
+	uint32_t	dwSize;
+	uint32_t	dwFlags;		// determines what fields are valid
+	uint32_t	dwHeight;
+	uint32_t	dwWidth;
+	uint32_t	dwLinearSize;	// Formless late-allocated optimized surface size
+	uint32_t	dwDepth;		// depth if a volume texture
+	uint32_t	dwMipMapCount;	// number of mip-map levels requested
+	uint32_t	dwAlphaBitDepth;	// depth of alpha buffer requested
+	uint32_t	dwReserved1[10];	// reserved for future expansions
 	dds_pixf_t  dsPixelFormat;
 	dds_caps_t  dsCaps;
-	uint32_t    dwTextureStage;
+	uint32_t	dwTextureStage;
 } dds_t;
 #endif // IMG_DDS_H
 

@@ -18,23 +18,23 @@ GNU General Public License for more details.
 
 // default colored message headers
 #define S_BLACK   "^0"
-#define S_RED     "^1"
+#define S_RED	 "^1"
 #define S_GREEN   "^2"
 #define S_YELLOW  "^3"
-#define S_BLUE    "^4"
-#define S_CYAN    "^5"
+#define S_BLUE	"^4"
+#define S_CYAN	"^5"
 #define S_MAGENTA "^6"
 #define S_DEFAULT "^7"
 
-#define S_NOTE         S_GREEN  "Note: " S_DEFAULT
-#define S_WARN         S_YELLOW "Warning: " S_DEFAULT
-#define S_ERROR        S_RED    "Error: " S_DEFAULT
-#define S_USAGE        "Usage: "
+#define S_NOTE		 S_GREEN  "Note: " S_DEFAULT
+#define S_WARN		 S_YELLOW "Warning: " S_DEFAULT
+#define S_ERROR		S_RED	"Error: " S_DEFAULT
+#define S_USAGE		"Usage: "
 #define S_USAGE_INDENT "\t"
 
 #define S_OPENGL_NOTE  S_GREEN  "OpenGL Note: " S_DEFAULT
 #define S_OPENGL_WARN  S_YELLOW "OpenGL Warning: " S_DEFAULT
-#define S_OPENGL_ERROR S_RED    "OpenGL Error: " S_DEFAULT
+#define S_OPENGL_ERROR S_RED	"OpenGL Error: " S_DEFAULT
 
 // end game final default message
 #define DEFAULT_ENDGAME_MESSAGE	"The End"
@@ -65,7 +65,7 @@ GNU General Public License for more details.
 #define DEFAULT_CUSTOM_DIRECTORY "custom/"
 
 // fallback to this skybox
-#define DEFAULT_SKYBOX_NAME     "desert"
+#define DEFAULT_SKYBOX_NAME	 "desert"
 
 // playlist for startup videos
 #define DEFAULT_VIDEOLIST_PATH	"media/StartupVids.txt"
@@ -76,7 +76,7 @@ GNU General Public License for more details.
 
 #define XASH_ENGINE_NAME "Xash3D FWGS"
 #define XASH_DEDICATED_SERVER_NAME "XashDS"
-#define XASH_VERSION        "0.21" // engine current version
+#define XASH_VERSION		"0.21" // engine current version
 #define XASH_COMPAT_VERSION "0.99" // version we are based on
 
 #endif//COM_STRINGS_H

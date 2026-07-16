@@ -23,11 +23,11 @@
 
 	</androidx.fragment.app.FragmentContainerView>
 
-	<!--    <com.google.android.material.bottomnavigation.BottomNavigationView-->
-	<!--        android:id="@+id/bottomNavigation"-->
-	<!--        style="@style/Widget.MaterialComponents.BottomNavigationView.Colored"-->
-	<!--        android:layout_width="match_parent"-->
-	<!--        android:layout_height="wrap_content"-->
-	<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-	<!--        app:menu="@menu/menu_game_settings" />-->
+	<!--	<com.google.android.material.bottomnavigation.BottomNavigationView-->
+	<!--		android:id="@+id/bottomNavigation"-->
+	<!--		style="@style/Widget.MaterialComponents.BottomNavigationView.Colored"-->
+	<!--		android:layout_width="match_parent"-->
+	<!--		android:layout_height="wrap_content"-->
+	<!--		app:layout_constraintBottom_toBottomOf="parent"-->
+	<!--		app:menu="@menu/menu_game_settings" />-->
 </androidx.constraintlayout.widget.ConstraintLayout>

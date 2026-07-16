@@ -85,7 +85,7 @@ typedef struct imglib_s
 	uint			*d_currentpal;	// installed version of internal palette
 	int			d_rendermode;	// palette rendermode
 	byte			*palette;		// palette pointer
-	int                     black_pixel;     // "free" index used for luma textures (0 for Quake as it's black, 255 for Half-Life as it's #0000FF)
+	int					 black_pixel;	 // "free" index used for luma textures (0 for Quake as it's black, 255 for Half-Life as it's #0000FF)
 
 	// global parms
 	rgba_t			fogParams;	// some water textures has info about underwater fog
@@ -109,11 +109,11 @@ typedef struct imglib_s
 enum
 {
 	LUMP_NORMAL = 0, // no alpha
-	LUMP_MASKED,     // 1-bit alpha channel masked texture
+	LUMP_MASKED,	 // 1-bit alpha channel masked texture
 	LUMP_GRADIENT,   // gradient image (decals)
 	LUMP_EXTENDED,   // bmp images have extened palette with alpha-channel
 	LUMP_HALFLIFE,   // get predefined half-life palette
-	LUMP_QUAKE1,     // get predefined quake palette
+	LUMP_QUAKE1,	 // get predefined quake palette
 	LUMP_TEXGAMMA,   // apply texgamma on top of palette, for half-life mips
 };
 

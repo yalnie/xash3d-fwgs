@@ -34,7 +34,7 @@ typedef struct buffy_s
 typedef struct bufferchain_s
 {
 	struct buffy_s	*first;		// the beginning of the chain.
-	struct buffy_s	*last;		// the end...    of the chain.
+	struct buffy_s	*last;		// the end...	of the chain.
 	mpg_ssize_t		size;		// aggregated size of all buffies.
 
 	// these positions are relative to buffer chain beginning.

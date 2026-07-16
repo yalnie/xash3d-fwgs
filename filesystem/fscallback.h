@@ -23,7 +23,7 @@ GNU General Public License for more details.
 extern fs_api_t g_fsapi;
 extern fs_globals_t *FI;
 
-#define GI           FI->GameInfo
+#define GI		   FI->GameInfo
 #define FS_Gamedir() GI->gamefolder
 #define FS_Title()   GI->title
 

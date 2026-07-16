@@ -188,14 +188,14 @@ enum mpg123_parms
 // flag bits for MPG123_FLAGS, use the usual binary or to combine.
 enum mpg123_param_flags
 {
-	MPG123_FORCE_MONO = 0x7,		/**<     0111 Force some mono mode: This is a test bitmask for seeing if any mono forcing is active. */
-	MPG123_MONO_LEFT = 0x1,		/**<     0001 Force playback of left channel only.  */
-	MPG123_MONO_RIGHT = 0x2,		/**<     0010 Force playback of right channel only. */
-	MPG123_MONO_MIX = 0x4,		/**<     0100 Force playback of mixed mono.         */
-	MPG123_FORCE_STEREO = 0x8,		/**<     1000 Force stereo output.                  */
-	MPG123_QUIET = 0x20,		/**< 00100000 Suppress any printouts (overrules verbose).                    */
+	MPG123_FORCE_MONO = 0x7,		/**<	 0111 Force some mono mode: This is a test bitmask for seeing if any mono forcing is active. */
+	MPG123_MONO_LEFT = 0x1,		/**<	 0001 Force playback of left channel only.  */
+	MPG123_MONO_RIGHT = 0x2,		/**<	 0010 Force playback of right channel only. */
+	MPG123_MONO_MIX = 0x4,		/**<	 0100 Force playback of mixed mono.		 */
+	MPG123_FORCE_STEREO = 0x8,		/**<	 1000 Force stereo output.				  */
+	MPG123_QUIET = 0x20,		/**< 00100000 Suppress any printouts (overrules verbose).					*/
 	MPG123_GAPLESS = 0x40,		/**< 01000000 Enable gapless decoding (default on if libmpg123 has support). */
-	MPG123_NO_RESYNC = 0x80,		/**< 10000000 Disable resync stream after error.                             */
+	MPG123_NO_RESYNC = 0x80,		/**< 10000000 Disable resync stream after error.							 */
 	MPG123_SEEKBUFFER = 0x100,		/**< 000100000000 Enable small buffer on non-seekable streams to allow some peek-ahead (for better MPEG sync). */
 	MPG123_FUZZY = 0x200,		/**< 001000000000 Enable fuzzy seeks (guessing byte offsets or using approximate seek points from Xing TOC) */
 	MPG123_IGNORE_STREAMLENGTH = 0x1000,	/**< 1000000000000 Ignore any stream length information contained in the stream, which can be contained in a 'TLEN' frame of an ID3v2 tag or a Xing tag */
@@ -214,9 +214,9 @@ enum mpg123_param_rva
 
 enum frame_state_flags
 {
-	FRAME_ACCURATE = 0x1,		/**<     0001 Positions are considered accurate. */
-	FRAME_FRANKENSTEIN = 0x2,		/**<     0010 This stream is concatenated. */
-	FRAME_FRESH_DECODER = 0x4,		/**<     0100 Decoder is fleshly initialized. */
+	FRAME_ACCURATE = 0x1,		/**<	 0001 Positions are considered accurate. */
+	FRAME_FRANKENSTEIN = 0x2,		/**<	 0010 This stream is concatenated. */
+	FRAME_FRESH_DECODER = 0x4,		/**<	 0100 Decoder is fleshly initialized. */
 };
 
 // enumeration of the mode types of Variable Bitrate

@@ -22,30 +22,30 @@ extern poolhandle_t sndpool;
 #include "sound_api.h"
 
 // sound engine rate defines
-#define SOUND_11k       11025 // 11khz sample rate
-#define SOUND_22k       22050 // 22khz sample rate
-#define SOUND_44k       44100 // 44khz sample rate
+#define SOUND_11k	   11025 // 11khz sample rate
+#define SOUND_22k	   22050 // 22khz sample rate
+#define SOUND_44k	   44100 // 44khz sample rate
 
 #define SOUND_DMA_SPEED SOUND_44k // hardware playback rate
 
 #define PAINTBUFFER_SIZE 1024
 
-#define S_RAW_SOUND_IDLE_SEC         10 // time interval for idling raw sound before it's freed
+#define S_RAW_SOUND_IDLE_SEC		 10 // time interval for idling raw sound before it's freed
 #define S_RAW_SOUND_BACKGROUNDTRACK  -2
-#define S_RAW_SOUND_SOUNDTRACK       -1
+#define S_RAW_SOUND_SOUNDTRACK	   -1
 #define S_RAW_SAMPLES_PRECISION_BITS 14
 
-#define CVOXWORDMAX    64
+#define CVOXWORDMAX	64
 
 #define CLIP16( x ) bound( SHRT_MIN + 8, x, SHRT_MAX - 8 )
 
 //====================================================================
 
 #define MAX_DYNAMIC_CHANNELS (60 + NUM_AMBIENTS)
-#define MAX_CHANNELS         (256 + MAX_DYNAMIC_CHANNELS) // Scourge Of Armagon has too many static sounds on hip2m4.bsp
-#define MAX_RAW_CHANNELS     48
-#define MAX_RAW_SAMPLES      16384
-#define SND_CLIP_DISTANCE    1000.0f
+#define MAX_CHANNELS		 (256 + MAX_DYNAMIC_CHANNELS) // Scourge Of Armagon has too many static sounds on hip2m4.bsp
+#define MAX_RAW_CHANNELS	 48
+#define MAX_RAW_SAMPLES	  16384
+#define SND_CLIP_DISTANCE	1000.0f
 
 extern int idsp_room;
 extern snd_globals_t snd;

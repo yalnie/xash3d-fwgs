@@ -43,8 +43,8 @@ extern int SV_UPDATE_BACKUP;
 #define SVF_MERGE_VISIBILITY	BIT( 1 )	// we are do portal pass
 
 // mapvalid flags
-#define MAP_IS_EXIST        BIT( 0 )
-#define MAP_HAS_LANDMARK    BIT( 2 )
+#define MAP_IS_EXIST		BIT( 0 )
+#define MAP_HAS_LANDMARK	BIT( 2 )
 #define MAP_INVALID_VERSION BIT( 3 )
 
 #define SV_SPAWN_TIME	0.1
@@ -200,12 +200,12 @@ typedef struct
 typedef struct sv_client_s
 {
 	cl_state_t  state;
-	cl_upload_t upstate;    // uploading state
-	char        name[32];   // extracted from userinfo, color string allowed
-	uint        flags;      // client flags, some info
-	uint        extensions; // protocol extensions
+	cl_upload_t upstate;	// uploading state
+	char		name[32];   // extracted from userinfo, color string allowed
+	uint		flags;	  // client flags, some info
+	uint		extensions; // protocol extensions
 
-	char hashedcdkey[34];            // MD5 hash is 32 hex #'s, plus trailing 0
+	char hashedcdkey[34];			// MD5 hash is 32 hex #'s, plus trailing 0
 	char userinfo[MAX_INFO_STRING];  // name, etc (received from client)
 	char physinfo[MAX_INFO_STRING];  // set on server (transmit to client)
 	char useragent[MAX_INFO_STRING];
@@ -214,40 +214,40 @@ typedef struct sv_client_s
 	uint listeners;   // which other clients does this guy's voice stream go to?
 
 	int ignorecmdtime_warns; // how many times client time was faster than server during this session
-	int userid;              // identifying number on server
+	int userid;			  // identifying number on server
 
 	netchan_t netchan;
 	sizebuf_t datagram; // the datagram is written to by sound calls, prints, temp ents, etc.
-	byte      datagram_buf[MAX_DATAGRAM]; // it can be harmlessly overflowed.
+	byte	  datagram_buf[MAX_DATAGRAM]; // it can be harmlessly overflowed.
 
-	int chokecount;     // number of messages rate supressed
+	int chokecount;	 // number of messages rate supressed
 	int delta_sequence; // -1 = no compression.
 
 	double next_messagetime;   // time when we should send next world state update
 	double next_checkpingtime; // time to send all players pings to client
 	double next_sendinfotime;  // time to send info about all players
 	double next_messageinterval; // update rate, clamped
-	double timebase;           // client timebase
+	double timebase;		   // client timebase
 	double connection_started;
 
-	customization_t customdata;      // player customization linked list
-	resource_t      resourcesonhand;
-	resource_t      resourcesneeded; // <mapname.res> from client (server downloading)
-	usercmd_t       lastcmd;         // for filling in big drops
+	customization_t customdata;	  // player customization linked list
+	resource_t	  resourcesonhand;
+	resource_t	  resourcesneeded; // <mapname.res> from client (server downloading)
+	usercmd_t	   lastcmd;		 // for filling in big drops
 
-	int    packet_loss;
+	int	packet_loss;
 	double connecttime;
 	double cmdtime;
 	double ignorecmdtime;
 	float  latency;
 
-	int     ignored_ents; // if visibility list is full we should know how many entities will be ignored
-	edict_t *edict;       // SV_EdictNum(clientnum+1)
+	int	 ignored_ents; // if visibility list is full we should know how many entities will be ignored
+	edict_t *edict;	   // SV_EdictNum(clientnum+1)
 	edict_t *pViewEntity; // svc_setview member
 	edict_t *viewentity[MAX_VIEWENTS]; // list of portal cameras in player PVS
-	int     num_viewents; // num of portal cameras that can merge PVS
+	int	 num_viewents; // num of portal cameras that can merge PVS
 
-	int    userinfo_change_attempts;
+	int	userinfo_change_attempts;
 	double fullupdate_next_calltime;
 	double userinfo_next_changetime;
 	double userinfo_penalty;
@@ -308,8 +308,8 @@ typedef struct
 	int		msg_realsize;		// left in bytes
 	int		msg_index;		// for debug messages
 	int		msg_dest;			// msg destination ( MSG_ONE, MSG_ALL etc )
-	int     msg_rewrite_index;
-	int     msg_rewrite_pos;
+	int	 msg_rewrite_index;
+	int	 msg_rewrite_pos;
 	qboolean		msg_started;		// to avoid recursive included messages
 	edict_t		*msg_ent;			// user message member entity
 	vec3_t		msg_org;			// user message member origin
@@ -363,20 +363,20 @@ typedef struct
 
 	uint32_t  challenge_salt[16]; // pregenerated random numbers for generating challenged based on IP's MD5 address
 
-	sizebuf_t testpacket;         // pregenerataed testpacket, only needs CRC32 patching
-	byte      *testpacket_buf;    // check for NULL if testpacket is available
-	byte      *testpacket_crcpos; // pointer to write pregenerated crc (unaligned!!!)
+	sizebuf_t testpacket;		 // pregenerataed testpacket, only needs CRC32 patching
+	byte	  *testpacket_buf;	// check for NULL if testpacket is available
+	byte	  *testpacket_crcpos; // pointer to write pregenerated crc (unaligned!!!)
 	uint32_t  *testpacket_crcs;   // checksums lookup table
-	int       testpacket_filepos; // file position (need to calculate lookup table pos)
-	int       testpacket_filelen; // file and lookup table length
+	int	   testpacket_filepos; // file position (need to calculate lookup table pos)
+	int	   testpacket_filelen; // file and lookup table length
 } server_static_t;
 
 //=============================================================================
 
 extern server_static_t svs RENAME_SYMBOL( "svs_" ); // persistant server info
-extern server_t        sv RENAME_SYMBOL( "sv_" );   // local server
-extern svgame_static_t svgame;                      // persistant game info
-extern areanode_t      sv_areanodes[];              // AABB dynamic tree
+extern server_t		sv RENAME_SYMBOL( "sv_" );   // local server
+extern svgame_static_t svgame;					  // persistant game info
+extern areanode_t	  sv_areanodes[];			  // AABB dynamic tree
 
 extern convar_t		mp_logecho;
 extern convar_t		mp_logfile;

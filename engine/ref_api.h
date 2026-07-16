@@ -37,45 +37,45 @@ GNU General Public License for more details.
 // 3. SlerpBones, CalcBonePosition/Quaternion calls were moved to libpublic/mathlib
 // 4. R_StudioEstimateFrame now has time argument
 // 5. Removed GetSomethingByIndex calls, renderers are supposed to cache pointer values
-//    Removed previously unused calls
-//    Simplified remapping calls
-//    GetRefAPI is now expected to return REF_API_VERSION
+//	Removed previously unused calls
+//	Simplified remapping calls
+//	GetRefAPI is now expected to return REF_API_VERSION
 // 6. Removed timing from ref_globals_t.
-//    Renderers are supposed to migrate to ref_client_t/ref_host_t using PARM_GET_CLIENT_PTR and PARM_GET_HOST_PTR
-//    Removed functions to get internal engine structions. Use PARM_GET_*_PTR instead.
+//	Renderers are supposed to migrate to ref_client_t/ref_host_t using PARM_GET_CLIENT_PTR and PARM_GET_HOST_PTR
+//	Removed functions to get internal engine structions. Use PARM_GET_*_PTR instead.
 // 7. Gamma fixes.
 // 8. Moved common code to engine.
-//    Removed REF_{SOLID,ALPHA}SKY_TEXTURE. Replaced R_InitSkyClouds by R_SetSkyCloudsTextures.
-//    Skybox loading is now done at engine side.
-//    R_SetupSky callback accepts a pointer to an array of 6 integers representing box side textures.
-//    Restored texture replacement from old Xash3D.
-//    PARM_SKY_SPHERE and PARM_SURF_SAMPLESIZE are now handled at engine side.
-//    VGUI rendering code is mostly moved back to engine.
-//    Implemented texture replacement.
+//	Removed REF_{SOLID,ALPHA}SKY_TEXTURE. Replaced R_InitSkyClouds by R_SetSkyCloudsTextures.
+//	Skybox loading is now done at engine side.
+//	R_SetupSky callback accepts a pointer to an array of 6 integers representing box side textures.
+//	Restored texture replacement from old Xash3D.
+//	PARM_SKY_SPHERE and PARM_SURF_SAMPLESIZE are now handled at engine side.
+//	VGUI rendering code is mostly moved back to engine.
+//	Implemented texture replacement.
 // 9. Removed gamma functions. Renderer is supposed to get them through PARM_GET_*_PTR.
-//    Move hulls rendering back to engine
-//    Removed lightstyle, dynamic and entity light functions. Renderer is supposed to get them through PARM_GET_*_PTR.
-//    CL_RunLightStyles now accepts lightstyles array.
-//    Removed R_DrawTileClear and Mod_LoadMapSprite, as they're implemented on engine side
-//    Removed FillRGBABlend. Now FillRGBA accepts rendermode parameter.
+//	Move hulls rendering back to engine
+//	Removed lightstyle, dynamic and entity light functions. Renderer is supposed to get them through PARM_GET_*_PTR.
+//	CL_RunLightStyles now accepts lightstyles array.
+//	Removed R_DrawTileClear and Mod_LoadMapSprite, as they're implemented on engine side
+//	Removed FillRGBABlend. Now FillRGBA accepts rendermode parameter.
 // 10. Added R_GetWindowHandle to retrieve platform-specific window object.
 // 11. Added size argument to Mod_ProcessRenderData
 // 12. Added Image_CalcImageSize
 // 13. Removed ignore_flags argument from GetCvarPointer
 // 14. Removed reserved functions, they are leftover from RenderAPI
-//     Removed CL_AddCustomBeam, it's now handled through R_AddEntity
+//	 Removed CL_AddCustomBeam, it's now handled through R_AddEntity
 // 15. Replaced CL_InitStudioAPI with R_StudioFillAPI + R_StudioSetDrawInterface
-//     Engine now builds engine_studio_api_t and handles client DLL negotiation
-//     Replaced R_DrawStretchRaw and AVI_UploadRawFrame with GL_UpdateTexture
-//     Added GL_CreateTexture, R_GetDetailScaleForTexture, R_SetDetailScaleForTexture
-//     Removed R_Flush, VGUI_UploadTextureBlock, R_BeamCull, pfnGetStudioModelInterface
-//     Moved RenderAPI and TriAPI filling to renderer via R_FillRenderAPI and R_FillTriAPI
-//     Moved detail textures parsing and cinematic texture management to engine
-//     Moved creation of default textures to the engine
+//	 Engine now builds engine_studio_api_t and handles client DLL negotiation
+//	 Replaced R_DrawStretchRaw and AVI_UploadRawFrame with GL_UpdateTexture
+//	 Added GL_CreateTexture, R_GetDetailScaleForTexture, R_SetDetailScaleForTexture
+//	 Removed R_Flush, VGUI_UploadTextureBlock, R_BeamCull, pfnGetStudioModelInterface
+//	 Moved RenderAPI and TriAPI filling to renderer via R_FillRenderAPI and R_FillTriAPI
+//	 Moved detail textures parsing and cinematic texture management to engine
+//	 Moved creation of default textures to the engine
 // 16. RefGetParm return type changed from int to intptr_t.
 // 17. _Mem_AllocPool now takes a flags argument (see MEM_SMALL_ALLOC_OPT in engine/common/common.h).
-//     Pools that opt into MEM_SMALL_ALLOC_OPT use a compact 16/24-byte header for allocations
-//     <= 255 bytes, dropping per-allocation filename/fileline tracking.
+//	 Pools that opt into MEM_SMALL_ALLOC_OPT use a compact 16/24-byte header for allocations
+//	 <= 255 bytes, dropping per-allocation filename/fileline tracking.
 #define REF_API_VERSION 17
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP|TF_ALLOW_NEAREST)
@@ -104,9 +104,9 @@ GNU General Public License for more details.
 #define MODEL_CLIENT		BIT( 30 )	// client sprite
 
 // goes into world.flags
-#define FWORLD_SKYSPHERE     BIT( 0 )
+#define FWORLD_SKYSPHERE	 BIT( 0 )
 #define FWORLD_CUSTOM_SKYBOX BIT( 1 )
-#define FWORLD_WATERALPHA    BIT( 2 )
+#define FWORLD_WATERALPHA	BIT( 2 )
 #define FWORLD_HAS_DELUXEMAP BIT( 3 )
 #define FWORLD_HAS_LITWATER  BIT( 4 )
 
@@ -153,8 +153,8 @@ typedef struct ref_globals_s
 	qboolean developer;
 
 	// viewport width and height (physical window size)
-	int      width;
-	int      height;
+	int	  width;
+	int	  height;
 
 	window_mode_t window_mode;
 	qboolean wideScreen;
@@ -181,10 +181,10 @@ typedef struct ref_client_s
 {
 	double   time;
 	double   oldtime;
-	int      viewentity;
-	int      playernum;
-	int      maxclients;
-	int      nummodels;
+	int	  viewentity;
+	int	  playernum;
+	int	  maxclients;
+	int	  nummodels;
 	model_t *models[MAX_MODELS+1];
 	qboolean paused;
 	vec3_t   simorg;
@@ -194,7 +194,7 @@ typedef struct ref_host_s
 {
 	double realtime;
 	double frametime;
-	int    features;
+	int	features;
 } ref_host_t;
 
 enum
@@ -214,9 +214,9 @@ enum // r_speeds counters
 
 // refdll must expose this default textures using this names
 #define REF_DEFAULT_TEXTURE  "*default"
-#define REF_GRAY_TEXTURE     "*gray"
-#define REF_WHITE_TEXTURE    "*white"
-#define REF_BLACK_TEXTURE    "*black"
+#define REF_GRAY_TEXTURE	 "*gray"
+#define REF_WHITE_TEXTURE	"*white"
+#define REF_BLACK_TEXTURE	"*black"
 #define REF_PARTICLE_TEXTURE "*particle"
 
 typedef enum connstate_e
@@ -247,14 +247,14 @@ typedef enum ref_graphic_apis_e
 typedef enum
 {
 	SAFE_NO = 0,
-	SAFE_NOMSAA,      // skip msaa
-	SAFE_NOACC,       // don't set acceleration flag
+	SAFE_NOMSAA,	  // skip msaa
+	SAFE_NOACC,	   // don't set acceleration flag
 	SAFE_NOSTENCIL,   // don't set stencil bits
-	SAFE_NOALPHA,     // don't set alpha bits
-	SAFE_NODEPTH,     // don't set depth bits
-	SAFE_NOCOLOR,     // don't set color bits
-	SAFE_DONTCARE,    // ignore everything, let SDL/EGL decide
-	SAFE_LAST,        // must be last
+	SAFE_NOALPHA,	 // don't set alpha bits
+	SAFE_NODEPTH,	 // don't set depth bits
+	SAFE_NOCOLOR,	 // don't set color bits
+	SAFE_DONTCARE,	// ignore everything, let SDL/EGL decide
+	SAFE_LAST,		// must be last
 } ref_safegl_context_t;
 
 enum // OpenGL configuration attributes
@@ -284,18 +284,18 @@ enum // OpenGL configuration attributes
 
 enum
 {
-	REF_GL_CONTEXT_PROFILE_CORE           = 0x0001,
+	REF_GL_CONTEXT_PROFILE_CORE		   = 0x0001,
 	REF_GL_CONTEXT_PROFILE_COMPATIBILITY  = 0x0002,
-	REF_GL_CONTEXT_PROFILE_ES             = 0x0004 /**< GLX_CONTEXT_ES2_PROFILE_BIT_EXT */
+	REF_GL_CONTEXT_PROFILE_ES			 = 0x0004 /**< GLX_CONTEXT_ES2_PROFILE_BIT_EXT */
 };
 
 // binary compatible with SDL and EGL_KHR_create_context(0x0007 mask)
 enum
 {
-	REF_GL_CONTEXT_DEBUG_FLAG              = 0x0001,
+	REF_GL_CONTEXT_DEBUG_FLAG			  = 0x0001,
 	REF_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG = 0x0002,
-	REF_GL_CONTEXT_ROBUST_ACCESS_FLAG      = 0x0004,
-	REF_GL_CONTEXT_RESET_ISOLATION_FLAG    = 0x0008
+	REF_GL_CONTEXT_ROBUST_ACCESS_FLAG	  = 0x0004,
+	REF_GL_CONTEXT_RESET_ISOLATION_FLAG	= 0x0008
 };
 
 typedef enum ref_screen_rotation_e
@@ -323,18 +323,18 @@ struct r_studio_interface_s;
 
 typedef enum
 {
-	PARM_DEV_OVERVIEW      = -1,
-	PARM_THIRDPERSON       = -2,
+	PARM_DEV_OVERVIEW	  = -1,
+	PARM_THIRDPERSON	   = -2,
 	PARM_QUAKE_COMPATIBLE  = -3,
-	PARM_GET_CLIENT_PTR    = -4, // ref_client_t
-	PARM_GET_HOST_PTR      = -5, // ref_host_t
-	PARM_CONNSTATE         = -6, // cls.state
-	PARM_PLAYING_DEMO      = -7, // cls.demoplayback
-	PARM_WATER_LEVEL       = -8, // cl.local.water_level
-	PARM_GET_WORLD_PTR     = -9, // world
-	PARM_LOCAL_HEALTH      = -10, // cl.local.health
+	PARM_GET_CLIENT_PTR	= -4, // ref_client_t
+	PARM_GET_HOST_PTR	  = -5, // ref_host_t
+	PARM_CONNSTATE		 = -6, // cls.state
+	PARM_PLAYING_DEMO	  = -7, // cls.demoplayback
+	PARM_WATER_LEVEL	   = -8, // cl.local.water_level
+	PARM_GET_WORLD_PTR	 = -9, // world
+	PARM_LOCAL_HEALTH	  = -10, // cl.local.health
 	PARM_SINGLEPLAYER_GAME = -11, // was PARM_LOCAL_GAME
-	PARM_NUMENTITIES       = -12, // local game only
+	PARM_NUMENTITIES	   = -12, // local game only
 	PARM_GET_MOVEVARS_PTR  = -13, // clgame.movevars
 	PARM_GET_PALETTE_PTR   = -14, // clgame.palette
 	PARM_GET_VIEWENT_PTR   = -15, // clgame.viewent
@@ -353,7 +353,7 @@ typedef enum
 
 	// returns non-null integer if filtering is enabled for texture
 	// pass -1 to query global filtering settings
-	PARM_TEX_FILTERING     = -0x10000,
+	PARM_TEX_FILTERING	 = -0x10000,
 } ref_parm_e;
 
 typedef struct ref_api_s
@@ -363,17 +363,17 @@ typedef struct ref_api_s
 	// cvar handlers
 	cvar_t   *(*Cvar_Get)( const char *szName, const char *szValue, int flags, const char *description );
 	cvar_t   *(*pfnGetCvarPointer)( const char *name );
-	float       (*pfnGetCvarFloat)( const char *szName );
+	float	   (*pfnGetCvarFloat)( const char *szName );
 	const char *(*pfnGetCvarString)( const char *szName ) PFN_RETURNS_NONNULL;
-	void        (*Cvar_SetValue)( const char *name, float value );
-	void        (*Cvar_Set)( const char *name, const char *value );
+	void		(*Cvar_SetValue)( const char *name, float value );
+	void		(*Cvar_Set)( const char *name, const char *value );
 	void (*Cvar_RegisterVariable)( convar_t *var );
 	void (*Cvar_FullSet)( const char *var_name, const char *value, int flags );
 
 	// command handlers
-	int         (*Cmd_AddCommand)( const char *cmd_name, void (*function)(void), const char *description );
-	void        (*Cmd_RemoveCommand)( const char *cmd_name );
-	int         (*Cmd_Argc)( void );
+	int		 (*Cmd_AddCommand)( const char *cmd_name, void (*function)(void), const char *description );
+	void		(*Cmd_RemoveCommand)( const char *cmd_name );
+	int		 (*Cmd_Argc)( void );
 	const char *(*Cmd_Argv)( int arg ) PFN_RETURNS_NONNULL;
 	const char *(*Cmd_Args)( void ) PFN_RETURNS_NONNULL;
 
@@ -645,7 +645,7 @@ typedef struct ref_interface_s
 	void	(*Color4ub)( unsigned char r, unsigned char g, unsigned char b, unsigned char a ); // real glColor4ub
 	void	(*Vertex3fv)( const float *worldPnt );
 	void	(*Vertex3f)( float x, float y, float z );
-	void    (*CullFace)( TRICULLSTYLE mode );
+	void	(*CullFace)( TRICULLSTYLE mode );
 
 	// fill render_api_t and triangleapi_t with renderer-specific functions
 	void	(*R_FillRenderAPI)( struct render_api_s *api );

@@ -27,7 +27,7 @@ typically expanded to rgba buffer
 NOTE: number at end of pixelformat name it's a total bitscount e.g. PF_RGB_24 == PF_RGB_888
 ========================================================================
 */
-#define ImageRAW( type )        ( type >= PF_RGBA_32 && type <= PF_LUMINANCE )
+#define ImageRAW( type )		( type >= PF_RGBA_32 && type <= PF_LUMINANCE )
 #define ImageCompressed( type ) ( type >= PF_DXT1 && type <= PF_KTX2_RAW )
 #define ImageBigEndian( type )  ( type == PF_BGRA_32 || type == PF_BGR_24 )
 

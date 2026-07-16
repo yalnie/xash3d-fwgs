@@ -9,16 +9,16 @@
 #include "build.h"
 #include "port.h"
 
-#define MAX_STRING    256  // generic string
+#define MAX_STRING	256  // generic string
 #define MAX_VA_STRING 1024 // compatibility macro
 #define MAX_SYSPATH   1024 // system filepath
-#define MAX_OSPATH    260 // max length of a filesystem pathname
-#define CS_SIZE       64  // size of one config string
-#define CS_TIME	      16  // size of time string
+#define MAX_OSPATH	260 // max length of a filesystem pathname
+#define CS_SIZE	   64  // size of one config string
+#define CS_TIME		  16  // size of time string
 
 // FIXME: find better place for the shared definition
 #define MAX_CLIENT_BITS 5
-#define MAX_CLIENTS     (1<<MAX_CLIENT_BITS)// 5 bits == 32 clients ( int32 limit )
+#define MAX_CLIENTS	 (1<<MAX_CLIENT_BITS)// 5 bits == 32 clients ( int32 limit )
 
 // platform-specific alignment for types, to not break ABI
 #if XASH_PSP
@@ -30,24 +30,24 @@
 #endif // !defined( MAYBE_ALIGNED )
 
 typedef uint8_t  byte;
-typedef float    vec_t;
-typedef vec_t    vec2_t[2];
+typedef float	vec_t;
+typedef vec_t	vec2_t[2];
 #ifndef vec3_t // SDK renames it to Vector
-typedef vec_t    vec3_t[3];
+typedef vec_t	vec3_t[3];
 #endif
-typedef vec_t    vec4_t[4] MAYBE_ALIGNED( 16 );
-typedef vec_t    quat_t[4] MAYBE_ALIGNED( 16 );
-typedef byte     rgba_t[4]; // unsigned byte colorpack
-typedef byte     rgb_t[3];  // unsigned byte colorpack
-typedef vec_t    matrix3x4[3][4] MAYBE_ALIGNED( 16 );
-typedef vec_t    matrix4x4[4][4] MAYBE_ALIGNED( 16 );
+typedef vec_t	vec4_t[4] MAYBE_ALIGNED( 16 );
+typedef vec_t	quat_t[4] MAYBE_ALIGNED( 16 );
+typedef byte	 rgba_t[4]; // unsigned byte colorpack
+typedef byte	 rgb_t[3];  // unsigned byte colorpack
+typedef vec_t	matrix3x4[3][4] MAYBE_ALIGNED( 16 );
+typedef vec_t	matrix4x4[4][4] MAYBE_ALIGNED( 16 );
 typedef uint32_t poolhandle_t;
 typedef uint16_t word;
 typedef uint32_t dword;
-typedef char     string[MAX_STRING];
-typedef off_t    fs_offset_t;
+typedef char	 string[MAX_STRING];
+typedef off_t	fs_offset_t;
 #if XASH_WIN32
-typedef int      fs_size_t; // return type of _read, _write funcs
+typedef int	  fs_size_t; // return type of _read, _write funcs
 #else // !XASH_WIN32
 typedef ssize_t  fs_size_t;
 #endif // !XASH_WIN32
@@ -93,8 +93,8 @@ typedef int qboolean;
 
 #if defined( __GNUC__ )
 	#if defined( __i386__ )
-		#define EXPORT         __attribute__(( visibility( "default" ), force_align_arg_pointer ))
-		#define GAME_EXPORT    __attribute__(( force_align_arg_pointer ))
+		#define EXPORT		 __attribute__(( visibility( "default" ), force_align_arg_pointer ))
+		#define GAME_EXPORT	__attribute__(( force_align_arg_pointer ))
 	#else // !defined( __i386__ )
 		#define EXPORT __attribute__(( visibility ( "default" )))
 	#endif // !defined( __i386__ )
@@ -107,18 +107,18 @@ typedef int qboolean;
 		#define MALLOC_LIKE( x, y ) __attribute__(( malloc ))
 	#endif
 
-	#define RETURNS_NONNULL    __attribute__(( returns_nonnull ))
+	#define RETURNS_NONNULL	__attribute__(( returns_nonnull ))
 	#if !__clang__ && !__MCST__
 		// clang has bugged returns_nonnull for functions pointers, it's ignored and generates a warning about objective-c? O_o
 		// lcc doesn't support it at all
 		#define PFN_RETURNS_NONNULL RETURNS_NONNULL
 	#endif
-	#define NORETURN           __attribute__(( noreturn ))
-	#define NONNULL            __attribute__(( nonnull ))
+	#define NORETURN		   __attribute__(( noreturn ))
+	#define NONNULL			__attribute__(( nonnull ))
 	#define FORMAT_CHECK( x )  __attribute__(( format( printf, x, x + 1 )))
 	#define ALLOC_CHECK( x )   __attribute__(( alloc_size( x )))
 	#define WARN_UNUSED_RESULT __attribute__(( warn_unused_result ))
-	#define MAYBE_UNUSED       __attribute__(( unused ))
+	#define MAYBE_UNUSED	   __attribute__(( unused ))
 	#define RENAME_SYMBOL( x ) asm( x )
 	#if !defined( offsetof )
 		#define offsetof( s, m )   __builtin_offsetof( s, m )
@@ -144,12 +144,12 @@ typedef int qboolean;
 #endif
 
 #if __GNUC__ >= 3
-	#define unlikely( x )     __builtin_expect( x, 0 )
-	#define likely( x )       __builtin_expect( x, 1 )
+	#define unlikely( x )	 __builtin_expect( x, 0 )
+	#define likely( x )	   __builtin_expect( x, 1 )
 #elif defined( __has_builtin )
 	#if __has_builtin( __builtin_expect ) // this must be after defined() check
-		#define unlikely( x )     __builtin_expect( x, 0 )
-		#define likely( x )       __builtin_expect( x, 1 )
+		#define unlikely( x )	 __builtin_expect( x, 0 )
+		#define likely( x )	   __builtin_expect( x, 1 )
 	#endif
 #endif
 
@@ -253,10 +253,10 @@ typedef int qboolean;
 #define Swap16Store( x ) ( x = Swap16( x ))
 
 #define LittleFourCC( a, b, c, d ) (((uint32_t)( d ) << 24 ) | ((uint32_t)( c ) << 16 ) | ((uint32_t)( b ) << 8 ) | (uint32_t)( a ))
-#define BigFourCC( a, b, c, d )    (((uint32_t)( a ) << 24 ) | ((uint32_t)( b ) << 16 ) | ((uint32_t)( c ) << 8 ) | (uint32_t)( d ))
+#define BigFourCC( a, b, c, d )	(((uint32_t)( a ) << 24 ) | ((uint32_t)( b ) << 16 ) | ((uint32_t)( c ) << 8 ) | (uint32_t)( d ))
 
 #if XASH_BIG_ENDIAN
-	#define LittleLong( x )    Swap32( x )
+	#define LittleLong( x )	Swap32( x )
 	#define LittleShort( x )   Swap16( x )
 	#define LittleLongSW( x )  Swap32Store( x )
 	#define LittleShortSW( x ) Swap16Store( x )

@@ -17,7 +17,7 @@
 #define EIFACE_H
 
 #ifdef HLDEMO_BUILD
-#define INTERFACE_VERSION       	001
+#define INTERFACE_VERSION	   	001
 #else  // !HLDEMO_BUILD, i.e., regular version of HL
 #define INTERFACE_VERSION		140
 #endif // !HLDEMO_BUILD
@@ -445,7 +445,7 @@ typedef struct
 	void	(*pfnParmsChangeLevel)( void );
 
 	 // Returns string describing current .dll.  E.g., TeamFotrress 2, Half-Life
-	const char     *(*pfnGetGameDescription)( void );
+	const char	 *(*pfnGetGameDescription)( void );
 
 	// Notify dll about a player customization.
 	void	(*pfnPlayerCustomization)( edict_t *pEntity, customization_t *pCustom );

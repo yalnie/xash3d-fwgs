@@ -26,7 +26,7 @@ typedef enum
 typedef enum
 {
 	NET_EAI_NONAME = 0,
-	NET_EAI_OK     = 1,
+	NET_EAI_OK	 = 1,
 	NET_EAI_AGAIN  = 2
 } net_gai_state_t;
 

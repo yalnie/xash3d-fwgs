@@ -27,7 +27,7 @@ typedef struct pending_cvar_s
 	convar_t *cv_cur; // preserve the data that might get freed
 	convar_t *cv_next;
 	qboolean  cv_allocated; // if it's allocated by us, it's safe to access cv_cur
-	char      cv_name[];
+	char	  cv_name[];
 } pending_cvar_t;
 
 typedef void (*setpair_t)( const char *key, const void *value, const void *buffer, void *numpairs );

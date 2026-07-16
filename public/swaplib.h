@@ -97,13 +97,13 @@ static inline void swap_array_( byte *data, int32_t elem_size, uint32_t count )
 #define swap_struct_end() }
 
 // declare a single field
-#define swap_struct_field( record, field )         { .offset = offsetof( record, field ), .size = sizeof(((record *)0)->field) },
+#define swap_struct_field( record, field )		 { .offset = offsetof( record, field ), .size = sizeof(((record *)0)->field) },
 
 // declare a struct, defined by another swap_struct
 #define swap_struct_child( record, field, child )  { .offset = offsetof( record, field ), .size = -(int32_t)(sizeof( child ) / sizeof( child[0] )), .subdef = child },
 
 // declare an array of fields, doesn't work with flexible array members
-#define swap_struct_array( record, field, cnt )    { .offset = offsetof( record, field ), .size = sizeof(((record *)0)->field[0]), .count = cnt, .stride = sizeof(((record *)0)->field[0]) },
+#define swap_struct_array( record, field, cnt )	{ .offset = offsetof( record, field ), .size = sizeof(((record *)0)->field[0]), .count = cnt, .stride = sizeof(((record *)0)->field[0]) },
 
 // combined swap_struct_child and swap_struct_array
 #define swap_struct_array_child( record, field, child, cnt ) { .offset = offsetof( record, field ), .size = -(int32_t)(sizeof( child ) / sizeof( child[0] )), .subdef = child, .count = cnt, .stride = sizeof(((record *)0)->field[0]) },
@@ -112,39 +112,39 @@ static inline void swap_array_( byte *data, int32_t elem_size, uint32_t count )
 // this is done in macros so we can completely avoid defining this
 // in little endian targets
 #if XASH_LITTLE_ENDIAN
-	#define be_struct_begin( x )              swap_struct_begin( x )
-	#define be_struct_field( x, y )           swap_struct_field( x, y )
-	#define be_struct_child( x, y, z )        swap_struct_child( x, y, z )
-	#define be_struct_array( x, y, z )        swap_struct_array( x, y, z )
+	#define be_struct_begin( x )			  swap_struct_begin( x )
+	#define be_struct_field( x, y )		   swap_struct_field( x, y )
+	#define be_struct_child( x, y, z )		swap_struct_child( x, y, z )
+	#define be_struct_array( x, y, z )		swap_struct_array( x, y, z )
 	#define be_struct_array_child( x, y, z, w ) swap_struct_array_child( x, y, z, w )
-	#define be_struct_end()                   swap_struct_end()
-	#define be_struct_swap( x, y )            swap_struct( x, y )
-	#define be_array_swap( x, y )             swap_array( x, y )
+	#define be_struct_end()				   swap_struct_end()
+	#define be_struct_swap( x, y )			swap_struct( x, y )
+	#define be_array_swap( x, y )			 swap_array( x, y )
 	#define le_struct_begin( x )
 	#define le_struct_field( x, y )
 	#define le_struct_child( x, y, z )
 	#define le_struct_array( x, y, z )
 	#define le_struct_array_child( x, y, z, w )
-	#define le_struct_end()                   extern int _le_struct_end_dummy // define as extern variable, to let end() end with ;
-	#define le_struct_swap( x, y )            (void)(y)
-	#define le_array_swap( x, y )             (void)(x)
+	#define le_struct_end()				   extern int _le_struct_end_dummy // define as extern variable, to let end() end with ;
+	#define le_struct_swap( x, y )			(void)(y)
+	#define le_array_swap( x, y )			 (void)(x)
 #else
 	#define be_struct_begin( x )
 	#define be_struct_field( x, y )
 	#define be_struct_child( x, y, z )
 	#define be_struct_array( x, y, z )
 	#define be_struct_array_child( x, y, z, w )
-	#define be_struct_end()                   extern int _le_struct_end_dummy
-	#define be_struct_swap( x, y )            (void)(y)
-	#define be_array_swap( x, y )             (void)(x)
-	#define le_struct_begin( x )              swap_struct_begin( x )
-	#define le_struct_field( x, y )           swap_struct_field( x, y )
-	#define le_struct_child( x, y, z )        swap_struct_child( x, y, z )
-	#define le_struct_array( x, y, z )        swap_struct_array( x, y, z )
+	#define be_struct_end()				   extern int _le_struct_end_dummy
+	#define be_struct_swap( x, y )			(void)(y)
+	#define be_array_swap( x, y )			 (void)(x)
+	#define le_struct_begin( x )			  swap_struct_begin( x )
+	#define le_struct_field( x, y )		   swap_struct_field( x, y )
+	#define le_struct_child( x, y, z )		swap_struct_child( x, y, z )
+	#define le_struct_array( x, y, z )		swap_struct_array( x, y, z )
 	#define le_struct_array_child( x, y, z, w ) swap_struct_array_child( x, y, z, w )
-	#define le_struct_end()                   swap_struct_end()
-	#define le_struct_swap( x, y )            swap_struct( x, y )
-	#define le_array_swap( x, y )             swap_array( x, y )
+	#define le_struct_end()				   swap_struct_end()
+	#define le_struct_swap( x, y )			swap_struct( x, y )
+	#define le_array_swap( x, y )			 swap_array( x, y )
 #endif
 
 

@@ -22,14 +22,14 @@ GNU General Public License for more details.
 
 struct ref_state_s
 {
-	HINSTANCE       hInstance;
-	qboolean        initialized;
-	int             num_renderers;
+	HINSTANCE	   hInstance;
+	qboolean		initialized;
+	int			 num_renderers;
 	ref_interface_t dllFuncs;
 
 	// depends on build configuration
-	const char    **short_names;
-	const char    **long_names;
+	const char	**short_names;
+	const char	**long_names;
 
 	ref_screen_rotation_t rotation;
 };

@@ -43,30 +43,30 @@ enum png_filter
 #pragma pack( push, 1 )
 typedef struct png_ihdr_s
 {
-	uint32_t    width;
-	uint32_t    height;
-	uint8_t     bitdepth;
-	uint8_t     colortype;
-	uint8_t     compression;
-	uint8_t     filter;
-	uint8_t     interlace;
+	uint32_t	width;
+	uint32_t	height;
+	uint8_t	 bitdepth;
+	uint8_t	 colortype;
+	uint8_t	 compression;
+	uint8_t	 filter;
+	uint8_t	 interlace;
 } png_ihdr_t;
 
 typedef struct png_s
 {
-	uint8_t     sign[8];
-	uint32_t    ihdr_len;
-	uint8_t     ihdr_sign[4];
+	uint8_t	 sign[8];
+	uint32_t	ihdr_len;
+	uint8_t	 ihdr_sign[4];
 	png_ihdr_t  ihdr_chunk;
-	uint32_t    ihdr_crc32;
+	uint32_t	ihdr_crc32;
 } png_t;
 
 typedef struct png_footer_s
 {
-	uint32_t    idat_crc32;
-	uint32_t    iend_len;
-	uint8_t     iend_sign[4];
-	uint32_t    iend_crc32;
+	uint32_t	idat_crc32;
+	uint32_t	iend_len;
+	uint8_t	 iend_sign[4];
+	uint32_t	iend_crc32;
 } png_footer_t;
 #pragma pack( pop )
 #endif // IMG_PNG_H

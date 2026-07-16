@@ -133,7 +133,7 @@ typedef struct glpoly2_s
 	struct glpoly2_s	*next;
 	struct glpoly2_s	*chain;
 	int		numverts;
-	int		flags;          		// for SURF_UNDERWATER
+	int		flags;		  		// for SURF_UNDERWATER
 #ifdef __cplusplus
 	float	verts[1][VERTEXSIZE]; // variable sized (xyz s1t1 s2t2)
 #else
@@ -160,11 +160,11 @@ typedef struct mnode_s
 		struct
 		{
 			// the ordering is important
-			int child_0_leaf    : 1;
-			int child_0_off     : 23;
+			int child_0_leaf	: 1;
+			int child_0_off	 : 23;
 			int firstsurface_1  : 8;
-			int child_1_leaf    : 1;
-			int child_1_off     : 23;
+			int child_1_leaf	: 1;
+			int child_1_off	 : 23;
 			int numsurfaces_1   : 8;
 		};
 	};
@@ -258,9 +258,9 @@ typedef struct mextrasurf_s
 typedef struct mdisplaylist_s
 {
 	unsigned int gl_displaylist;
-	int          rendermode;
-	float        scrolloffset;
-	int          renderDetailTexture;
+	int		  rendermode;
+	float		scrolloffset;
+	int		  renderDetailTexture;
 } mdisplaylist_t;
 #endif
 

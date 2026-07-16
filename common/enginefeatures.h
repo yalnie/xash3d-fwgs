@@ -31,12 +31,12 @@ GNU General Public License for more details.
 #define ENGINE_STEP_POSHISTORY_LERP (1U<<31) // enable MOVETYPE_STEP interpolation based on position history. Incompatible with ENGINE_COMPUTE_STUDIO_LERP!
 
 // adjust the mask when features will be added or removed
-#define ENGINE_FEATURES_MASK      \
-	( ENGINE_WRITE_LARGE_COORD    \
-	| ENGINE_QUAKE_COMPATIBLE     \
-	| ENGINE_LOAD_DELUXEDATA      \
+#define ENGINE_FEATURES_MASK	  \
+	( ENGINE_WRITE_LARGE_COORD	\
+	| ENGINE_QUAKE_COMPATIBLE	 \
+	| ENGINE_LOAD_DELUXEDATA	  \
 	| ENGINE_PHYSICS_PUSHER_EXT   \
-	| ENGINE_LARGE_LIGHTMAPS      \
+	| ENGINE_LARGE_LIGHTMAPS	  \
 	| ENGINE_COMPENSATE_QUAKE_BUG \
 	| ENGINE_IMPROVED_LINETRACE   \
 	| ENGINE_COMPUTE_STUDIO_LERP  \

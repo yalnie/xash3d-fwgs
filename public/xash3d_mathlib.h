@@ -39,7 +39,7 @@ CONSTANTS AND HELPER MACROS
 #define ROLL  2
 
 #ifndef M_PI
-#define M_PI    (double)3.14159265358979323846
+#define M_PI	(double)3.14159265358979323846
 #endif
 
 #define M_PI2   ((double)(M_PI * 2))
@@ -59,23 +59,23 @@ CONSTANTS AND HELPER MACROS
 
 #define SIDE_FRONT 0
 #define SIDE_BACK  1
-#define SIDE_ON    2
+#define SIDE_ON	2
 #define SIDE_CROSS -2
 
-#define PLANE_X        0 // 0 - 2 are axial planes
-#define PLANE_Y        1 // 3 needs alternate calc
-#define PLANE_Z        2
+#define PLANE_X		0 // 0 - 2 are axial planes
+#define PLANE_Y		1 // 3 needs alternate calc
+#define PLANE_Z		2
 #define PLANE_NONAXIAL 3
 
 #define EQUAL_EPSILON 0.001f
 #define STOP_EPSILON  0.1f
-#define ON_EPSILON    0.1f
+#define ON_EPSILON	0.1f
 
 #define RAD_TO_STUDIO (32768.0 / M_PI)
 #define STUDIO_TO_RAD (M_PI / 32768.0)
 
-#define INV127F          ( 1.0f / 127.0f )
-#define INV255F          ( 1.0f / 255.0f )
+#define INV127F		  ( 1.0f / 127.0f )
+#define INV255F		  ( 1.0f / 255.0f )
 #define MAKE_SIGNED( x ) ((( x ) * INV127F ) - 1.0f )
 
 #ifndef Q_min
@@ -86,10 +86,10 @@ CONSTANTS AND HELPER MACROS
 #endif
 #define Q_equal_e( a, b, e ) (((a) >= ((b) - (e))) && ((a) <= ((b) + (e))))
 #define Q_equal( a, b ) Q_equal_e( a, b, EQUAL_EPSILON )
-#define Q_floor( a )    ((float)(int)(a))
-#define Q_ceil( a )     ((float)(int)((a) + 1))
+#define Q_floor( a )	((float)(int)(a))
+#define Q_ceil( a )	 ((float)(int)((a) + 1))
 #define Q_round( x, y ) (floor( x / y + 0.5f ) * y )
-#define Q_rint(x)       ((x) < 0.0f ? ((int)((x)-0.5f)) : ((int)((x)+0.5f)))
+#define Q_rint(x)	   ((x) < 0.0f ? ((int)((x)-0.5f)) : ((int)((x)+0.5f)))
 #define ALIGN( x, a )   ((( x ) + (( size_t )( a ) - 1 )) & ~(( size_t )( a ) - 1 ))
 
 #define VectorIsNAN(v) (IS_NAN(v[0]) || IS_NAN(v[1]) || IS_NAN(v[2]))
@@ -156,8 +156,8 @@ CONSTANTS GLOBALS
 #define vec3_origin ((vec3_t){ 0.0f, 0.0f, 0.0f })
 #endif // __cplusplus
 
-extern const int       boxpnt[6][4];
-extern const float     m_bytenormals[NUMVERTEXNORMALS][3];
+extern const int	   boxpnt[6][4];
+extern const float	 m_bytenormals[NUMVERTEXNORMALS][3];
 
 
 /*
@@ -173,9 +173,9 @@ typedef struct mplane_s
 {
 	vec3_t  normal;
 	float   dist;
-	byte    type;                   // for texture axis selection and fast side tests
-	byte    signbits;               // signx + signy<<1 + signz<<1
-	byte    pad[2];
+	byte	type;				   // for texture axis selection and fast side tests
+	byte	signbits;			   // signx + signy<<1 + signz<<1
+	byte	pad[2];
 } mplane_t;
 
 typedef struct mstudiobone_s mstudiobone_t;

@@ -30,14 +30,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef struct usercmd_s
 {
 	int16_t   lerp_msec; // added in HL
-	uint8_t   msec;      // added in QW
+	uint8_t   msec;	  // added in QW
 	uint8_t   pad1;
-	vec3_t    viewangles;
+	vec3_t	viewangles;
 
 	// intended velocities
-	float     forwardmove;
-	float     sidemove;
-	float     upmove;
+	float	 forwardmove;
+	float	 sidemove;
+	float	 upmove;
 	uint8_t   lightlevel;
 	uint8_t   pad2;
 	uint16_t  buttons; // added in QW
@@ -57,16 +57,16 @@ STATIC_CHECK_SIZEOF( usercmd_t, 52, 52 );
 typedef struct dlight_s
 {
 	vec3_t   origin;
-	float    radius;
+	float	radius;
 	struct
 	{
 		uint8_t r, g, b;
 	} color;
-	float    die;      // stop lighting after this time
-	float    decay;    // drop this each second
-	float    minlight; // don't add when contributing less
-	int      key;      // so entities can reuse same entry
-	qboolean dark;     // subtracts light instead of adding
+	float	die;	  // stop lighting after this time
+	float	decay;	// drop this each second
+	float	minlight; // don't add when contributing less
+	int	  key;	  // so entities can reuse same entry
+	qboolean dark;	 // subtracts light instead of adding
 } dlight_t;
 
 STATIC_CHECK_SIZEOF( dlight_t, 40, 40 );
@@ -89,7 +89,7 @@ typedef enum {
 	// added in HL
 	pt_4x_slowgrav, // 4 times faster than pt_slowgrav
 	pt_8x_slowgrav, // 8 times faster than pt_slowgrav
-	pt_custom,      // will call think function from particle
+	pt_custom,	  // will call think function from particle
 } ptype_t;
 
 // !!! if this is changed, it must be changed in d_ifacea.h too !!!

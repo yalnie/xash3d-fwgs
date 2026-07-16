@@ -38,27 +38,27 @@ typedef int fixed16_t;
 // make mod_ref.h?
 #define LM_SAMPLE_SIZE 16
 
-#define BLOCK_SIZE         tr.block_size        // lightmap blocksize
-#define BLOCK_SIZE_DEFAULT 128                  // for keep backward compatibility
-#define BLOCK_SIZE_MAX     1024
+#define BLOCK_SIZE		 tr.block_size		// lightmap blocksize
+#define BLOCK_SIZE_DEFAULT 128				  // for keep backward compatibility
+#define BLOCK_SIZE_MAX	 1024
 
-#define MAX_TEXTURES    8192 // a1ba: increased by users request
+#define MAX_TEXTURES	8192 // a1ba: increased by users request
 #define MAX_DECAL_SURFS 4096
 
 #if XASH_LOW_MEMORY
 	#undef MAX_TEXTURES
 	#undef MAX_DECAL_SURFS
-	#define MAX_TEXTURES    1024
+	#define MAX_TEXTURES	1024
 	#define MAX_DECAL_SURFS 256
 #endif
 
 #define MAX_DETAIL_TEXTURES 256
-#define MAX_LIGHTMAPS       256
-#define SUBDIVIDE_SIZE      64
-#define MAX_DRAW_STACK      2           // normal view and menu view
+#define MAX_LIGHTMAPS	   256
+#define SUBDIVIDE_SIZE	  64
+#define MAX_DRAW_STACK	  2		   // normal view and menu view
 
-#define SHADEDOT_QUANT    16            // precalculated dot products for quantized angles
-#define SHADE_LAMBERT     1.4953241
+#define SHADEDOT_QUANT	16			// precalculated dot products for quantized angles
+#define SHADE_LAMBERT	 1.4953241
 #define DEFAULT_ALPHATEST 0.0f
 
 #define R_ModelOpaque( rm )   ( rm == kRenderNormal )
@@ -67,15 +67,15 @@ typedef int fixed16_t;
 
 #define CL_IsViewEntityLocalPlayer() ( gp_cl->viewentity == ( gp_cl->playernum + 1 ))
 
-#define CULL_VISIBLE  0                 // not culled
-#define CULL_BACKSIDE 1                 // backside of transparent wall
-#define CULL_FRUSTUM  2                 // culled by frustum
-#define CULL_VISFRAME 3                 // culled by PVS
-#define CULL_OTHER    4                 // culled by other reason
+#define CULL_VISIBLE  0				 // not culled
+#define CULL_BACKSIDE 1				 // backside of transparent wall
+#define CULL_FRUSTUM  2				 // culled by frustum
+#define CULL_VISFRAME 3				 // culled by PVS
+#define CULL_OTHER	4				 // culled by other reason
 
 // bit operation helpers
-#define MASK( x )           ( BIT( x ) - 1 )
-#define GET_BIT( s, b )     (( s & ( 1 << b )) >> b )
+#define MASK( x )		   ( BIT( x ) - 1 )
+#define GET_BIT( s, b )	 (( s & ( 1 << b )) >> b )
 #define MOVE_BIT( s, f, t ) ( GET_BIT( s, f ) << t )
 
 
@@ -85,7 +85,7 @@ typedef unsigned short pixel_t;
 
 typedef struct vrect_s
 {
-	int            x, y, width, height;
+	int			x, y, width, height;
 	struct vrect_s *pnext;
 } vrect_t;
 
@@ -93,29 +93,29 @@ typedef struct vrect_s
 // #define SEPARATE_BLIT
 typedef struct
 {
-	pixel_t      *buffer;                           // invisible buffer
-	pixel_t      colormap[32 * 8192];               // 8192 * light levels
-	// pixel_t                 *alphamap;              // 256 * 256 translucency map
+	pixel_t	  *buffer;						   // invisible buffer
+	pixel_t	  colormap[32 * 8192];			   // 8192 * light levels
+	// pixel_t				 *alphamap;			  // 256 * 256 translucency map
 #ifdef SEPARATE_BLIT
-	pixel_t      screen_minor[256];
-	pixel_t      screen_major[256];
+	pixel_t	  screen_minor[256];
+	pixel_t	  screen_major[256];
 #else
-	pixel_t      screen[256 * 256];
+	pixel_t	  screen[256 * 256];
 	unsigned int screen32[256 * 256];
 #endif
-	byte         addmap[256 * 256];
-	byte         modmap[256 * 256];
-	pixel_t      alphamap[3 * 1024 * 256];
-	pixel_t      color;
-	qboolean     is2d;
-	byte         alpha;
+	byte		 addmap[256 * 256];
+	byte		 modmap[256 * 256];
+	pixel_t	  alphamap[3 * 1024 * 256];
+	pixel_t	  color;
+	qboolean	 is2d;
+	byte		 alpha;
 
 	// maybe compute colormask for minor byte?
-	int          rendermode;
-	int          rowbytes;                                  // may be > width if displayed in a window
+	int		  rendermode;
+	int		  rowbytes;								  // may be > width if displayed in a window
 	// can be negative for stupid dibs
-	int          width;
-	int          height;
+	int		  width;
+	int		  height;
 } viddef_t;
 
 extern viddef_t vid;
@@ -125,136 +125,136 @@ typedef struct
 	ref_viewpass_t rvp;
 
 	cl_entity_t *currententity;
-	model_t     *currentmodel;
-	cl_entity_t *currentbeam;       // same as above but for beams
+	model_t	 *currentmodel;
+	cl_entity_t *currentbeam;	   // same as above but for beams
 
 	// gl_frustum_t	frustum;
 
-	mleaf_t     *viewleaf;
-	mleaf_t     *oldviewleaf;
-	vec3_t      vforward;
-	vec3_t      vright;
-	vec3_t      vup;
-	vec3_t      base_vup;
-	vec3_t      base_vpn;
-	vec3_t      base_vright;
+	mleaf_t	 *viewleaf;
+	mleaf_t	 *oldviewleaf;
+	vec3_t	  vforward;
+	vec3_t	  vright;
+	vec3_t	  vup;
+	vec3_t	  base_vup;
+	vec3_t	  base_vpn;
+	vec3_t	  base_vright;
 
-	vec3_t      cullorigin;
-	vec3_t      cull_vforward;
-	vec3_t      cull_vright;
-	vec3_t      cull_vup;
+	vec3_t	  cullorigin;
+	vec3_t	  cull_vforward;
+	vec3_t	  cull_vright;
+	vec3_t	  cull_vup;
 
-	int         cached_contents;            // in water
-	int         cached_waterlevel;          // was in water
-	float       farClip;
+	int		 cached_contents;			// in water
+	int		 cached_waterlevel;		  // was in water
+	float	   farClip;
 
-	float       skyMins[2][6];
-	float       skyMaxs[2][6];
+	float	   skyMins[2][6];
+	float	   skyMaxs[2][6];
 
-	matrix4x4   objectMatrix;                       // currententity matrix
-	matrix4x4   worldviewMatrix;                    // modelview for world
-	matrix4x4   modelviewMatrix;                    // worldviewMatrix * objectMatrix
+	matrix4x4   objectMatrix;					   // currententity matrix
+	matrix4x4   worldviewMatrix;					// modelview for world
+	matrix4x4   modelviewMatrix;					// worldviewMatrix * objectMatrix
 
 	matrix4x4   projectionMatrix;
-	matrix4x4   worldviewProjectionMatrix;           // worldviewMatrix * projectionMatrix
-	byte        visbytes[( MAX_MAP_LEAFS + 7 ) / 8]; // actual PVS for current frame
+	matrix4x4   worldviewProjectionMatrix;		   // worldviewMatrix * projectionMatrix
+	byte		visbytes[( MAX_MAP_LEAFS + 7 ) / 8]; // actual PVS for current frame
 
-	float       viewplanedist;
+	float	   viewplanedist;
 
 	// q2 oldrefdef
-	vrect_t     vrect;                              // subwindow in video for refresh
+	vrect_t	 vrect;							  // subwindow in video for refresh
 	// FIXME: not need vrect next field here?
-	vrect_t     aliasvrect;                         // scaled Alias version
-	int         vrectright, vrectbottom;            // right & bottom screen coords
-	int         aliasvrectright, aliasvrectbottom;  // scaled Alias versions
-	float       vrectrightedge;                     // rightmost right edge we care about,
+	vrect_t	 aliasvrect;						 // scaled Alias version
+	int		 vrectright, vrectbottom;			// right & bottom screen coords
+	int		 aliasvrectright, aliasvrectbottom;  // scaled Alias versions
+	float	   vrectrightedge;					 // rightmost right edge we care about,
 	//  for use in edge list
-	float       fvrectx, fvrecty;             // for floating-point compares
-	float       fvrectx_adj, fvrecty_adj;     // left and top edges, for clamping
-	int         vrect_x_adj_shift20;          // (vrect.x + 0.5 - epsilon) << 20
-	int         vrectright_adj_shift20;       // (vrectright + 0.5 - epsilon) << 20
-	float       fvrectright_adj, fvrectbottom_adj;
+	float	   fvrectx, fvrecty;			 // for floating-point compares
+	float	   fvrectx_adj, fvrecty_adj;	 // left and top edges, for clamping
+	int		 vrect_x_adj_shift20;		  // (vrect.x + 0.5 - epsilon) << 20
+	int		 vrectright_adj_shift20;	   // (vrectright + 0.5 - epsilon) << 20
+	float	   fvrectright_adj, fvrectbottom_adj;
 	// right and bottom edges, for clamping
-	float       fvrectright;                        // rightmost edge, for Alias clamping
-	float       fvrectbottom;                       // bottommost edge, for Alias clampin
+	float	   fvrectright;						// rightmost edge, for Alias clamping
+	float	   fvrectbottom;					   // bottommost edge, for Alias clampin
 
 
 } ref_instance_t;
 
 typedef struct
 {
-	cl_entity_t *edge_entities[MAX_VISIBLE_PACKET];         // brush edge drawing
-	cl_entity_t *solid_entities[MAX_VISIBLE_PACKET];        // opaque moving or alpha brushes
-	cl_entity_t *trans_entities[MAX_VISIBLE_PACKET];        // translucent brushes
+	cl_entity_t *edge_entities[MAX_VISIBLE_PACKET];		 // brush edge drawing
+	cl_entity_t *solid_entities[MAX_VISIBLE_PACKET];		// opaque moving or alpha brushes
+	cl_entity_t *trans_entities[MAX_VISIBLE_PACKET];		// translucent brushes
 	cl_entity_t *beam_entities[MAX_VISIBLE_PACKET];
-	uint        num_edge_entities;
-	uint        num_solid_entities;
-	uint        num_trans_entities;
-	uint        num_beam_entities;
+	uint		num_edge_entities;
+	uint		num_solid_entities;
+	uint		num_trans_entities;
+	uint		num_beam_entities;
 } draw_list_t;
 
 typedef struct
 {
-	int          defaultTexture;            // use for bad textures
-	int          particleTexture;
-	int          whiteTexture;
-	int          grayTexture;
-	int          blackTexture;
-	int          solidskyTexture;           // quake1 solid-sky layer
-	int          alphaskyTexture;           // quake1 alpha-sky layer
-	int          lightmapTextures[MAX_LIGHTMAPS];
-	int          dlightTexture;     // custom dlight texture
-	int          skyboxTextures[6]; // skybox sides
+	int		  defaultTexture;			// use for bad textures
+	int		  particleTexture;
+	int		  whiteTexture;
+	int		  grayTexture;
+	int		  blackTexture;
+	int		  solidskyTexture;		   // quake1 solid-sky layer
+	int		  alphaskyTexture;		   // quake1 alpha-sky layer
+	int		  lightmapTextures[MAX_LIGHTMAPS];
+	int		  dlightTexture;	 // custom dlight texture
+	int		  skyboxTextures[6]; // skybox sides
 
 	// entity lists
 	draw_list_t  draw_stack[MAX_DRAW_STACK];
-	int          draw_stack_pos;
+	int		  draw_stack_pos;
 	draw_list_t  *draw_list;
 
 	msurface_t   *draw_decals[MAX_DECAL_SURFS];
-	int          num_draw_decals;
+	int		  num_draw_decals;
 
 	// OpenGL matrix states
-	qboolean     modelviewIdentity;
+	qboolean	 modelviewIdentity;
 
-	int          visframecount;     // PVS frame
-	int          dlightframecount;  // dynamic light frame
-	int          realframecount;    // not including viewpasses
-	int          framecount;
+	int		  visframecount;	 // PVS frame
+	int		  dlightframecount;  // dynamic light frame
+	int		  realframecount;	// not including viewpasses
+	int		  framecount;
 
-	qboolean     fCustomRendering;
-	qboolean     fResetVis;
-	qboolean     fFlipViewModel;
+	qboolean	 fCustomRendering;
+	qboolean	 fResetVis;
+	qboolean	 fFlipViewModel;
 
 	// tree visualization stuff
-	int          recursion_level;
-	int          max_recursion;
+	int		  recursion_level;
+	int		  max_recursion;
 
-	byte         visbytes[( MAX_MAP_LEAFS + 7 ) / 8]; // member custom PVS
-	int          block_size;                          // lightmap blocksize
+	byte		 visbytes[( MAX_MAP_LEAFS + 7 ) / 8]; // member custom PVS
+	int		  block_size;						  // lightmap blocksize
 
-	double       frametime;         // special frametime for multipass rendering (will set to 0 on a nextview)
-	float        blend;             // global blend value
+	double	   frametime;		 // special frametime for multipass rendering (will set to 0 on a nextview)
+	float		blend;			 // global blend value
 
 	// cull info
-	vec3_t       modelorg;                  // relative to viewpoint
+	vec3_t	   modelorg;				  // relative to viewpoint
 
-	int          sample_size;
-	uint         sample_bits;
-	qboolean     map_unload;
+	int		  sample_size;
+	uint		 sample_bits;
+	qboolean	 map_unload;
 
 	// get from engine
 	cl_entity_t  *entities;
-	color24      *palette;
+	color24	  *palette;
 	cl_entity_t  *viewent;
 	lightstyle_t *lightstyles;
-	dlight_t     *elights;
-	byte         *texgammatable;
-	uint         *lightgammatable;
-	uint         *lineargammatable;
-	uint         *screengammatable;
+	dlight_t	 *elights;
+	byte		 *texgammatable;
+	uint		 *lightgammatable;
+	uint		 *lineargammatable;
+	uint		 *screengammatable;
 
-	uint         max_entities;
+	uint		 max_entities;
 } gl_globals_t;
 
 typedef struct
@@ -272,7 +272,7 @@ typedef struct
 	uint   c_sprite_models_drawn;
 	uint   c_particle_count;
 
-	uint   c_client_ents;           // entities that moved to client
+	uint   c_client_ents;		   // entities that moved to client
 	double t_world_node;
 	double t_world_draw;
 } ref_speeds_t;
@@ -286,28 +286,28 @@ extern gl_globals_t   tr;
 
 typedef struct image_s
 {
-	char           name[256];       // game path, including extension (can be store image programs)
-	word           srcWidth;        // keep unscaled sizes
-	word           srcHeight;
-	word           width;           // upload width\height
-	word           height;
-	word           depth;           // texture depth or count of layers for 2D_ARRAY
-	byte           numMips;         // mipmap count
+	char		   name[256];	   // game path, including extension (can be store image programs)
+	word		   srcWidth;		// keep unscaled sizes
+	word		   srcHeight;
+	word		   width;		   // upload width\height
+	word		   height;
+	word		   depth;		   // texture depth or count of layers for 2D_ARRAY
+	byte		   numMips;		 // mipmap count
 
 
-	texFlags_t     flags;
+	texFlags_t	 flags;
 
-	rgba_t         fogParams;       // some water textures
-	                                // contain info about underwater fog
-	rgbdata_t      *original;       // keep original image
+	rgba_t		 fogParams;	   // some water textures
+									// contain info about underwater fog
+	rgbdata_t	  *original;	   // keep original image
 
 	// debug info
-	size_t         size;            // upload size for debug targets
+	size_t		 size;			// upload size for debug targets
 
-	pixel_t        *pixels[4];                              // mip levels
-	pixel_t        *alpha_pixels;                           // mip levels
+	pixel_t		*pixels[4];							  // mip levels
+	pixel_t		*alpha_pixels;						   // mip levels
 
-	uint           hashValue;
+	uint		   hashValue;
 	struct image_s *nextHash;
 } image_t;
 
@@ -413,11 +413,11 @@ void Mod_StudioUnloadTextures( void *data );
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct
 {
-	void    *pdest;
+	void	*pdest;
 	short   *pz;
-	int     count;
+	int	 count;
 	pixel_t *ptex;
-	int     sfrac, tfrac, light, zi;
+	int	 sfrac, tfrac, light, zi;
 } spanpackage_t;
 
 extern void (*d_pdrawspans)( spanpackage_t * );
@@ -562,14 +562,14 @@ static inline uint LinearGammaTable( uint b )
 // driver
 
 
-#define MAXVERTS        64               // max points in a surface polygon
+#define MAXVERTS		64			   // max points in a surface polygon
 #define MAXWORKINGVERTS ( MAXVERTS + 4 ) // max points in an intermediate
 //  polygon (while processing)
 // !!! if this is changed, it must be changed in d_ifacea.h too !!!
 #define MAXHEIGHT 1200
 #define MAXWIDTH  1920
 
-#define INFINITE_DISTANCE 0x10000               // distance that's always guaranteed to
+#define INFINITE_DISTANCE 0x10000			   // distance that's always guaranteed to
 //  be farther away than anything in
 //  the scene
 
@@ -585,36 +585,36 @@ static inline uint LinearGammaTable( uint b )
 #define PARTICLE_Z_CLIP 8.0
 
 // !!! must be kept the same as in quakeasm.h !!!
-#define TRANSPARENT_COLOR 0x0349       // 0xFF
+#define TRANSPARENT_COLOR 0x0349	   // 0xFF
 
 
 // !!! if this is changed, it must be changed in d_ifacea.h too !!!
-#define TURB_TEX_SIZE 64                // base turbulent texture size
+#define TURB_TEX_SIZE 64				// base turbulent texture size
 
 // !!! if this is changed, it must be changed in d_ifacea.h too !!!
-#define CYCLE 128                               // turbulent cycle size
+#define CYCLE 128							   // turbulent cycle size
 
 #define SCANBUFFERPAD 0x1000
 
 #define DS_SPAN_LIST_END -128
 
-#define NUMSTACKEDGES    4000
-#define MINEDGES         NUMSTACKEDGES
+#define NUMSTACKEDGES	4000
+#define MINEDGES		 NUMSTACKEDGES
 #define NUMSTACKSURFACES 2000
-#define MINSURFACES      NUMSTACKSURFACES
-#define MAXSPANS         6000
+#define MINSURFACES	  NUMSTACKSURFACES
+#define MAXSPANS		 6000
 
 // flags in finalvert_t.flags
-#define ALIAS_LEFT_CLIP    0x0001
-#define ALIAS_TOP_CLIP     0x0002
+#define ALIAS_LEFT_CLIP	0x0001
+#define ALIAS_TOP_CLIP	 0x0002
 #define ALIAS_RIGHT_CLIP   0x0004
 #define ALIAS_BOTTOM_CLIP  0x0008
-#define ALIAS_Z_CLIP       0x0010
+#define ALIAS_Z_CLIP	   0x0010
 #define ALIAS_XY_CLIP_MASK 0x000F
 
 #define SURFCACHE_SIZE_AT_320X240 1024 * 768
 
-#define BMODEL_FULLY_CLIPPED 0x10    // value returned by R_BmodelCheckBBox ()
+#define BMODEL_FULLY_CLIPPED 0x10	// value returned by R_BmodelCheckBBox ()
 //  if bbox is trivially rejected
 
 #define XCENTERING ( 1.0f / 2.0f )
@@ -626,7 +626,7 @@ static inline uint LinearGammaTable( uint b )
 #define NEAR_CLIP 0.01f
 
 
-// #define MAXALIASVERTS           2000    // TODO: tune this
+// #define MAXALIASVERTS		   2000	// TODO: tune this
 #define ALIAS_Z_CLIP_PLANE 4
 
 // turbulence stuff
@@ -666,16 +666,16 @@ typedef struct finalvert_s
 	float xyz[3]; // eye space
 } finalvert_t;
 
-#define FINALVERT_V0    0
-#define FINALVERT_V1    2
-#define FINALVERT_V2    4
-#define FINALVERT_V3    6
-#define FINALVERT_V4    8
-#define FINALVERT_V5    12
+#define FINALVERT_V0	0
+#define FINALVERT_V1	2
+#define FINALVERT_V2	4
+#define FINALVERT_V3	6
+#define FINALVERT_V4	8
+#define FINALVERT_V5	12
 #define FINALVERT_FLAGS 16
-#define FINALVERT_X     20
-#define FINALVERT_Y     24
-#define FINALVERT_Z     28
+#define FINALVERT_X	 20
+#define FINALVERT_Y	 24
+#define FINALVERT_Z	 28
 #define FINALVERT_SIZE  32
 
 #else
@@ -689,16 +689,16 @@ typedef struct finalvert_s
 	float xyz[3]; // eye space
 } finalvert_t;
 
-#define FINALVERT_V0    0
-#define FINALVERT_V1    4
-#define FINALVERT_V2    8
-#define FINALVERT_V3    12
-#define FINALVERT_V4    16
-#define FINALVERT_V5    20
+#define FINALVERT_V0	0
+#define FINALVERT_V1	4
+#define FINALVERT_V2	8
+#define FINALVERT_V3	12
+#define FINALVERT_V4	16
+#define FINALVERT_V5	20
 #define FINALVERT_FLAGS 24
-#define FINALVERT_X     28
-#define FINALVERT_Y     32
-#define FINALVERT_Z     36
+#define FINALVERT_X	 28
+#define FINALVERT_Y	 32
+#define FINALVERT_Z	 36
 #define FINALVERT_SIZE  40
 
 #endif
@@ -730,38 +730,38 @@ typedef struct
 
 typedef struct
 {
-	void        *pskin;
-	int         pskindesc;
-	int         skinwidth;
-	int         skinheight;
+	void		*pskin;
+	int		 pskindesc;
+	int		 skinwidth;
+	int		 skinheight;
 	dtriangle_t *ptriangles;
 	finalvert_t *pfinalverts;
-	int         numtriangles;
-	int         drawtype;
-	int         seamfixupX16;
-	qboolean    do_vis_thresh;
-	int         vis_thresh;
+	int		 numtriangles;
+	int		 drawtype;
+	int		 seamfixupX16;
+	qboolean	do_vis_thresh;
+	int		 vis_thresh;
 } affinetridesc_t;
 
 
 
 typedef struct
 {
-	pixel_t    *surfdat;            // destination for generated surface
-	int        rowbytes;            // destination logical width in bytes
-	msurface_t *surf;               // description for surface to generate
+	pixel_t	*surfdat;			// destination for generated surface
+	int		rowbytes;			// destination logical width in bytes
+	msurface_t *surf;			   // description for surface to generate
 	fixed8_t   lightadj[MAXLIGHTMAPS];
 	// adjust for lightmap levels for dynamic lighting
-	image_t    *image;
-	int        surfmip;                     // mipmapped ratio of surface texels / world pixels
-	int        surfwidth;                   // in mipmapped texels
-	int        surfheight;                  // in mipmapped texels
+	image_t	*image;
+	int		surfmip;					 // mipmapped ratio of surface texels / world pixels
+	int		surfwidth;				   // in mipmapped texels
+	int		surfheight;				  // in mipmapped texels
 } drawsurf_t;
 
 // clipped bmodel edges
 typedef struct bedge_s
 {
-	mvertex_t      *v[2];
+	mvertex_t	  *v[2];
 	struct bedge_s *pnext;
 } bedge_t;
 
@@ -769,33 +769,33 @@ typedef struct bedge_s
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct clipplane_s
 {
-	vec3_t                      normal;
-	float                       dist;
-	struct          clipplane_s *next;
-	byte                        leftedge;
-	byte                        rightedge;
-	byte                        reserved[2];
+	vec3_t					  normal;
+	float					   dist;
+	struct		  clipplane_s *next;
+	byte						leftedge;
+	byte						rightedge;
+	byte						reserved[2];
 } clipplane_t;
 
 
 typedef struct surfcache_s
 {
 	struct surfcache_s *next;
-	struct surfcache_s **owner;                     // NULL is an empty chunk of memory
-	int                lightadj[MAXLIGHTMAPS];      // checked for strobe flush
-	int                dlight;
-	int                size;                                // including header
-	unsigned           width;
-	unsigned           height;                      // DEBUG only needed for debug
-	float              mipscale;
-	image_t            *image;
-	byte               data[4];                     // width*height elements
+	struct surfcache_s **owner;					 // NULL is an empty chunk of memory
+	int				lightadj[MAXLIGHTMAPS];	  // checked for strobe flush
+	int				dlight;
+	int				size;								// including header
+	unsigned		   width;
+	unsigned		   height;					  // DEBUG only needed for debug
+	float			  mipscale;
+	image_t			*image;
+	byte			   data[4];					 // width*height elements
 } surfcache_t;
 
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct espan_s
 {
-	int            u, v, count;
+	int			u, v, count;
 	struct espan_s *pnext;
 } espan_t;
 
@@ -804,35 +804,35 @@ typedef struct espan_s
 // insubmodel is only 1, flags is fewer than 32, spanstate could be a byte
 typedef struct surf_s
 {
-	struct surf_s  *next;                   // active surface stack in r_edge.c
-	struct surf_s  *prev;                   // used in r_edge.c for active surf stack
-	struct espan_s *spans;                  // pointer to linked list of spans to draw
-	int            key;                     // sorting key (BSP order)
-	int            last_u;                  // set during tracing
-	int            spanstate;               // 0 = not in span
+	struct surf_s  *next;				   // active surface stack in r_edge.c
+	struct surf_s  *prev;				   // used in r_edge.c for active surf stack
+	struct espan_s *spans;				  // pointer to linked list of spans to draw
+	int			key;					 // sorting key (BSP order)
+	int			last_u;				  // set during tracing
+	int			spanstate;			   // 0 = not in span
 	// 1 = in span
 	// -1 = in inverted span (end before
 	//  start)
-	int         flags;                                      // currentface flags
+	int		 flags;									  // currentface flags
 	msurface_t  *msurf;
 	cl_entity_t *entity;
-	float       nearzi;                             // nearest 1/z on surface, for mipmapping
-	qboolean    insubmodel;
-	float       d_ziorigin, d_zistepu, d_zistepv;
+	float	   nearzi;							 // nearest 1/z on surface, for mipmapping
+	qboolean	insubmodel;
+	float	   d_ziorigin, d_zistepu, d_zistepv;
 
-	int         pad[2];                                     // to 64 bytes
+	int		 pad[2];									 // to 64 bytes
 } surf_t;
 
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct edge_s
 {
-	fixed16_t      u;
-	fixed16_t      u_step;
+	fixed16_t	  u;
+	fixed16_t	  u_step;
 	struct edge_s  *prev, *next;
 	unsigned short surfs[2];
 	struct edge_s  *nextremove;
-	float          nearzi;
-	medge16_t      *owner;
+	float		  nearzi;
+	medge16_t	  *owner;
 } edge_t;
 
 
@@ -843,7 +843,7 @@ VARS
 */
 
 //  started
-extern float           r_aliasuvscale;  // scale-up factor for screen u and v
+extern float		   r_aliasuvscale;  // scale-up factor for screen u and v
 //  on Alias vertices passed to driver
 
 extern affinetridesc_t r_affinetridesc;
@@ -860,22 +860,22 @@ extern drawsurf_t r_drawsurf;
 
 void R_DrawSurface( void );
 
-// extern int              c_surf;
+// extern int			  c_surf;
 
 extern byte r_warpbuffer[WARP_WIDTH * WARP_HEIGHT];
 
 
 
 
-extern float       scale_for_mip;
+extern float	   scale_for_mip;
 
-extern qboolean    d_roverwrapped;
+extern qboolean	d_roverwrapped;
 extern surfcache_t *sc_rover;
 extern surfcache_t *d_initial_rover;
 
-extern float       d_sdivzstepu, d_tdivzstepu, d_zistepu;
-extern float       d_sdivzstepv, d_tdivzstepv, d_zistepv;
-extern float       d_sdivzorigin, d_tdivzorigin, d_ziorigin;
+extern float	   d_sdivzstepu, d_tdivzstepu, d_zistepu;
+extern float	   d_sdivzstepv, d_tdivzstepv, d_zistepv;
+extern float	   d_sdivzorigin, d_tdivzorigin, d_ziorigin;
 
 extern fixed16_t   sadjust, tadjust;
 extern fixed16_t   bbextents, bbextentt;
@@ -890,27 +890,27 @@ void D_AlphaSpans16( espan_t *pspan );
 void D_AddSpans16( espan_t *pspan );
 void TurbulentZ8( espan_t *pspan, int alpha );
 
-surfcache_t     *D_CacheSurface( msurface_t *surface, int miplevel );
+surfcache_t	 *D_CacheSurface( msurface_t *surface, int miplevel );
 
 
-extern pixel_t      *d_viewbuffer;
-extern short        *d_pzbuffer;
+extern pixel_t	  *d_viewbuffer;
+extern short		*d_pzbuffer;
 extern unsigned int d_zrowbytes, d_zwidth;
-extern short        *zspantable[MAXHEIGHT];
-extern int          d_scantable[MAXHEIGHT];
+extern short		*zspantable[MAXHEIGHT];
+extern int		  d_scantable[MAXHEIGHT];
 
-extern int          d_minmip;
-extern float        d_scalemip[3];
+extern int		  d_minmip;
+extern float		d_scalemip[3];
 
 // ===================================================================
 
-extern int     cachewidth;
+extern int	 cachewidth;
 extern pixel_t *cacheblock;
-extern int     r_screenwidth;
+extern int	 r_screenwidth;
 
 
-extern int     sintable[1280];
-extern int     blanktable[1280];                        // PGM
+extern int	 sintable[1280];
+extern int	 blanktable[1280];						// PGM
 
 extern surf_t  *surfaces, *surface_p, *surf_max;
 
@@ -932,15 +932,15 @@ extern float xscaleinv, yscaleinv;
 
 
 extern edge_t *auxedges;
-extern int    r_numallocatededges;
+extern int	r_numallocatededges;
 extern edge_t *r_edges, *edge_p, *edge_max;
 
 extern edge_t *newedges[MAXHEIGHT];
 extern edge_t *removeedges[MAXHEIGHT];
 
-extern int    r_viewcluster, r_oldviewcluster;
+extern int	r_viewcluster, r_oldviewcluster;
 
-extern int    r_clipflags;
+extern int	r_clipflags;
 // extern qboolean r_fov_greater_than_90;
 
 
@@ -958,29 +958,29 @@ extern convar_t r_studio_sort_textures;
 
 extern struct qfrustum_s
 {
-	mplane_t    screenedge[4];
+	mplane_t	screenedge[4];
 	clipplane_t view_clipplanes[4];
-	int         frustum_indexes[4 * 6];
-	int         *pfrustum_indexes[4];
+	int		 frustum_indexes[4 * 6];
+	int		 *pfrustum_indexes[4];
 } qfrustum;
 
 #define CACHESPOT( surf ) ((surfcache_t **)surf->info->reserved )
-extern int            r_currentkey;
-extern int            r_currentbkey;
-extern qboolean       insubmodel;
+extern int			r_currentkey;
+extern int			r_currentbkey;
+extern qboolean	   insubmodel;
 
-extern vec3_t         r_entorigin;
+extern vec3_t		 r_entorigin;
 #if XASH_LOW_MEMORY
 extern unsigned short r_leafkeys[MAX_MAP_LEAFS];
 #else
-extern int            r_leafkeys[MAX_MAP_LEAFS];
+extern int			r_leafkeys[MAX_MAP_LEAFS];
 #endif
 #define LEAF_KEY( pleaf ) r_leafkeys[( pleaf - WORLDMODEL->leafs )]
 
 
 
 extern mvertex_t *r_pcurrentvertbase;
-// extern int                      r_maxvalidedgeoffset;
+// extern int					  r_maxvalidedgeoffset;
 
 typedef struct
 {
@@ -1062,9 +1062,9 @@ int CL_FxBlend( cl_entity_t *e );
 void R_SetUpWorldTransform( void );
 
 #define BLEND_ALPHA_LOW( alpha, src, screen ) ( vid.alphamap[(( alpha ) << 18 ) | ((( src ) & 0xff00 ) << 2 ) | (( screen ) >> 6 )] | (( screen ) & 0x3f ))
-#define BLEND_ALPHA( alpha, src, dst )        ( alpha ) > 3 ? BLEND_ALPHA_LOW( 7 - 1 - ( alpha ), ( dst ), ( src )) : BLEND_ALPHA_LOW(( alpha ) - 1, ( src ), ( dst ))
-#define BLEND_ADD( src, screen )              vid.addmap[(( src ) & 0xff00 ) | (( screen ) >> 8 )] << 8 | (( screen ) & 0xff ) | ((( src ) & 0xff ) >> 0 );
-#define BLEND_COLOR( src, color )             vid.modmap[(( src ) & 0xff00 ) | (( color ) >> 8 )] << 8 | (( src ) & ( color ) & 0xff ) | ((( src ) & 0xff ) >> 3 );
+#define BLEND_ALPHA( alpha, src, dst )		( alpha ) > 3 ? BLEND_ALPHA_LOW( 7 - 1 - ( alpha ), ( dst ), ( src )) : BLEND_ALPHA_LOW(( alpha ) - 1, ( src ), ( dst ))
+#define BLEND_ADD( src, screen )			  vid.addmap[(( src ) & 0xff00 ) | (( screen ) >> 8 )] << 8 | (( screen ) & 0xff ) | ((( src ) & 0xff ) >> 0 );
+#define BLEND_COLOR( src, color )			 vid.modmap[(( src ) & 0xff00 ) | (( color ) >> 8 )] << 8 | (( src ) & ( color ) & 0xff ) | ((( src ) & 0xff ) >> 3 );
 
 #define LM_SAMPLE_SIZE_AUTO( surf ) ( tr.sample_size == -1 ? gEngfuncs.Mod_SampleSizeForFace( surf ) : tr.sample_size )
 

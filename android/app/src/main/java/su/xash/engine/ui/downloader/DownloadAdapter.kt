@@ -8,96 +8,96 @@ import su.xash.engine.R
 import su.xash.engine.databinding.ItemDownloadGameBinding
 
 class DownloadAdapter(
-    private val list: List<GameDownloadInfo>,
-    private val onDownloadClick: (GameDownloadInfo, Boolean) -> Unit
+	private val list: List<GameDownloadInfo>,
+	private val onDownloadClick: (GameDownloadInfo, Boolean) -> Unit
 ) : RecyclerView.Adapter<DownloadAdapter.ViewHolder>() {
 
-    private var isInteractionEnabled = true
+	private var isInteractionEnabled = true
 
-    class ViewHolder(val binding: ItemDownloadGameBinding) : RecyclerView.ViewHolder(binding.root)
+	class ViewHolder(val binding: ItemDownloadGameBinding) : RecyclerView.ViewHolder(binding.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemDownloadGameBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding)
-    }
+	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+		val binding = ItemDownloadGameBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+		return ViewHolder(binding)
+	}
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = list[position]
-        val context = holder.binding.root.context
-        
-        holder.binding.gameTitle.text = item.name
-        
-        val bgResId = when(item.id) {
-            "valve" -> R.drawable.bg_valve
-            "cstrike" -> R.drawable.bg_cstrike
-            "bshift" -> R.drawable.bg_bshift
-            "gearbox" -> R.drawable.bg_gearbox
-            "tfc" -> R.drawable.bg_tfc
-            "czero" -> R.drawable.bg_czero
-            "dmc" -> R.drawable.bg_dmc
-            else -> R.drawable.bg_valve
-        }
-        holder.binding.gameCover.setImageResource(bgResId)
+	override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+		val item = list[position]
+		val context = holder.binding.root.context
+		
+		holder.binding.gameTitle.text = item.name
+		
+		val bgResId = when(item.id) {
+			"valve" -> R.drawable.bg_valve
+			"cstrike" -> R.drawable.bg_cstrike
+			"bshift" -> R.drawable.bg_bshift
+			"gearbox" -> R.drawable.bg_gearbox
+			"tfc" -> R.drawable.bg_tfc
+			"czero" -> R.drawable.bg_czero
+			"dmc" -> R.drawable.bg_dmc
+			else -> R.drawable.bg_valve
+		}
+		holder.binding.gameCover.setImageResource(bgResId)
 
-        val iconResId = when(item.id) {
-            "valve" -> R.drawable.ic_valve
-            "cstrike" -> R.drawable.ic_cstrike
-            "bshift" -> R.drawable.ic_bshift
-            "gearbox" -> R.drawable.ic_gearbox
-            "tfc" -> R.drawable.ic_tfc
-            "czero" -> R.drawable.ic_czero
-            "dmc" -> R.drawable.ic_dmc
-            else -> R.drawable.ic_valve
-        }
-        holder.binding.gameIcon.setImageResource(iconResId)
-        
-        fun updateSizes(isHd: Boolean) {
-            val totalDownloadBytes = item.baseSizeBytes + (if (isHd) item.hdSizeBytes else 0L)
-            val totalInstalledBytes = item.baseInstalledBytes + (if (isHd) item.hdInstalledBytes else 0L)
+		val iconResId = when(item.id) {
+			"valve" -> R.drawable.ic_valve
+			"cstrike" -> R.drawable.ic_cstrike
+			"bshift" -> R.drawable.ic_bshift
+			"gearbox" -> R.drawable.ic_gearbox
+			"tfc" -> R.drawable.ic_tfc
+			"czero" -> R.drawable.ic_czero
+			"dmc" -> R.drawable.ic_dmc
+			else -> R.drawable.ic_valve
+		}
+		holder.binding.gameIcon.setImageResource(iconResId)
+		
+		fun updateSizes(isHd: Boolean) {
+			val totalDownloadBytes = item.baseSizeBytes + (if (isHd) item.hdSizeBytes else 0L)
+			val totalInstalledBytes = item.baseInstalledBytes + (if (isHd) item.hdInstalledBytes else 0L)
 
-            val dlMb = String.format("%.2f", totalDownloadBytes.toDouble() / BYTES_IN_MEGABYTE)
-            val instMb = String.format("%.2f", totalInstalledBytes.toDouble() / BYTES_IN_MEGABYTE)
+			val dlMb = String.format("%.2f", totalDownloadBytes.toDouble() / BYTES_IN_MEGABYTE)
+			val instMb = String.format("%.2f", totalInstalledBytes.toDouble() / BYTES_IN_MEGABYTE)
 
-            holder.binding.txtDownloadSize.text = context.getString(R.string.download_size_format, dlMb)
-            holder.binding.txtInstalledSize.text = context.getString(R.string.installed_size_format, instMb)
-        }
+			holder.binding.txtDownloadSize.text = context.getString(R.string.download_size_format, dlMb)
+			holder.binding.txtInstalledSize.text = context.getString(R.string.installed_size_format, instMb)
+		}
 
-        holder.binding.switchHd.setOnCheckedChangeListener(null)
+		holder.binding.switchHd.setOnCheckedChangeListener(null)
 
-        if (item.hasHdVersion) {
-            holder.binding.hdSwitchContainer.visibility = View.VISIBLE
-            holder.binding.switchHd.isChecked = item.isHdSelected 
-        } else {
-            holder.binding.hdSwitchContainer.visibility = View.GONE
-            holder.binding.switchHd.isChecked = false
-            item.isHdSelected = false
-        }
+		if (item.hasHdVersion) {
+			holder.binding.hdSwitchContainer.visibility = View.VISIBLE
+			holder.binding.switchHd.isChecked = item.isHdSelected 
+		} else {
+			holder.binding.hdSwitchContainer.visibility = View.GONE
+			holder.binding.switchHd.isChecked = false
+			item.isHdSelected = false
+		}
 
-        updateSizes(holder.binding.switchHd.isChecked)
+		updateSizes(holder.binding.switchHd.isChecked)
 
-        holder.binding.switchHd.setOnCheckedChangeListener { _, isChecked ->
-            item.isHdSelected = isChecked
-            updateSizes(isChecked)
-        }
+		holder.binding.switchHd.setOnCheckedChangeListener { _, isChecked ->
+			item.isHdSelected = isChecked
+			updateSizes(isChecked)
+		}
 
-        holder.binding.btnDownload.isEnabled = isInteractionEnabled
-        holder.binding.switchHd.isEnabled = isInteractionEnabled
-        holder.binding.hdSwitchContainer.isEnabled = isInteractionEnabled
+		holder.binding.btnDownload.isEnabled = isInteractionEnabled
+		holder.binding.switchHd.isEnabled = isInteractionEnabled
+		holder.binding.hdSwitchContainer.isEnabled = isInteractionEnabled
 
-        holder.binding.btnDownload.setOnClickListener { 
-            onDownloadClick(item, holder.binding.switchHd.isChecked) 
-        }
-    }
+		holder.binding.btnDownload.setOnClickListener { 
+			onDownloadClick(item, holder.binding.switchHd.isChecked) 
+		}
+	}
 
-    override fun getItemCount(): Int = list.size
+	override fun getItemCount(): Int = list.size
 
-    fun setInteractionEnabled(enabled: Boolean) {
-        if (isInteractionEnabled == enabled) return
-        isInteractionEnabled = enabled
-        notifyItemRangeChanged(0, list.size)
-    }
+	fun setInteractionEnabled(enabled: Boolean) {
+		if (isInteractionEnabled == enabled) return
+		isInteractionEnabled = enabled
+		notifyItemRangeChanged(0, list.size)
+	}
 
-    companion object {
-        private const val BYTES_IN_MEGABYTE = 1024 * 1024
-    }
+	companion object {
+		private const val BYTES_IN_MEGABYTE = 1024 * 1024
+	}
 }

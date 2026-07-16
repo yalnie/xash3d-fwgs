@@ -11,14 +11,14 @@ class MainApplication : Application() {
 		super.attachBaseContext(base)
 
 		if (!BuildConfig.DEBUG) {
-            initAcra {
-                buildConfigClass = BuildConfig::class.java
-                reportFormat = StringFormat.JSON
+			initAcra {
+				buildConfigClass = BuildConfig::class.java
+				reportFormat = StringFormat.JSON
 
-//                httpSender {
-//                    uri = "http://bodis.pp.ua:5000/report"
-//                }
-            }
+//				httpSender {
+//					uri = "http://bodis.pp.ua:5000/report"
+//				}
+			}
 		} else {
 			// enable strict mode to detect memory leaks etc.
 			StrictMode.enableDefaults();

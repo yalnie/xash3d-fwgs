@@ -56,7 +56,7 @@ typedef struct
 // values for model_t's needload
 #define NL_UNREFERENCED 0
 #define NL_NEEDS_LOADED 1
-#define NL_PRESENT      2
+#define NL_PRESENT	  2
 #define NL_FREE_UNUSED  3 // this model can be freed after sequence precaching is done
 
 typedef struct hullnode_s
@@ -82,61 +82,61 @@ typedef struct
 
 typedef struct wadentry_s
 {
-	int    usage;
+	int	usage;
 	string name; // including .wad extension
 } wadentry_t;
 
 typedef struct world_static_s
 {
-	qboolean     loading;		// true if worldmodel is loading
-	int          flags;		// misc flags
+	qboolean	 loading;		// true if worldmodel is loading
+	int		  flags;		// misc flags
 
 	// mapstats info
-	char         *message;	// just for debug
-	char         *compiler;	// map compiler
-	char         *generator;	// map editor
+	char		 *message;	// just for debug
+	char		 *compiler;	// map compiler
+	char		 *generator;	// map editor
 
 	hull_model_t *hull_models;
-	int          num_hull_models;
+	int		  num_hull_models;
 
 	// out pointers to light data
-	color24      *deluxedata;	// deluxemap data pointer
-	byte         *shadowdata;	// occlusion data pointer
+	color24	  *deluxedata;	// deluxemap data pointer
+	byte		 *shadowdata;	// occlusion data pointer
 
 	// visibility info
-	size_t       visbytes;		// cluster size
-	size_t       fatbytes;		// fatpvs size
+	size_t	   visbytes;		// cluster size
+	size_t	   fatbytes;		// fatpvs size
 
 	// world bounds
-	vec3_t       mins;		// real accuracy world bounds
-	vec3_t       maxs;
-	vec3_t       size;
+	vec3_t	   mins;		// real accuracy world bounds
+	vec3_t	   maxs;
+	vec3_t	   size;
 
 	// tree visualization stuff
-	int          recursion_level;
-	int          max_recursion;
+	int		  recursion_level;
+	int		  max_recursion;
 
-	uint32_t     version; // BSP version
+	uint32_t	 version; // BSP version
 
 	// Potentially Hearable Set
-	byte         *compressed_phs;
-	size_t       *phsofs;
+	byte		 *compressed_phs;
+	size_t	   *phsofs;
 
 	wadentry_t   *wadlist;
-	int          wadcount;
+	int		  wadcount;
 
 	// lightmapped water extra info
-	float        litwater_scale;
-	int          litwater_minlight;
+	float		litwater_scale;
+	int		  litwater_minlight;
 } world_static_t;
 
 #ifndef REF_DLL
 extern world_static_t world;
 extern poolhandle_t   com_studiocache;
-extern convar_t       mod_studiocache;
-extern convar_t       r_wadtextures;
-extern convar_t       r_showhull;
-extern convar_t       r_allow_wad3_luma;
+extern convar_t	   mod_studiocache;
+extern convar_t	   r_wadtextures;
+extern convar_t	   r_showhull;
+extern convar_t	   r_allow_wad3_luma;
 extern const mclipnode16_t box_clipnodes16[6];
 extern const mclipnode32_t box_clipnodes32[6];
 

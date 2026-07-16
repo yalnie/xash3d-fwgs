@@ -169,7 +169,7 @@ typedef enum netchan_flags_e
 {
 	NETCHAN_USE_MUNGE  = BIT( 0 ),
 	NETCHAN_USE_BZIP2  = BIT( 1 ),
-	NETCHAN_GOLDSRC    = BIT( 2 ),
+	NETCHAN_GOLDSRC	= BIT( 2 ),
 	NETCHAN_USE_LZSS   = BIT( 3 ), // mutually exclusive with bzip2
 	NETCHAN_USE_COOKIE = BIT( 4 ), // per-connection 64-bit cookie prefixed to every sequenced packet (NET_EXT_NETCHAN_COOKIE)
 } netchan_flags_t;

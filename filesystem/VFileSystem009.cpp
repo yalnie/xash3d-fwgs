@@ -26,13 +26,13 @@ GNU General Public License for more details.
 #endif
 
 // GoldSrc Directories and ID
-// GAME          gamedir
-// GAMECONFIG    gamedir (rodir integration?)
+// GAME		  gamedir
+// GAMECONFIG	gamedir (rodir integration?)
 // GAMEDOWNLOAD  gamedir_downloads
 // GAME_FALLBACK liblist.gam's fallback_dir
 // ROOT and BASE rootdir
-// PLATFORM      platform
-// CONFIG        platform/config
+// PLATFORM	  platform
+// CONFIG		platform/config
 
 // This is a macro because pointers returned by alloca
 // shouldn't leave current scope

@@ -333,27 +333,27 @@ typedef struct
 	pfnEventHook	func;	// user-defined function
 } cl_user_event_t;
 
-#define FONT_FIXED      0
+#define FONT_FIXED	  0
 #define FONT_VARIABLE   1
 
-#define FONT_DRAW_HUD      BIT( 0 ) // pass to drawing function to apply hud_scale
-#define FONT_DRAW_UTF8     BIT( 1 ) // call UtfProcessChar
+#define FONT_DRAW_HUD	  BIT( 0 ) // pass to drawing function to apply hud_scale
+#define FONT_DRAW_UTF8	 BIT( 1 ) // call UtfProcessChar
 #define FONT_DRAW_FORCECOL BIT( 2 ) // ignore colorcodes
 #define FONT_DRAW_NORENDERMODE BIT( 3 ) // ignore font's default rendermode
-#define FONT_DRAW_NOLF     BIT( 4 ) // ignore \n
+#define FONT_DRAW_NOLF	 BIT( 4 ) // ignore \n
 #define FONT_DRAW_RESETCOLORONLF BIT( 5 ) // yet another flag to simulate consecutive Con_DrawString calls...
 #define FONT_DRAW_NOCOLOR  BIT( 6 ) // do not set color to draw this character
 
 typedef struct
 {
-	int      hFontTexture;    // handle to texture
-	wrect_t  fontRc[256];     // tex coords
-	float    scale;           // scale factor
-	byte     charWidths[256]; // scaled widths
-	int      charHeight;      // scaled height
-	int      type;            // fixed width font or variable
-	convar_t *rendermode;     // user-defined default rendermode
-	qboolean	valid;           // all rectangles are valid
+	int	  hFontTexture;	// handle to texture
+	wrect_t  fontRc[256];	 // tex coords
+	float	scale;		   // scale factor
+	byte	 charWidths[256]; // scaled widths
+	int	  charHeight;	  // scaled height
+	int	  type;			// fixed width font or variable
+	convar_t *rendermode;	 // user-defined default rendermode
+	qboolean	valid;		   // all rectangles are valid
 } cl_font_t;
 
 typedef struct scissor_state_s
@@ -456,7 +456,7 @@ typedef struct
 	cldll_func_t	dllFuncs;			// dll exported funcs
 	render_interface_t	drawFuncs;		// custom renderer support
 	sound_interface_t	soundFuncs;		// custom sound support
-	poolhandle_t      mempool;			// client edicts pool
+	poolhandle_t	  mempool;			// client edicts pool
 	string		mapname;			// map name
 	string		maptitle;			// display map title
 	string		itemspath;		// path to items description for auto-complete func
@@ -514,7 +514,7 @@ typedef struct
 	void		*hInstance;		// pointer to client.dll
 	UI_FUNCTIONS	dllFuncs;			// dll exported funcs
 	UI_EXTENDED_FUNCTIONS dllFuncs2;	// fwgs extension
-	poolhandle_t      mempool;			// client edicts pool
+	poolhandle_t	  mempool;			// client edicts pool
 
 	cl_entity_t	playermodel;		// uiPlayerSetup drawing model
 	player_info_t	playerinfo;		// local playerinfo
@@ -536,8 +536,8 @@ typedef struct
 
 typedef struct bandwidth_test_s
 {
-	int challenge;    // saved challenge
-	int retry;        // number of tests
+	int challenge;	// saved challenge
+	int retry;		// number of tests
 	qboolean started; // if test has been started
 	qboolean passed;  // if test has been passed successfully
 	qboolean failed;  // if bandwidth test has been failed
@@ -559,7 +559,7 @@ typedef struct
 
 	keydest_t		key_dest;
 
-	poolhandle_t      mempool;			// client premamnent pool: edicts etc
+	poolhandle_t	  mempool;			// client premamnent pool: edicts etc
 
 	int		signon;			// 0 to SIGNONS, for the signon sequence.
 
@@ -641,7 +641,7 @@ typedef struct
 
 	file_t		*demofile;
 	file_t		*demoheader;		// contain demo startup info in case we record a demo on this level
-	qboolean internetservers_wait;    // internetservers is waiting for dns request
+	qboolean internetservers_wait;	// internetservers is waiting for dns request
 	qboolean internetservers_pending; // if true, clean master server pings
 	qboolean internetservers_nat;
 	string   internetservers_customfilter;

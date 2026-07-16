@@ -22,9 +22,9 @@ GNU General Public License for more details.
 enum mpg123_enc_enum
 {
 	// 0000 0000 0000 1111 Some 8 bit  integer encoding. */
-	MPG123_ENC_8      = 0x00f,
+	MPG123_ENC_8	  = 0x00f,
 	// 0000 0000 0100 0000 Some 16 bit integer encoding.
-	MPG123_ENC_16     = 0x040,
+	MPG123_ENC_16	 = 0x040,
 	// 0000 0000 1000 0000 Some signed integer encoding.
 	MPG123_ENC_SIGNED = 0x080,
 	// 0000 0000 1101 0000 signed 16 bit
@@ -34,11 +34,11 @@ enum mpg123_enc_enum
 	// 0000 0000 0000 0001 unsigned 8 bit
 	MPG123_ENC_UNSIGNED_8  = 0x01,
 	// 0000 0000 1000 0010 signed 8 bit
-	MPG123_ENC_SIGNED_8    = (MPG123_ENC_SIGNED|0x02),
+	MPG123_ENC_SIGNED_8	= (MPG123_ENC_SIGNED|0x02),
 	// 0000 0000 0000 0100 ulaw 8 bit
-	MPG123_ENC_ULAW_8      = 0x04,
+	MPG123_ENC_ULAW_8	  = 0x04,
 	// 0000 0000 0000 1000 alaw 8 bit
-	MPG123_ENC_ALAW_8      = 0x08,
+	MPG123_ENC_ALAW_8	  = 0x08,
 };
 
 #endif//FMT123_H

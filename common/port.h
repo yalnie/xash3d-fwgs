@@ -29,10 +29,10 @@ GNU General Public License for more details.
 
 #if XASH_APPLE
 	#include <sys/syslimits.h>
-	#define OS_LIB_EXT    "dylib"
+	#define OS_LIB_EXT	"dylib"
 	#define OPEN_COMMAND  "open"
 #elif XASH_POSIX
-	#define OS_LIB_EXT    "so"
+	#define OS_LIB_EXT	"so"
 	#define OPEN_COMMAND  "xdg-open"
 #elif XASH_WIN32
 	#define HSPRITE WINAPI_HSPRITE
@@ -44,18 +44,18 @@ GNU General Public License for more details.
 
 	#include <windows.h>
 	#undef HSPRITE
-	#define open          _open
-	#define read          _read
+	#define open		  _open
+	#define read		  _read
 
 	#ifndef alloca
-		#define alloca        _alloca
+		#define alloca		_alloca
 	#endif // alloca
 
 	#define OS_LIB_PREFIX ""
-	#define OS_LIB_EXT    "dll"
+	#define OS_LIB_EXT	"dll"
 	#define OPEN_COMMAND  "open"
 #elif XASH_PSP
-	#define OS_LIB_EXT    "prx"
+	#define OS_LIB_EXT	"prx"
 #endif
 
 #if !XASH_WIN32
