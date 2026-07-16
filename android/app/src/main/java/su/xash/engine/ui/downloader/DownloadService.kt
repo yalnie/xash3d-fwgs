@@ -3,7 +3,6 @@ package su.xash.engine.ui.downloader
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -247,7 +246,9 @@ class DownloadService : Service() {
 	private fun cancelAndCleanup() {
 		downloadJob?.cancel()
 		serviceScope.launch(Dispatchers.IO) {
-			cacheDir?.listFiles()?.forEach { if (file -> file.name.endsWith("_temp.zip")) file.delete() }
+			cacheDir?.listFiles()?.forEach { file -> 
+				if (file.name.endsWith("_temp.zip")) file.delete() 
+			}
 			if (selectedStrategy != "SKIP_EXISTING" && activeGameId != null) {
 				val outputDir = File(Environment.getExternalStorageDirectory(), "xash")
 				File(outputDir, activeGameId!!).deleteRecursively()
@@ -287,11 +288,12 @@ class DownloadService : Service() {
 	}
 
 	private fun buildNotification(content: String, progress: Int): Notification {
+		val isIndeterminate = lastKnownStatus == STATUS_UNZIPPING || lastKnownStatus == STATUS_DELETING
 		return NotificationCompat.Builder(this, CHANNEL_ID)
 			.setContentTitle(activeGameName.ifEmpty { getString(R.string.app_name) })
 			.setContentText(content)
 			.setSmallIcon(R.drawable.ic_baseline_cloud_24px)
-			.setProgress(100, progress, status == STATUS_UNZIPPING || status == STATUS_DELETING)
+			.setProgress(100, progress, isIndeterminate)
 			.setOngoing(true)
 			.build()
 	}
