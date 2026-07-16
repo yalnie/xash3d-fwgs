@@ -21,6 +21,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import su.xash.engine.databinding.ActivityMainBinding
 import su.xash.engine.model.AppUpdater
 import su.xash.engine.util.CrashReports
@@ -138,11 +139,11 @@ class MainActivity : AppCompatActivity() {
 			titleRes = R.string.engine_update_downloading,
 			cancelable = true,
 			scope = lifecycleScope,
-			download = { onProgress -> 
-				lifecycleScope.launch(Dispatchers.IO) {
-					updater.downloadAndInstall { progress ->
-						lifecycleScope.launch(Dispatchers.Main) {
-							onProgress(progress)
+			download = { onProgress ->
+				withContext(Dispatchers.IO) {
+					updater.downloadAndInstall { current, total ->
+						runOnUiThread {
+							onProgress(current, total)
 						}
 					}
 				}
