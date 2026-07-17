@@ -284,21 +284,27 @@ class DownloadService : Service() {
 		updateState(STATUS_CANCELING, 0, getString(R.string.downloader_canceling_format, activeGameName))
 		
 		serviceScope.launch(Dispatchers.IO) {
-			cacheDir?.listFiles()?.forEach { file -> 
-				if (file.name.endsWith("_temp.zip")) file.delete() 
+			try {
+				cacheDir?.listFiles()?.forEach { file -> 
+					if (file.name.endsWith("_temp.zip")) file.delete() 
+				}
+				if (selectedStrategy != "SKIP_EXISTING" && activeGameId != null) {
+					val outputDir = File(Environment.getExternalStorageDirectory(), "xash")
+					File(outputDir, activeGameId!!).deleteRecursively()
+				}
+			} catch (e: Exception) {
+				e.printStackTrace()
 			}
-			if (selectedStrategy != "SKIP_EXISTING" && activeGameId != null) {
-				val outputDir = File(Environment.getExternalStorageDirectory(), "xash")
-				File(outputDir, activeGameId!!).deleteRecursively()
-			}
+
 			withContext(Dispatchers.Main) {
 				clearSavedHdPreference()
+				updateState(STATUS_FAILED, 0, getString(R.string.download_cancelled))
+				
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 					stopForeground(STOP_FOREGROUND_DETACH)
 				} else {
 					stopForeground(false)
 				}
-				updateState(STATUS_FAILED, 0, getString(R.string.download_cancelled))
 				stopSelf()
 			}
 		}
