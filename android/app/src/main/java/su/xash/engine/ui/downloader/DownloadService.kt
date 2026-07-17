@@ -189,7 +189,8 @@ class DownloadService : Service() {
 				var total: Long = 0
 				var count: Int
 				
-				var lastPublishedProgress = -1
+				var lastUpdateTime = 0L
+				val updateIntervalMs = 1000L
 
 				while (input.read(data).also { count = it } != -1) {
 					if (downloadJob?.isCancelled == true) {
@@ -203,14 +204,17 @@ class DownloadService : Service() {
 					}
 
 					total += count
-					val progressPercent = if (definedSize > 0) (total * 100 / definedSize).toInt().coerceAtMost(100) else 0
+					val currentTime = System.currentTimeMillis()
 
-					if (progressPercent != lastPublishedProgress) {
-						lastPublishedProgress = progressPercent
+					if (currentTime - lastUpdateTime >= updateIntervalMs) {
+						lastUpdateTime = currentTime
+						val progressPercent = if (definedSize > 0) (total * 100 / definedSize).toInt().coerceAtMost(100) else 0
 						val currentMbText = String.format(Locale.US, "%.2f", total.toDouble() / (1024 * 1024))
 						
 						if (downloadJob?.isCancelled != true) {
-							updateState(STATUS_DOWNLOADING, progressPercent, stageLabel, currentMbText, totalMbText)
+							withContext(Dispatchers.Main) {
+								updateState(STATUS_DOWNLOADING, progressPercent, stageLabel, currentMbText, totalMbText)
+							}
 						}
 					}
 					output.write(data, 0, count)
@@ -229,6 +233,7 @@ class DownloadService : Service() {
 		}
 
 		updateState(STATUS_UNZIPPING, 0, stageLabel)
+		
 		val extractSuccess = withContext(Dispatchers.IO) {
 			try {
 				val prefix1 = "goldsrc-valve-$branchName/"
@@ -378,11 +383,19 @@ class DownloadService : Service() {
 			builder.setDeleteIntent(pendingStop)
 		}
 
-		if (lastKnownStatus == STATUS_DOWNLOADING || lastKnownStatus == STATUS_PAUSED) {
-			val actionText = if (isCurrentlyPaused) getString(R.string.btn_resume) else getString(R.string.btn_pause)
-			val actionIcon = if (isCurrentlyPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause
-			builder.addAction(actionIcon, actionText, pendingPause)
-			builder.addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.btn_cancel), pendingStop)
+		if (!isFinishedOrFailed) {
+			if (lastKnownStatus == STATUS_DOWNLOADING || lastKnownStatus == STATUS_PAUSED) {
+				val actionText = if (isCurrentlyPaused) getString(R.string.btn_resume) else getString(R.string.btn_pause)
+				val actionIcon = if (isCurrentlyPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause
+				builder.addAction(actionIcon, actionText, pendingPause)
+			}
+			
+			if (lastKnownStatus == STATUS_DOWNLOADING || 
+				lastKnownStatus == STATUS_PAUSED || 
+				lastKnownStatus == STATUS_UNZIPPING || 
+				lastKnownStatus == STATUS_DELETING) {
+				builder.addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.btn_cancel), pendingStop)
+			}
 		}
 
 		return builder.build()
