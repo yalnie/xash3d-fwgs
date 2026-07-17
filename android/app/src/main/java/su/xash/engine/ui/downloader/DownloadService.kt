@@ -144,10 +144,20 @@ class DownloadService : Service() {
 
 			if (overallSuccess) {
 				clearSavedHdPreference()
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+					stopForeground(STOP_FOREGROUND_DETACH)
+				} else {
+					stopForeground(false)
+				}
 				updateState(STATUS_SUCCESS, 100, getString(R.string.download_success, activeGameName))
 			} else {
 				if (downloadJob?.isCancelled != true) {
 					clearSavedHdPreference()
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+						stopForeground(STOP_FOREGROUND_DETACH)
+					} else {
+						stopForeground(false)
+					}
 					updateState(STATUS_FAILED, 0, getString(R.string.download_failed))
 				}
 			}
@@ -277,7 +287,12 @@ class DownloadService : Service() {
 			}
 			withContext(Dispatchers.Main) {
 				clearSavedHdPreference()
-				updateState(STATUS_FAILED, 0, "Operation cancelled")
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+					stopForeground(STOP_FOREGROUND_DETACH)
+				} else {
+					stopForeground(false)
+				}
+				updateState(STATUS_FAILED, 0, getString(R.string.download_cancelled))
 				stopSelf()
 			}
 		}
@@ -340,14 +355,28 @@ class DownloadService : Service() {
 		val pendingStop = PendingIntent.getService(this, 1, stopIntent, flags)
 		
 		val isCurrentlyPaused = lastKnownStatus == STATUS_PAUSED
+		val isFinishedOrFailed = lastKnownStatus == STATUS_SUCCESS || lastKnownStatus == STATUS_FAILED
+
+		val smallIcon = when (lastKnownStatus) {
+			STATUS_DOWNLOADING -> android.R.drawable.stat_sys_download
+			STATUS_PAUSED -> android.R.drawable.ic_media_pause
+			STATUS_SUCCESS -> android.R.drawable.stat_sys_download_done
+			STATUS_FAILED -> android.R.drawable.ic_delete
+			else -> android.R.drawable.stat_sys_download
+		}
 		
 		val builder = NotificationCompat.Builder(this, CHANNEL_ID)
 			.setContentTitle(activeGameName.ifEmpty { getString(R.string.app_name) })
 			.setContentText(content)
-			.setSmallIcon(android.R.drawable.stat_sys_download)
-			.setProgress(100, progress, isIndeterminate)
-			.setOngoing(true)
-			.setDeleteIntent(pendingStop)
+			.setSmallIcon(smallIcon)
+			.setOngoing(!isFinishedOrFailed)
+
+		if (isFinishedOrFailed) {
+			builder.setProgress(0, 0, false)
+		} else {
+			builder.setProgress(100, progress, isIndeterminate)
+			builder.setDeleteIntent(pendingStop)
+		}
 
 		if (lastKnownStatus == STATUS_DOWNLOADING || lastKnownStatus == STATUS_PAUSED) {
 			val actionText = if (isCurrentlyPaused) getString(R.string.btn_resume) else getString(R.string.btn_pause)
