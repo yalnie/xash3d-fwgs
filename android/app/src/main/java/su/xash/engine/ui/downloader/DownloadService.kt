@@ -163,7 +163,8 @@ class DownloadService : Service() {
 			if (tempZipFile.exists()) tempZipFile.delete()
 		}
 
-		updateState(STATUS_DOWNLOADING, 0, stageLabel)
+		val totalMbText = if (definedSize > 0) String.format(Locale.US, "%.2f", definedSize.toDouble() / (1024 * 1024)) else "?.??"
+		updateState(STATUS_DOWNLOADING, 0, stageLabel, "0.00", totalMbText)
 
 		val downloadSuccess = withContext(Dispatchers.IO) {
 			try {
@@ -177,7 +178,8 @@ class DownloadService : Service() {
 				val data = ByteArray(4096)
 				var total: Long = 0
 				var count: Int
-				val totalMbText = if (definedSize > 0) String.format(Locale.US, "%.2f", definedSize.toDouble() / (1024 * 1024)) else "?.??"
+				
+				var lastPublishedProgress = -1
 
 				while (input.read(data).also { count = it } != -1) {
 					if (downloadJob?.isCancelled == true) {
@@ -191,11 +193,15 @@ class DownloadService : Service() {
 					}
 
 					total += count
-					val currentMbText = String.format(Locale.US, "%.2f", total.toDouble() / (1024 * 1024))
 					val progressPercent = if (definedSize > 0) (total * 100 / definedSize).toInt().coerceAtMost(100) else 0
 
-					if (downloadJob?.isCancelled != true) {
-						updateState(STATUS_DOWNLOADING, progressPercent, stageLabel, currentMbText, totalMbText)
+					if (progressPercent != lastPublishedProgress) {
+						lastPublishedProgress = progressPercent
+						val currentMbText = String.format(Locale.US, "%.2f", total.toDouble() / (1024 * 1024))
+						
+						if (downloadJob?.isCancelled != true) {
+							updateState(STATUS_DOWNLOADING, progressPercent, stageLabel, currentMbText, totalMbText)
+						}
 					}
 					output.write(data, 0, count)
 				}
