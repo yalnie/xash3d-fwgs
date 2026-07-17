@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.*
 import su.xash.engine.R
 import java.io.File
@@ -340,6 +341,7 @@ class DownloadService : Service() {
 			putExtra(EXTRA_GAME_NAME, activeGameName)
 		}
 		sendBroadcast(intent)
+		LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
 	}
 
 	private fun buildNotification(content: String, progress: Int): Notification {
@@ -364,9 +366,15 @@ class DownloadService : Service() {
 
 		val smallIcon = when (lastKnownStatus) {
 			STATUS_DOWNLOADING -> android.R.drawable.stat_sys_download
-			STATUS_PAUSED -> android.R.drawable.ic_media_pause
+			STATUS_PAUSED -> R.drawable.ic_baseline_pause_24px
 			STATUS_SUCCESS -> android.R.drawable.stat_sys_download_done
-			STATUS_FAILED -> android.R.drawable.ic_delete
+			STATUS_FAILED -> {
+				if (content == getString(R.string.download_cancelled)) {
+					R.drawable.ic_baseline_disabled_by_default_24px
+				} else {
+					R.drawable.ic_baseline_exclamation_24px
+				}
+			}
 			else -> android.R.drawable.stat_sys_download
 		}
 		
@@ -386,7 +394,7 @@ class DownloadService : Service() {
 		if (!isFinishedOrFailed) {
 			if (lastKnownStatus == STATUS_DOWNLOADING || lastKnownStatus == STATUS_PAUSED) {
 				val actionText = if (isCurrentlyPaused) getString(R.string.btn_resume) else getString(R.string.btn_pause)
-				val actionIcon = if (isCurrentlyPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause
+				val actionIcon = if (isCurrentlyPaused) R.drawable.ic_baseline_play_arrow_24 else R.drawable.ic_baseline_pause_24px
 				builder.addAction(actionIcon, actionText, pendingPause)
 			}
 			
@@ -394,7 +402,7 @@ class DownloadService : Service() {
 				lastKnownStatus == STATUS_PAUSED || 
 				lastKnownStatus == STATUS_UNZIPPING || 
 				lastKnownStatus == STATUS_DELETING) {
-				builder.addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.btn_cancel), pendingStop)
+				builder.addAction(R.drawable.ic_baseline_stop_24px, getString(R.string.btn_cancel), pendingStop)
 			}
 		}
 
