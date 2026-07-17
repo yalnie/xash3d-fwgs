@@ -64,10 +64,11 @@
 	<string name="engine_install_failed">Güncelleme yüklemesi başarısız oldu: %1$s</string>
 	
 	<string name="app_downloader">Oyun İndirici</string>
-	<string name="downloading_progress">İndiriliyor: %%1$d</string>
+	<string name="downloading_progress">İndiriliyor: %1$d%%</string>
 	<string name="extracting_files">Dosyalar çıkarılıyor...</string>
 	<string name="download_success">%1$s başarıyla yüklendi!</string>
 	<string name="download_failed">İndirme başarısız oldu!</string>
+	<string name="download_cancelled">İşlem iptal edildi</string>
 	<string name="label_hd">HD</string>
 	<string name="btn_download">İndir</string>
 	<string name="conflict_title">Zaten yüklü</string>
@@ -84,7 +85,7 @@
 	<string name="btn_pause">Duraklat</string>
 	<string name="btn_resume">Devam et</string>
 	<string name="btn_cancel">İptal et</string>
-	<string name="downloader_status_format">%1$s indiriliyor: %2$s MB / %3$s MB (%%4$d)</string>
+	<string name="downloader_status_format">%1$s indiriliyor: %2$s MB / %3$s MB (%4$d%%)</string>
 	<string name="downloader_extracting_format">%1$s çıkarılıyor…</string>
 	<string name="downloader_deleting_format">%1$s siliniyor…</string>
 	<string name="downloader_canceling_format">İşlem iptal ediliyor...</string>

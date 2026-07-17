@@ -68,6 +68,7 @@
 	<string name="extracting_files">Extracting files...</string>
 	<string name="download_success">%1$s installed successfully!</string>
 	<string name="download_failed">Download failed!</string>
+	<string name="download_cancelled">Operation cancelled</string>
 	<string name="label_hd">HD</string>
 	<string name="btn_download">Download</string>
 	<string name="conflict_title">Already Installed</string>
