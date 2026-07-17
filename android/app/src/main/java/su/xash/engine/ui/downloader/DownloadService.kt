@@ -50,6 +50,7 @@ class DownloadService : Service() {
 		const val EXTRA_IS_HD = "extra_is_hd"
 
 		const val STATUS_DOWNLOADING = "STATUS_DOWNLOADING"
+		const val STATUS_PAUSED = "STATUS_PAUSED"
 		const val STATUS_UNZIPPING = "STATUS_UNZIPPING"
 		const val STATUS_DELETING = "STATUS_DELETING"
 		const val STATUS_CANCELING = "STATUS_CANCELING"
@@ -105,11 +106,12 @@ class DownloadService : Service() {
 				}
 			}
 			ACTION_PAUSE_RESUME -> {
-				if (lastKnownStatus == STATUS_DOWNLOADING) {
+				if (lastKnownStatus == STATUS_DOWNLOADING || lastKnownStatus == STATUS_PAUSED) {
 					val paused = !isPaused.get()
 					isPaused.set(paused)
-					val labelText = if (paused) getString(R.string.btn_resume) else lastKnownStageLabel
-					updateState(STATUS_DOWNLOADING, lastKnownProgress, labelText, lastKnownCurrentMb, lastKnownTotalMb)
+					
+					val nextStatus = if (paused) STATUS_PAUSED else STATUS_DOWNLOADING
+					updateState(nextStatus, lastKnownProgress, lastKnownStageLabel, lastKnownCurrentMb, lastKnownTotalMb)
 				}
 			}
 			ACTION_STOP -> {
@@ -282,6 +284,7 @@ class DownloadService : Service() {
 		val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 		val message = when(status) {
 			STATUS_DOWNLOADING -> getString(R.string.downloader_status_format, stageLabel, currentMb, totalMb, progress)
+			STATUS_PAUSED -> getString(R.string.downloader_status_format, stageLabel, currentMb, totalMb, progress) + " (${getString(R.string.btn_pause)})"
 			STATUS_UNZIPPING -> getString(R.string.downloader_extracting_format, stageLabel)
 			STATUS_DELETING -> stageLabel
 			STATUS_CANCELING -> stageLabel
@@ -319,17 +322,21 @@ class DownloadService : Service() {
 
 		val stopIntent = Intent(this, DownloadService::class.java).apply { action = ACTION_STOP }
 		val pendingStop = PendingIntent.getService(this, 1, stopIntent, flags)
-							  
+		
+		val isCurrentlyPaused = lastKnownStatus == STATUS_PAUSED
+		
 		val builder = NotificationCompat.Builder(this, CHANNEL_ID)
 			.setContentTitle(activeGameName.ifEmpty { getString(R.string.app_name) })
 			.setContentText(content)
 			.setSmallIcon(android.R.drawable.stat_sys_download)
 			.setProgress(100, progress, isIndeterminate)
 			.setOngoing(true)
+			.setDeleteIntent(pendingStop)
 
-		if (lastKnownStatus == STATUS_DOWNLOADING) {
-			val actionText = if (isPaused.get()) getString(R.string.btn_resume) else getString(R.string.btn_pause)
-			builder.addAction(android.R.drawable.ic_media_pause, actionText, pendingPause)
+		if (lastKnownStatus == STATUS_DOWNLOADING || lastKnownStatus == STATUS_PAUSED) {
+			val actionText = if (isCurrentlyPaused) getString(R.string.btn_resume) else getString(R.string.btn_pause)
+			val actionIcon = if (isCurrentlyPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause
+			builder.addAction(actionIcon, actionText, pendingPause)
 			builder.addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.btn_cancel), pendingStop)
 		}
 
