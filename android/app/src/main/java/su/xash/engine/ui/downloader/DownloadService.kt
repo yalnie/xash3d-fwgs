@@ -143,9 +143,11 @@ class DownloadService : Service() {
 			}
 
 			if (overallSuccess) {
+				clearSavedHdPreference()
 				updateState(STATUS_SUCCESS, 100, getString(R.string.download_success, activeGameName))
 			} else {
 				if (downloadJob?.isCancelled != true) {
+					clearSavedHdPreference()
 					updateState(STATUS_FAILED, 0, getString(R.string.download_failed))
 				}
 			}
@@ -268,9 +270,17 @@ class DownloadService : Service() {
 				File(outputDir, activeGameId!!).deleteRecursively()
 			}
 			withContext(Dispatchers.Main) {
+				clearSavedHdPreference()
 				updateState(STATUS_FAILED, 0, "Operation cancelled")
 				stopSelf()
 			}
+		}
+	}
+
+	private fun clearSavedHdPreference() {
+		activeGameId?.let { gameId ->
+			val prefs = getSharedPreferences("hd_selections_prefs", Context.MODE_PRIVATE)
+			prefs.edit().remove("hd_$gameId").apply()
 		}
 	}
 
