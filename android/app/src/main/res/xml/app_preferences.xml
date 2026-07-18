@@ -14,9 +14,11 @@
 
 	<Preference
 		app:key="open_app_icons_screen"
+		app:layout="@layout/edit_text_preference"
 		app:title="@string/settings_application_icon" />
 
 	<Preference
 		app:key="crash_logs"
+		app:layout="@layout/edit_text_preference"
 		app:title="@string/crash_logs" />
 </PreferenceScreen>
