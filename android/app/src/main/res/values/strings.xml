@@ -106,4 +106,6 @@
     <string name="icon_name_pride">Pride</string>
     <string name="icon_name_trans">Transgender</string>
     <string name="icon_name_lambda">Lambda</string>
+    <string name="dialog_change_icon_title">Change icon to %1$s?</string>
+    <string name="dialog_change_icon_message">The application will close itself to change the application icon.</string>
 </resources>

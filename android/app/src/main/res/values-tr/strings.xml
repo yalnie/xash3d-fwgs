@@ -105,4 +105,6 @@
 	<string name="icon_name_pride">Onur</string>
 	<string name="icon_name_trans">Trans</string>
 	<string name="icon_name_lambda">Lambda</string>
+	<string name="dialog_change_icon_title">Simge %1$s olarak değiştirilsin mi?</string>
+    <string name="dialog_change_icon_message">Uygulama simgesini değiştirmek için uygulama kendiliğinden kapatılacaktır.</string>
 </resources>

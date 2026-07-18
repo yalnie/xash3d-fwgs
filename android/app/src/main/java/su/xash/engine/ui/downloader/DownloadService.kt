@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Environment
 import android.os.IBinder
@@ -14,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.*
 import su.xash.engine.R
+import su.xash.engine.ui.settings.AppIconManager
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -370,6 +372,8 @@ class DownloadService : Service() {
 		val isCurrentlyPaused = lastKnownStatus == STATUS_PAUSED
 		val isFinishedOrFailed = lastKnownStatus == STATUS_SUCCESS || lastKnownStatus == STATUS_FAILED
 
+		val dynamicMipmapIcon = AppIconManager.getNotificationIconRes(this)
+
 		val smallIcon = when (lastKnownStatus) {
 			STATUS_DOWNLOADING -> android.R.drawable.stat_sys_download
 			STATUS_PAUSED -> R.drawable.ic_baseline_pause_24px
@@ -388,6 +392,7 @@ class DownloadService : Service() {
 			.setContentTitle(activeGameName.ifEmpty { getString(R.string.app_name) })
 			.setContentText(content)
 			.setSmallIcon(smallIcon)
+			.setLargeIcon(BitmapFactory.decodeResource(resources, dynamicMipmapIcon))
 			.setOngoing(!isFinishedOrFailed)
 
 		if (isFinishedOrFailed) {

@@ -1,8 +1,9 @@
 package su.xash.engine.ui.settings
 
-import android.content.ComponentName
 import android.content.Context
+import android.content.ComponentName
 import android.content.pm.PackageManager
+import su.xash.engine.R
 
 object AppIconManager {
 
@@ -30,6 +31,18 @@ object AppIconManager {
 				newState,
 				PackageManager.DONT_KILL_APP
 			)
+		}
+	}
+
+	fun getNotificationIconRes(context: Context): Int {
+		val prefs = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+		val savedIconName = prefs.getString("app_icon_setting", AppIcon.DEFAULT.name) ?: AppIcon.DEFAULT.name
+		return when (savedIconName) {
+			"XASH" -> R.mipmap.ic_launcher_xash
+			"PRIDE" -> R.mipmap.ic_launcher_pride
+			"TRANS" -> R.mipmap.ic_launcher_trans
+			"LAMBDA" -> R.mipmap.ic_launcher_lambda
+			else -> R.mipmap.ic_launcher
 		}
 	}
 }
