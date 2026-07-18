@@ -48,6 +48,13 @@
 			app:exitAnim="@animator/fragment_open_exit"
 			app:popEnterAnim="@animator/fragment_close_enter"
 			app:popExitAnim="@animator/fragment_close_exit" />
+		<action
+			android:id="@+id/action_appSettingsFragment_to_appIconsFragment"
+			app:destination="@id/appIconsFragment"
+			app:enterAnim="@animator/fragment_open_enter"
+			app:exitAnim="@animator/fragment_open_exit"
+			app:popEnterAnim="@animator/fragment_close_enter"
+			app:popExitAnim="@animator/fragment_close_exit" />
 	</fragment>
 	
 	<fragment
@@ -59,4 +66,9 @@
 		android:id="@+id/downloadPanelFragment"
 		android:name="su.xash.engine.ui.downloader.DownloadPanelFragment"
 		android:label="@string/app_downloader" /> 
+
+	<fragment
+		android:id="@+id/appIconsFragment"
+		android:name="su.xash.engine.ui.settings.AppIconsFragment"
+		android:label="@string/settings_application_icon" />
 </navigation>

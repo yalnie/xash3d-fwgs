@@ -100,4 +100,9 @@
 	<string name="source_speed_fast">Hızlı</string>
 	<string name="source_speed_medium">Orta</string>
 	<string name="source_speed_slow">Yavaş</string>
+	<string name="icon_name_default">Varsayılan</string>
+	<string name="icon_name_xash">Xash3D FWGS</string>
+	<string name="icon_name_pride">Onur</string>
+	<string name="icon_name_trans">Trans</string>
+	<string name="icon_name_lambda">Lambda</string>
 </resources>

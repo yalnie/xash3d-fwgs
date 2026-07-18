@@ -13,6 +13,10 @@
 		app:title="@string/preferences_use_icons" />
 
 	<Preference
+		app:key="open_app_icons_screen"
+		app:title="@string/settings_application_icon" />
+
+	<Preference
 		app:key="crash_logs"
 		app:title="@string/crash_logs" />
 </PreferenceScreen>

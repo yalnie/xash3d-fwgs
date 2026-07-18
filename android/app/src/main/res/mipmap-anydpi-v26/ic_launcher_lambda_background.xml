@@ -1,0 +1,59 @@
+<!-- res/drawable/ic_launcher_telegram_orange_mesh.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:aapt="http://schemas.android.com/aapt"
+	android:width="108dp"
+	android:height="108dp"
+	android:viewportWidth="108"
+	android:viewportHeight="108">
+
+	<!-- 1. ADIM: SAĞ ALT VE TABAN DOMİNANTLIĞI (Koyu Turuncu Tonları) -->
+	<!-- Alt yarısını besleyen ana koyu turuncu taban -->
+	<path android:pathData="M0,0 h108 v108 h-108 z">
+	    <aapt:attr name="android:fillColor">
+	        <gradient
+	            android:startX="0"
+	            android:startY="108"
+	            android:endX="108"
+	            android:endY="0"
+	            android:type="linear">
+	            <item android:offset="0.0" android:color="#FFE65100" /> <!-- Koyu Turuncu -->
+	            <item android:offset="1.0" android:color="#FFF57C00" /> <!-- Sıcak Turuncu -->
+	        </gradient>
+	    </aapt:attr>
+	</path>
+
+	<!-- 2. ADIM: SOL ÜST MESH ETKİSİ (Açık Kavuniçi / Turuncu) -->
+	<!-- Sol üst köşeden merkeze doğru akan, alt matrisi yumuşatan parlak katman -->
+	<path android:pathData="M0,0 h108 v108 h-108 z">
+	    <aapt:attr name="android:fillColor">
+	        <gradient
+	            android:startX="0"
+	            android:startY="0"
+	            android:endX="70"
+	            android:endY="70"
+	            android:type="linear">
+	            <item android:offset="0.0" android:color="#FFFFB74D" /> <!-- Parlak Kavuniçi -->
+	            <item android:offset="0.4" android:color="#A0FFB74D" />
+	            <item android:offset="1.0" android:color="#00FFB74D" />
+	        </gradient>
+	    </aapt:attr>
+	</path>
+
+	<!-- 3. ADIM: SAĞ ÜST YUMUŞAK GEÇİŞ (Canlı Sarı / Turuncu Patlaması) -->
+	<!-- Üst kısımdaki renk patlamasını ve parlaklığı veren son katman -->
+	<path android:pathData="M0,0 h108 v108 h-108 z">
+	    <aapt:attr name="android:fillColor">
+	        <gradient
+	            android:startX="108"
+	            android:startY="0"
+	            android:endX="30"
+	            android:endY="80"
+	            android:type="linear">
+	            <item android:offset="0.0" android:color="#FFFFB300" /> <!-- Canlı Amber / Sarı -->
+	            <item android:offset="0.5" android:color="#80FFFFB3" />
+	            <item android:offset="1.0" android:color="#00FFFFB3" />
+	        </gradient>
+	    </aapt:attr>
+	</path>
+
+</vector>

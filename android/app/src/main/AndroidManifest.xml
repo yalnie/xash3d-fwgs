@@ -66,15 +66,78 @@
 		android:usesCleartextTraffic="true"
 		android:requestLegacyExternalStorage="true"
 		android:enableOnBackInvokedCallback="true">
+		
 		<activity
 			android:name=".MainActivity"
 			android:exported="true"
 			android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode">
+		</activity>
+
+		<activity-alias
+			android:name=".MainActivityDefault"
+			android:enabled="true"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher"
+			android:label="@string/app_name"
+			android:targetActivity=".MainActivity">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
-		</activity>
+		</activity-alias>
+
+		<activity-alias
+			android:name=".MainActivityXash"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_xash"
+			android:label="@string/app_name"
+			android:targetActivity=".MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+
+		<activity-alias
+			android:name=".MainActivityPride"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_pride"
+			android:label="@string/app_name"
+			android:targetActivity=".MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+
+		<activity-alias
+			android:name=".MainActivityTrans"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_trans"
+			android:label="@string/app_name"
+			android:targetActivity=".MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+
+		<activity-alias
+			android:name=".MainActivityLambda"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_lambda"
+			android:label="@string/app_name"
+			android:targetActivity=".MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+
 		<provider
 			android:name="androidx.core.content.FileProvider"
 			android:authorities="${applicationId}.fileprovider"
@@ -84,6 +147,7 @@
 				android:name="android.support.FILE_PROVIDER_PATHS"
 				android:resource="@xml/paths" />
 		</provider>
+		
 		<receiver
 			android:name=".model.InstallStatusReceiver"
 			android:exported="false">

@@ -2,6 +2,7 @@ package su.xash.engine.ui.settings
 
 import android.os.Bundle
 import androidx.navigation.fragment.findNavController
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import su.xash.engine.R
@@ -13,6 +14,19 @@ class AppSettingsPreferenceFragment() : PreferenceFragmentCompat() {
 
 		findPreference<Preference>("crash_logs")?.setOnPreferenceClickListener {
 			findNavController().navigate(R.id.action_appSettingsFragment_to_crashLogsFragment)
+			true
+		}
+
+		findPreference<ListPreference>("app_icon_setting")?.setOnPreferenceChangeListener { _, newValue ->
+			val selectedValue = newValue as String
+			val context = requireContext()
+			
+			try {
+				val targetIcon = AppIconManager.AppIcon.valueOf(selectedValue)
+				AppIconManager.setAppIcon(context, targetIcon)
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
 			true
 		}
 	}
