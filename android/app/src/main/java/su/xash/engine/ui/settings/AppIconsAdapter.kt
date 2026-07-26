@@ -2,6 +2,7 @@ package su.xash.engine.ui.settings
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import su.xash.engine.R
@@ -37,14 +38,25 @@ class AppIconsAdapter(
 			if (currentSelection != item.type) {
 				val context = holder.itemView.context
 				
-				MaterialAlertDialogBuilder(context)
+				val dialog = MaterialAlertDialogBuilder(context)
 					.setIcon(item.drawableRes)
 					.setTitle(context.getString(R.string.dialog_change_icon_title, item.displayName))
 					.setMessage(context.getString(R.string.dialog_change_icon_message))
-					.setNegativeButton(android.R.string.cancel) { dialog, _ ->
-						dialog.dismiss()
-					}
-					.setPositiveButton(android.R.string.ok) { dialog, _ ->
+					.setNegativeButton(android.R.string.cancel, null)
+					.setPositiveButton(android.R.string.ok, null)
+					.create()
+
+				dialog.setOnShowListener {
+					val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+					val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+
+					positiveButton.setOnClickListener {
+						dialog.setCancelable(false)
+						dialog.setCanceledOnTouchOutside(false)
+
+						positiveButton.isEnabled = false
+						negativeButton.isEnabled = false
+
 						val oldSelection = currentSelection
 						currentSelection = item.type
 						
@@ -53,9 +65,10 @@ class AppIconsAdapter(
 						notifyItemChanged(position)
 						
 						onIconSelected(item.type)
-						dialog.dismiss()
 					}
-					.show()
+				}
+
+				dialog.show()
 			}
 		}
 	}

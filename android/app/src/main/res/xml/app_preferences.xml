@@ -7,10 +7,10 @@
 		app:title="@string/game_data_location"
 		android:summary="/storage/emulated/0/xash" />
 
-	<SwitchPreferenceCompat
+	<!-- <SwitchPreferenceCompat
 		app:key="use_icons"
 		app:layout="@layout/switch_preference"
-		app:title="@string/preferences_use_icons" />
+		app:title="@string/preferences_use_icons" /> -->
 
 	<Preference
 		app:key="open_app_icons_screen"
@@ -20,5 +20,6 @@
 	<Preference
 		app:key="crash_logs"
 		app:layout="@layout/edit_text_preference"
-		app:title="@string/crash_logs" />
+		app:title="@string/crash_logs"
+		android:summary="@string/crash_logs_summary" />
 </PreferenceScreen>

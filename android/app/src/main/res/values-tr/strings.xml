@@ -29,6 +29,7 @@
 	<string name="crash_share">Paylaş</string>
 	<string name="crash_dismiss">Kapat</string>
 	<string name="crash_logs">Çökme günlükleri</string>
+	<string name="crash_logs_summary">Çökme günlüklerini görüntüleyin, silin, veya paylaşın</string>
 	<string name="crash_logs_empty">Kayıtlı çökme günlüğü bulunamadı</string>
 	<string name="crash_log_delete">Sil</string>
 	<string name="crash_email_subject" translatable="false">Xash3D FWGS crash report</string>

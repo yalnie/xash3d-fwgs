@@ -29,6 +29,7 @@
 	<string name="crash_share">Share</string>
 	<string name="crash_dismiss">Dismiss</string>
 	<string name="crash_logs">Crash logs</string>
+	<string name="crash_logs_summary">View, delete or share crash logs</string>
 	<string name="crash_logs_empty">No crash logs recorded</string>
 	<string name="crash_log_delete">Delete</string>
 	<string name="crash_email_subject" translatable="false">Xash3D FWGS crash report</string>
