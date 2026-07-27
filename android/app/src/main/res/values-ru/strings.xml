@@ -61,4 +61,18 @@
 	<string name="engine_update_permission_message">Чтобы установить обновление, разрешите Xash3D FWGS устанавливать неизвестные приложения в настройках системы.</string>
 	<string name="engine_update_open_settings">Открыть настройки</string>
 	<string name="engine_install_failed">Не удалось установить обновление: %1$s</string>
+	
+	<!-- FPicker -->
+	<string name="folder">Выбрать текущий каталог</string>
+	<string name="parent_directory">Родительский каталог</string>
+	<string name="chosen_path">Выбранный путь:</string>
+	<string name="current_dir">Текущий каталог:</string>
+
+	<plurals name="item_plurals">
+		<item quantity="zero">Нет папок</item>
+		<item quantity="one">%d папка</item>
+		<item quantity="few">%d папки</item>
+        <item quantity="other">%d папок</item>
+	</plurals>
+	<!-- /FPicker -->
 </resources>

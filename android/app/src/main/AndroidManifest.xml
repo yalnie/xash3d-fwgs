@@ -169,9 +169,18 @@
 				<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
 			</intent-filter>
 		</activity>
+		
+		<activity android:name=".FPicker"></activity>
 
 		<service
 			android:name=".ui.downloader.DownloadService"
+			android:enabled="true"
+			android:exported="false"
+			android:foregroundServiceType="dataSync">
+		</service>
+
+		<service
+			android:name=".XashService"
 			android:enabled="true"
 			android:exported="false"
 			android:foregroundServiceType="dataSync">

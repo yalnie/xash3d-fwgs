@@ -100,12 +100,14 @@ class DownloadService : Service() {
 				selectedStrategy = intent.getStringExtra(EXTRA_STRATEGY) ?: "REPLACE"
 				val isHdSelected = intent.getBooleanExtra(EXTRA_IS_HD, false)
 
+
 				lastKnownGameName = activeGameName
 				startForeground(NOTIFICATION_ID, buildNotification(getString(R.string.downloading), 0))
 				
 				if (downloadJob == null) {
 					isPaused.set(false)
-					startDownloadSequence(url, size, hdUrl, hdSize, isHdSelected)
+					val targetDirPath = intent.getStringExtra("destination_dir")
+					startDownloadSequence(url, size, hdUrl, hdSize, isHdSelected, targetDirPath)
 				}
 			}
 			ACTION_PAUSE_RESUME -> {
@@ -124,9 +126,15 @@ class DownloadService : Service() {
 		return START_NOT_STICKY
 	}
 
-	private fun startDownloadSequence(url: String, size: Long, hdUrl: String, hdSize: Long, isHd: Boolean) {
-		downloadJob = serviceScope.launch {
-			val outputDir = File(Environment.getExternalStorageDirectory(), "xash")
+	private fun startDownloadSequence(url: String, size: Long, hdUrl: String, hdSize: Long, isHd: Boolean, targetDirPath: String?) {
+    downloadJob = serviceScope.launch {
+        val outputDir = if (!targetDirPath.isNullOrEmpty()) {
+            File(targetDirPath)
+        } else {
+            val appPrefs = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+            val defaultPath = File(Environment.getExternalStorageDirectory(), "xash").absolutePath
+            File(appPrefs.getString("game_path", defaultPath) ?: defaultPath)
+        }
 			if (!outputDir.exists()) outputDir.mkdirs()
 
 			if (selectedStrategy == "CLEAN_INSTALL" && activeGameId != null) {
@@ -291,9 +299,13 @@ class DownloadService : Service() {
 					if (file.name.endsWith("_temp.zip")) file.delete() 
 				}
 				if (selectedStrategy != "SKIP_EXISTING" && activeGameId != null) {
-					val outputDir = File(Environment.getExternalStorageDirectory(), "xash")
-					File(outputDir, activeGameId!!).deleteRecursively()
-				}
+				    val appPrefs = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+				    val defaultPath = File(Environment.getExternalStorageDirectory(), "xash").absolutePath
+				    val basePath = appPrefs.getString("game_path", defaultPath) ?: defaultPath
+    
+				    val outputDir = File(basePath)
+ 				   File(outputDir, activeGameId!!).deleteRecursively()
+}
 			} catch (e: Exception) {
 				e.printStackTrace()
 			}

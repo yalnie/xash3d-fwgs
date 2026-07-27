@@ -1,5 +1,7 @@
 package su.xash.engine.ui.settings
 
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
@@ -65,6 +67,11 @@ class AppIconsAdapter(
 						notifyItemChanged(position)
 						
 						onIconSelected(item.type)
+
+						Handler(Looper.getMainLooper()).postDelayed({
+							android.os.Process.killProcess(android.os.Process.myPid())
+							kotlin.system.exitProcess(0)
+						}, 5000)
 					}
 				}
 

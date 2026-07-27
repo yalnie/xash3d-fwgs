@@ -11,14 +11,14 @@ plugins {
 extensions.configure<ApplicationExtension> {
 	namespace = "su.xash.engine"
 	ndkVersion = "29.0.14206865"
-	compileSdk = 35
+	compileSdk = 36
 
 	defaultConfig {
 		applicationId = "su.xash.engine"
 		versionName = "0.21-" + getGitHash()
 		versionCode = getBuildNum()
 		minSdk = 21
-		targetSdk = 35
+		targetSdk = 36
 
 		buildConfigField("String", "GIT_HASH", "\"${getGitHash()}\"")
 

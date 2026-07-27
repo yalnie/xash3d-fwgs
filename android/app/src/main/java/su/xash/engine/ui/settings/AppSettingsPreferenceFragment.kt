@@ -1,16 +1,45 @@
 package su.xash.engine.ui.settings
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.os.Environment
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import su.xash.engine.FPicker
 import su.xash.engine.R
+import java.io.File
 
-class AppSettingsPreferenceFragment() : PreferenceFragmentCompat() {
+class AppSettingsPreferenceFragment : PreferenceFragmentCompat() {
+
+	private val folderPickerLauncher = registerForActivityResult(
+		ActivityResultContracts.StartActivityForResult()
+	) { result ->
+		if (result.resultCode == Activity.RESULT_OK) {
+			val selectedPath = result.data?.getStringExtra("GetPath")
+			if (!selectedPath.isNullOrEmpty()) {
+				saveAndUpdateGamePath(selectedPath)
+			}
+		}
+	}
+
 	override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-		preferenceManager.sharedPreferencesName = "app_preferences";
-		setPreferencesFromResource(R.xml.app_preferences, rootKey);
+		preferenceManager.sharedPreferencesName = "app_preferences"
+		setPreferencesFromResource(R.xml.app_preferences, rootKey)
+		val gamePathPref = findPreference<Preference>("game_path")
+		val prefs = requireContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+		val defaultPath = File(Environment.getExternalStorageDirectory(), "xash").absolutePath
+		val currentPath = prefs.getString("game_path", defaultPath) ?: defaultPath
+		gamePathPref?.summary = currentPath
+
+		gamePathPref?.setOnPreferenceClickListener {
+			val intent = Intent(requireContext(), FPicker::class.java)
+			folderPickerLauncher.launch(intent)
+			true
+		}
 
 		findPreference<Preference>("crash_logs")?.setOnPreferenceClickListener {
 			findNavController().navigate(R.id.action_appSettingsFragment_to_crashLogsFragment)
@@ -18,7 +47,6 @@ class AppSettingsPreferenceFragment() : PreferenceFragmentCompat() {
 		}
 
 		val iconPref = findPreference<Preference>("open_app_icons_screen")
-		val prefs = requireContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
 		val currentIcon = prefs.getString("app_icon_setting", "DEFAULT")
 		
 		iconPref?.summary = when(currentIcon) {
@@ -33,5 +61,11 @@ class AppSettingsPreferenceFragment() : PreferenceFragmentCompat() {
 			findNavController().navigate(R.id.action_appSettingsFragment_to_appIconsFragment)
 			true
 		}
+	}
+
+	private fun saveAndUpdateGamePath(path: String) {
+		val prefs = requireContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+		prefs.edit().putString("game_path", path).apply()
+		findPreference<Preference>("game_path")?.summary = path
 	}
 }

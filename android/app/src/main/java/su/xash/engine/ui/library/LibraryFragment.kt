@@ -36,7 +36,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 
 	private val startActivityForResult =
 		registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-			if (checkStoragePermissions()) {
+			if (hasStoragePermission()) {
 				libraryViewModel.reloadGames(requireContext())
 			}
 		}
@@ -52,12 +52,22 @@ class LibraryFragment : Fragment(), MenuProvider {
 		val granted = permissions.entries.all { it.value }
 		if (granted) {
 			libraryViewModel.reloadGames(requireContext())
-		} else {
-			checkStoragePermissions()
 		}
 	}
 
-	private fun checkStoragePermissions(): Boolean {
+	private fun hasStoragePermission(): Boolean {
+		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			Environment.isExternalStorageManager()
+		} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			requiredPermissions.all {
+				ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
+			}
+		} else {
+			true
+		}
+	}
+
+	private fun showPermissionDialog() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 			if (!Environment.isExternalStorageManager()) {
 				MaterialAlertDialogBuilder(requireContext()).apply {
@@ -70,58 +80,37 @@ class LibraryFragment : Fragment(), MenuProvider {
 							)
 						)
 					}
-					setNeutralButton(R.string.done_check_permissions) { dialog, _ ->
-						checkStoragePermissions()
-					}
 					setCancelable(false)
 					show()
-
-					return false
 				}
-			} else {
-				return true
 			}
 		} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			val permissionsNeeded = requiredPermissions.filter {
-				ContextCompat.checkSelfPermission(
-					requireContext(),
-					it
-				) != PackageManager.PERMISSION_GRANTED
+				ContextCompat.checkSelfPermission(requireContext(), it) != PackageManager.PERMISSION_GRANTED
 			}.toTypedArray()
 
-			if (!permissionsNeeded.isEmpty()) {
+			if (permissionsNeeded.isNotEmpty()) {
 				val showRationale = permissionsNeeded.any {
 					ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), it)
 				}
 
-				MaterialAlertDialogBuilder(requireContext()).apply {
-					setTitle(R.string.external_storage_required)
-					setMessage(R.string.external_storage_message)
-					setPositiveButton(R.string.open_settings) { _, _ ->
-						if (showRationale) {
-							requestPermissionLauncher.launch(permissionsNeeded)
-						} else {
-							val intent =
-								Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-									data =
-										Uri.fromParts("package", requireContext().packageName, null)
-								}
+				if (showRationale) {
+					MaterialAlertDialogBuilder(requireContext()).apply {
+						setTitle(R.string.external_storage_required)
+						setMessage(R.string.external_storage_message)
+						setPositiveButton(R.string.open_settings) { _, _ ->
+							val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+								data = Uri.fromParts("package", requireContext().packageName, null)
+							}
 							startActivity(intent)
 						}
+						setCancelable(false)
+						show()
 					}
-					setNeutralButton(R.string.done_check_permissions) { _, _ ->
-						checkStoragePermissions()
-					}
-					setCancelable(false)
-					show()
+				} else {
+					requestPermissionLauncher.launch(permissionsNeeded)
 				}
-
-				return false
-			} else {
-				return true
 			}
-		} else {
-			return true
 		}
 	}
 
@@ -140,7 +129,15 @@ class LibraryFragment : Fragment(), MenuProvider {
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
-		binding.swipeRefresh.setOnRefreshListener { libraryViewModel.reloadGames(requireContext()) }
+
+		binding.swipeRefresh.setOnRefreshListener {
+			if (hasStoragePermission()) {
+				libraryViewModel.reloadGames(requireContext())
+			} else {
+				binding.swipeRefresh.isRefreshing = false
+				showPermissionDialog()
+			}
+		}
 
 		libraryViewModel.isReloading.observe(viewLifecycleOwner) {
 			binding.swipeRefresh.isRefreshing = it
@@ -149,9 +146,15 @@ class LibraryFragment : Fragment(), MenuProvider {
 		libraryViewModel.installedGames.observe(viewLifecycleOwner) {
 			(binding.gamesList.adapter as GameAdapter).submitList(it)
 		}
+	}
 
-		if (checkStoragePermissions()) {
+	override fun onResume() {
+		super.onResume()
+
+		if (hasStoragePermission()) {
 			libraryViewModel.reloadGames(requireContext())
+		} else {
+			showPermissionDialog()
 		}
 	}
 
@@ -175,14 +178,6 @@ class LibraryFragment : Fragment(), MenuProvider {
 				true
 			}
 			else -> false
-		}
-	}
-
-	override fun onResume() {
-		super.onResume()
-
-		if (checkStoragePermissions()) {
-			libraryViewModel.reloadGames(requireContext())
 		}
 	}
 }
