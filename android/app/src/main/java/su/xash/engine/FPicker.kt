@@ -98,7 +98,7 @@ class FPicker : Activity() {
 							numItem, 
 							dateModify, 
 							ff.absolutePath, 
-							if (isXashDir) R.drawable.ic_baseline_xash3d_24dp else R.drawable.ic_baseline_folder_24dp
+							if (isXashDir) R.drawable.ic_baseline_xash_24px else R.drawable.ic_baseline_folder_24px
 						)
 					)
 				}
@@ -107,7 +107,7 @@ class FPicker : Activity() {
 			dir.sort()
 
 			if (folder.path.length > 1) {
-				dir.add(0, Item("..", getString(R.string.parent_directory), "", folder.parent ?: "", R.drawable.ic_baseline_folder_24dp))
+				dir.add(0, Item("..", getString(R.string.parent_directory), "", folder.parent ?: "", R.drawable.ic_baseline_folder_24px))
 			}
 
 			return dir
