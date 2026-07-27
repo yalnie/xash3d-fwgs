@@ -63,7 +63,8 @@
 	<string name="engine_install_failed">Не удалось установить обновление: %1$s</string>
 	
 	<!-- FPicker -->
-	<string name="select_folder">Выбрать текущий каталог</string>
+	<string name="select_folder">Выбрать путь игровых файлов</string>
+	<string name="folder">Выбрать текущий каталог</string>
 	<string name="parent_directory">Родительский каталог</string>
 	<string name="chosen_path">Выбранный путь:</string>
 	<string name="current_dir">Текущий каталог:</string>

@@ -110,6 +110,7 @@
     <string name="dialog_change_icon_message">Uygulama simgesini değiştirmek için uygulama kendiliğinden kapatılacaktır.</string>
     
 	<!-- FPicker -->
+	<string name="select_folder">Oyun verilerinin konumunu seçin</string>
 	<string name="folder">Geçerli klasörü ayarla</string>
 	<string name="parent_directory">Üst dizin</string>
 	<string name="chosen_path">Seçilen yol:</string>
