@@ -111,7 +111,7 @@
     <string name="dialog_change_icon_message">The application will close itself to change the application icon.</string>
     
 	<!-- FPicker -->
-	<string name="folder">Set current folder</string>
+	<string name="select_folder">Set current folder</string>
 	<string name="parent_directory">Parent directory</string>
 	<string name="chosen_path">Chosen path:</string>
 	<string name="current_dir">Current directory:</string>
