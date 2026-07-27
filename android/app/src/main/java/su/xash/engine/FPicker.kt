@@ -37,7 +37,7 @@ class FPicker : Activity() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setTheme(R.style.Theme.App)
+		setTheme(R.style.Theme_App)
 		setContentView(R.layout.activity_fpicker)
 
 		val toolbar = findViewById<MaterialToolbar>(R.id.fpicker_toolbar)
@@ -98,7 +98,7 @@ class FPicker : Activity() {
 							numItem, 
 							dateModify, 
 							ff.absolutePath, 
-							if (isXashDir) R.drawable.ic_baseline_xash3d_24px else R.drawable.ic_baseline_folder_24px
+							if (isXashDir) R.drawable.ic_baseline_xash3d_24dp else R.drawable.ic_baseline_folder_24dp
 						)
 					)
 				}
@@ -107,7 +107,7 @@ class FPicker : Activity() {
 			dir.sort()
 
 			if (folder.path.length > 1) {
-				dir.add(0, Item("..", getString(R.string.parent_directory), "", folder.parent ?: "", R.drawable.ic_baseline_folder_24px))
+				dir.add(0, Item("..", getString(R.string.parent_directory), "", folder.parent ?: "", R.drawable.ic_baseline_folder_24dp))
 			}
 
 			return dir
