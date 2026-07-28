@@ -12,7 +12,7 @@ object AppIconManager {
 		XASH("su.xash.engine.MainActivityXash"),
 		PRIDE("su.xash.engine.MainActivityPride"),
 		TRANS("su.xash.engine.MainActivityTrans"),
-		LAMBDA("su.xash.engine.MainActivityLambda")
+		LAMBDA("su.xash.engine.MainActivityLambda"),
 		SALIH("su.xash.engine.MainActivitySalih")
 	}
 

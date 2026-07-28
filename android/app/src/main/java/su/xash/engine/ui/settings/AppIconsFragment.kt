@@ -34,7 +34,7 @@ class AppIconsFragment : Fragment() {
 			AppIconsAdapter.IconItem(AppIconManager.AppIcon.XASH, getString(R.string.icon_name_xash), R.mipmap.ic_launcher_xash),
 			AppIconsAdapter.IconItem(AppIconManager.AppIcon.PRIDE, getString(R.string.icon_name_pride), R.mipmap.ic_launcher_pride),
 			AppIconsAdapter.IconItem(AppIconManager.AppIcon.TRANS, getString(R.string.icon_name_trans), R.mipmap.ic_launcher_trans),
-			AppIconsAdapter.IconItem(AppIconManager.AppIcon.LAMBDA, getString(R.string.icon_name_lambda), R.mipmap.ic_launcher_lambda)
+			AppIconsAdapter.IconItem(AppIconManager.AppIcon.LAMBDA, getString(R.string.icon_name_lambda), R.mipmap.ic_launcher_lambda),
 			AppIconsAdapter.IconItem(AppIconManager.AppIcon.SALIH, getString(R.string.icon_name_salih), R.mipmap.ic_launcher_salih)
 		)
 
