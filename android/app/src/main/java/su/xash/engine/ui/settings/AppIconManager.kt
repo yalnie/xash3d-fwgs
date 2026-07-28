@@ -13,6 +13,7 @@ object AppIconManager {
 		PRIDE("su.xash.engine.MainActivityPride"),
 		TRANS("su.xash.engine.MainActivityTrans"),
 		LAMBDA("su.xash.engine.MainActivityLambda")
+		SALIH("su.xash.engine.MainActivitySalih")
 	}
 
 	fun setAppIcon(context: Context, targetIcon: AppIcon) {
@@ -42,6 +43,7 @@ object AppIconManager {
 			"PRIDE" -> R.mipmap.ic_launcher_pride
 			"TRANS" -> R.mipmap.ic_launcher_trans
 			"LAMBDA" -> R.mipmap.ic_launcher_lambda
+			"SALIH" -> R.mipmap.ic_launcher_salih
 			else -> R.mipmap.ic_launcher
 		}
 	}

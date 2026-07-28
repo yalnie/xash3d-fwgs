@@ -54,6 +54,7 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat() {
 			"PRIDE" -> getString(R.string.icon_name_pride)
 			"TRANS" -> getString(R.string.icon_name_trans)
 			"LAMBDA" -> getString(R.string.icon_name_lambda)
+			"SALIH" -> getString(R.string.icon_name_salih)
 			else -> getString(R.string.icon_name_default)
 		}
 
