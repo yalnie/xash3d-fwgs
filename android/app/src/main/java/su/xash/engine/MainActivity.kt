@@ -212,5 +212,6 @@ class MainActivity : AppCompatActivity() {
 		private const val UPDATE_PREFS = "app_updater"
 		private const val KEY_LAST_CHECK = "last_check_ms"
 		private const val KEY_DISMISSED_BUILDNUM = "dismissed_buildnum"
+		private const val CHECK_INTERVAL_MS = 0L
 	}
 }
