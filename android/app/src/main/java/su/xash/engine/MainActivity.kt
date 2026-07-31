@@ -92,15 +92,15 @@ class MainActivity : AppCompatActivity() {
 				return@launch
 			if (prefs.getInt(KEY_DISMISSED_BUILDNUM, -1) >= info.buildNum)
 				return@launch
-			val changelog = updater.fetchChangelog(BuildConfig.GIT_HASH, info.tagName)
-			showEngineUpdateDialog(updater, info.buildNum, changelog, prefs)
+
+			showEngineUpdateDialog(updater, info.buildNum, info.changelog, prefs)
 		}
 	}
 
 	private fun showEngineUpdateDialog(
 		updater: AppUpdater,
 		remoteBuildNum: Int,
-		changelog: List<AppUpdater.CommitInfo>?,
+		changelog: String?,
 		prefs: android.content.SharedPreferences,
 	) {
 		val builder = MaterialAlertDialogBuilder(this)
@@ -116,12 +116,7 @@ class MainActivity : AppCompatActivity() {
 		if (!changelog.isNullOrEmpty()) {
 			val text = buildString {
 				append(getString(R.string.engine_update_changelog_header))
-				val shown = changelog.take(CHANGELOG_MAX_LINES)
-				for (c in shown)
-					append("\n• ").append(c.subject)
-				val extra = changelog.size - shown.size
-				if (extra > 0)
-					append("\n").append(getString(R.string.engine_update_changelog_more, extra))
+				append("\n").append(changelog)
 			}
 			builder.setView(monospaceTextView(this, text))
 		}
@@ -217,6 +212,5 @@ class MainActivity : AppCompatActivity() {
 		private const val UPDATE_PREFS = "app_updater"
 		private const val KEY_LAST_CHECK = "last_check_ms"
 		private const val KEY_DISMISSED_BUILDNUM = "dismissed_buildnum"
-		private const val CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L
 	}
 }

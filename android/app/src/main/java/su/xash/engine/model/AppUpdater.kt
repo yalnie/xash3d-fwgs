@@ -22,8 +22,14 @@ import kotlin.coroutines.coroutineContext
 
 class AppUpdater(private val context: Context) {
 
-	data class UpdateInfo(val buildNum: Int, val tagName: String)
-	data class CommitInfo(val sha: String, val subject: String)
+	data class UpdateInfo(
+		val buildNum: Int,
+		val versionName: String,
+		val changelog: String?,
+		val downloadUrl: String
+	)
+
+	private var cachedDownloadUrl: String? = null
 
 	fun canInstall(): Boolean =
 		Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
@@ -34,30 +40,39 @@ class AppUpdater(private val context: Context) {
 		return withContext(Dispatchers.IO) {
 			var connection: HttpURLConnection? = null
 			try {
-				connection = URL(RELEASE_API_URL).openConnection() as HttpURLConnection
+				connection = URL(UPDATE_JSON_URL).openConnection() as HttpURLConnection
 				connection.connectTimeout = 5000
 				connection.readTimeout = 5000
-				connection.setRequestProperty("Accept", "application/vnd.github+json")
 				connection.connect()
 
 				if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-					Log.w(TAG, "Release API check failed: HTTP ${connection.responseCode}")
+					Log.w(TAG, "Update JSON check failed: HTTP ${connection.responseCode}")
 					return@withContext null
 				}
 
-				val release = JSONObject(connection.inputStream.bufferedReader().readText())
-				val body = release.optString("body", "")
-				val tagName = release.optString("tag_name").ifEmpty { TAG_CONTINUOUS }
+				val json = JSONObject(connection.inputStream.bufferedReader().readText())
+				val latestVersion = json.optString("latest_version", "")
+				val remoteVersionCode = json.optString("latest_version_code", "0").toIntOrNull() ?: 0
+				val changelog = json.optString("changelog", "")
 
-				// buildnum is days-since-2015-04-01, same metric as VERSION_CODE / 10000
-				val remote = BUILDNUM_REGEX.find(body)?.groupValues?.get(1)?.toIntOrNull()
-				val localDays = BuildConfig.VERSION_CODE / 10000
-				Log.i(TAG, "Remote buildnum: $remote (tag=$tagName), local: $localDays")
+				val platforms = json.optJSONObject("platforms")
+				val androidPlatform = platforms?.optJSONObject("android")
+				val downloadUrl = androidPlatform?.optString("download_url", "") ?: ""
 
-				if (remote != null && remote - localDays >= STALENESS_DAYS)
-					UpdateInfo(remote, tagName)
-				else
+				val localVersionCode = BuildConfig.VERSION_CODE
+				Log.i(TAG, "Remote versionCode: $remoteVersionCode, local: $localVersionCode")
+
+				if (remoteVersionCode > localVersionCode && downloadUrl.isNotEmpty()) {
+					cachedDownloadUrl = downloadUrl
+					UpdateInfo(
+						buildNum = remoteVersionCode,
+						versionName = latestVersion,
+						changelog = changelog,
+						downloadUrl = downloadUrl
+					)
+				} else {
 					null
+				}
 			} catch (e: CancellationException) {
 				throw e
 			} catch (e: IOException) {
@@ -72,57 +87,20 @@ class AppUpdater(private val context: Context) {
 		}
 	}
 
-	suspend fun fetchChangelog(fromRef: String, toRef: String): List<CommitInfo>? {
-		if (fromRef.isEmpty() || toRef.isEmpty())
-			return null
-		return withContext(Dispatchers.IO) {
-			var connection: HttpURLConnection? = null
-			try {
-				connection = URL("$COMPARE_API_BASE/$fromRef...$toRef").openConnection() as HttpURLConnection
-				connection.connectTimeout = 5000
-				connection.readTimeout = 5000
-				connection.setRequestProperty("Accept", "application/vnd.github+json")
-				connection.connect()
-
-				if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-					Log.w(TAG, "Compare API failed: HTTP ${connection.responseCode}")
-					return@withContext null
-				}
-
-				val json = JSONObject(connection.inputStream.bufferedReader().readText())
-				val commits = json.optJSONArray("commits") ?: return@withContext null
-				val result = ArrayList<CommitInfo>(commits.length())
-				for (i in 0 until commits.length()) {
-					val c = commits.getJSONObject(i)
-					val sha = c.optString("sha").ifEmpty { continue }
-					val msg = c.optJSONObject("commit")?.optString("message") ?: continue
-					val subject = msg.substringBefore('\n').trim()
-					if (subject.isNotEmpty())
-						result.add(CommitInfo(sha, subject))
-				}
-				// GitHub returns oldest first
-				result.reverse()
-				result
-			} catch (e: CancellationException) {
-				throw e
-			} catch (e: IOException) {
-				Log.w(TAG, "Changelog fetch failed: ${e.message}")
-				null
-			} catch (e: JSONException) {
-				Log.w(TAG, "Changelog parse failed: ${e.message}")
-				null
-			} finally {
-				connection?.disconnect()
-			}
+	suspend fun downloadAndInstall(
+		customUrl: String? = null,
+		onProgress: (Long, Long) -> Unit
+	): Result<Unit> {
+		val targetUrl = customUrl ?: cachedDownloadUrl
+		if (targetUrl.isNullOrEmpty()) {
+			return Result.failure(IOException("Download URL is empty"))
 		}
-	}
 
-	suspend fun downloadAndInstall(onProgress: (Long, Long) -> Unit): Result<Unit> {
 		return withContext(Dispatchers.IO) {
 			val tempFile = File(context.cacheDir, "xash3d-fwgs-update.apk")
 			var connection: HttpURLConnection? = null
 			try {
-				connection = URL(APK_URL).openConnection() as HttpURLConnection
+				connection = URL(targetUrl).openConnection() as HttpURLConnection
 				connection.connectTimeout = 10000
 				connection.readTimeout = 30000
 				connection.instanceFollowRedirects = true
@@ -190,16 +168,9 @@ class AppUpdater(private val context: Context) {
 
 	companion object {
 		private const val TAG = "AppUpdater"
-		private const val STALENESS_DAYS = 3
 		private const val PROGRESS_INTERVAL_MS = 100L
-		private const val TAG_CONTINUOUS = "continuous"
 		private const val INSTALL_ACTION = "su.xash.engine.INSTALL_RESULT"
-		private const val APK_URL =
-			"https://github.com/yalnie/xash3d-fwgs/releases/download/continuous/xash3d-fwgs-android.apk"
-		private const val RELEASE_API_URL =
-			"https://api.github.com/repos/yalnie/xash3d-fwgs/releases/tags/continuous"
-		private const val COMPARE_API_BASE =
-			"https://api.github.com/repos/yalnie/xash3d-fwgs/compare"
-		private val BUILDNUM_REGEX = Regex("""buildnum\s+(\d+)""")
+		private const val UPDATE_JSON_URL =
+			"https://xash3d.yalnie.workers.dev/"
 	}
 }
