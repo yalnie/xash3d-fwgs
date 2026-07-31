@@ -103,25 +103,81 @@ class MainActivity : AppCompatActivity() {
 		changelog: String?,
 		prefs: android.content.SharedPreferences,
 	) {
-		val builder = MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.engine_update_available)
-			.setMessage(getString(R.string.engine_update_message, remoteBuildNum))
-			.setPositiveButton(R.string.engine_update_download) { _, _ ->
-				showEngineDownloadDialog(updater)
-			}
-			.setNegativeButton(R.string.engine_update_later) { _, _ ->
-				prefs.edit().putInt(KEY_DISMISSED_BUILDNUM, remoteBuildNum).apply()
-			}
+		val dialogView = layoutInflater.inflate(R.layout.dialog_engine_update, null)
+
+		val tvCurrentVersion = dialogView.findViewById<TextView>(R.id.tvCurrentVersion)
+		val tvNewVersion = dialogView.findViewById<TextView>(R.id.tvNewVersion)
+		val tvChangelog = dialogView.findViewById<TextView>(R.id.tvChangelog)
+		val btnLater = dialogView.findViewById<TextView>(R.id.btnLater)
+		val btnDownload = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDownload)
+
+		tvCurrentVersion.text = "b${BuildConfig.GIT_HASH}"
+		tvNewVersion.text = "b$remoteBuildNum"
 
 		if (!changelog.isNullOrEmpty()) {
-			val text = buildString {
-				append(getString(R.string.engine_update_changelog_header))
-				append("\n").append(changelog)
-			}
-			builder.setView(monospaceTextView(this, text))
+			tvChangelog.visibility = android.view.View.VISIBLE
+			tvChangelog.text = changelog
+		} else {
+			tvChangelog.visibility = android.view.View.GONE
 		}
 
-		builder.show()
+		fun updateButtonState() {
+			val hasPermission = updater.canInstall()
+			if (hasPermission) {
+				btnDownload.setText(R.string.engine_update_download)
+				btnDownload.setIconResource(R.drawable.ic_baseline_download_24) 
+			} else {
+				btnDownload.setText(R.string.engine_update_grant_permission)
+				btnDownload.setIconResource(R.drawable.ic_baseline_lock_24) 
+			}
+		}
+
+		updateButtonState()
+
+		val dialog = MaterialAlertDialogBuilder(this)
+			.setView(dialogView)
+			.setCancelable(false)
+			.create()
+
+		dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+		val lifecycleObserver = object : androidx.lifecycle.DefaultLifecycleObserver {
+			override fun onResume(owner: androidx.lifecycle.LifecycleOwner) {
+				updateButtonState()
+			}
+		}
+		lifecycle.addObserver(lifecycleObserver)
+
+		dialog.setOnDismissListener {
+			lifecycle.removeObserver(lifecycleObserver)
+		}
+
+		btnLater.setOnClickListener {
+			prefs.edit().putInt(KEY_DISMISSED_BUILDNUM, remoteBuildNum).apply()
+			dialog.dismiss()
+		}
+
+		btnDownload.setOnClickListener {
+			if (updater.canInstall()) {
+				dialog.dismiss()
+				showEngineDownloadDialog(updater)
+			} else {
+				val packageIntent = Intent(
+					Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+					"package:$packageName".toUri()
+				)
+				try {
+					startActivity(packageIntent)
+				} catch (_: ActivityNotFoundException) {
+					try {
+						startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES))
+					} catch (_: ActivityNotFoundException) {
+					}
+				}
+			}
+		}
+
+		dialog.show()
 	}
 
 	private fun showEngineDownloadDialog(updater: AppUpdater) {
