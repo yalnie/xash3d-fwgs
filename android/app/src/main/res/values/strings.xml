@@ -62,6 +62,7 @@
 	<string name="engine_update_permission_needed">Permission Required</string>
 	<string name="engine_update_permission_message">To install the update, allow Xash3D FWGS to install unknown apps in system settings.</string>
 	<string name="engine_update_open_settings">Open settings</string>
+    <string name="engine_update_grant_permission">Grant permission</string>
 	<string name="engine_install_failed">Update install failed: %1$s</string>
 	
 	<string name="app_downloader">Game Downloader</string>

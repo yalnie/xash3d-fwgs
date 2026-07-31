@@ -62,6 +62,7 @@
 	<string name="engine_update_permission_needed">İzin Gerekli</string>
 	<string name="engine_update_permission_message">Güncellemeyi yüklemek için sistem ayarlarından Xash3D FWGS\'ye bilinmeyen uygulamaları yükleme izni verin.</string>
 	<string name="engine_update_open_settings">Ayarları aç</string>
+    <string name="engine_update_grant_permission">İzin ver</string>
 	<string name="engine_install_failed">Güncelleme yüklemesi başarısız oldu: %1$s</string>
 	
 	<string name="app_downloader">Oyun İndirici</string>

@@ -31,6 +31,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.widget.TextView
+import com.google.android.material.button.MaterialButton
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 
 class MainActivity : AppCompatActivity() {
 	private lateinit var binding: ActivityMainBinding
@@ -125,10 +129,10 @@ class MainActivity : AppCompatActivity() {
 			val hasPermission = updater.canInstall()
 			if (hasPermission) {
 				btnDownload.setText(R.string.engine_update_download)
-				btnDownload.setIconResource(R.drawable.ic_baseline_download_24) 
+				btnDownload.setIconResource(R.drawable.ic_baseline_download_24px) 
 			} else {
 				btnDownload.setText(R.string.engine_update_grant_permission)
-				btnDownload.setIconResource(R.drawable.ic_baseline_lock_24) 
+				btnDownload.setIconResource(R.drawable.ic_baseline_lock_24px) 
 			}
 		}
 
