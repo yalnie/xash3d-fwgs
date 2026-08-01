@@ -68,16 +68,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkForEngineUpdate() {
         val prefs = getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
-        val now = System.currentTimeMillis()
-        if (now - prefs.getLong(KEY_LAST_CHECK, 0L) < CHECK_INTERVAL_MS)
-            return
-
         val updater = AppUpdater(this)
+        
         lifecycleScope.launch {
-            val info = updater.checkForUpdate()
-            prefs.edit().putLong(KEY_LAST_CHECK, now).apply()
-            if (info == null)
-                return@launch
+            val info = updater.checkForUpdate() ?: return@launch
             if (prefs.getInt(KEY_DISMISSED_BUILDNUM, -1) >= info.buildNum)
                 return@launch
 
@@ -124,9 +118,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         var isDownloading = false
+        var isInstalling = false
 
         fun resetUIState() {
             isDownloading = false
+            isInstalling = false
             val hasPermission = updater.canInstall()
             val hasApk = updater.hasDownloadedApk()
 
@@ -157,8 +153,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        fun showInstallingState() {
+            isInstalling = true
+            tvError.visibility = View.GONE
+            tvChangelogHeader.visibility = View.GONE
+            tvChangelog.visibility = View.GONE
+            btnLater.visibility = View.GONE
+            btnDownload.visibility = View.GONE
+
+            layoutProgress.visibility = View.VISIBLE
+            progressBar.isIndeterminate = true
+            tvProgressPercent.text = ""
+        }
+
         fun showError(errorMessage: String) {
             isDownloading = false
+            isInstalling = false
             layoutProgress.visibility = View.GONE
             tvChangelogHeader.visibility = View.GONE
             tvChangelog.visibility = View.GONE
@@ -196,7 +206,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnLater.setOnClickListener {
-            if (!isDownloading) {
+            if (!isDownloading && !isInstalling) {
                 prefs.edit().putInt(KEY_DISMISSED_BUILDNUM, remoteBuildNum).apply()
                 dialog.dismiss()
             }
@@ -217,6 +227,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             } else if (updater.hasDownloadedApk()) {
+                showInstallingState()
                 try {
                     updater.installDownloadedApk()
                 } catch (e: Exception) {
@@ -252,7 +263,7 @@ class MainActivity : AppCompatActivity() {
 
                     result.fold(
                         onSuccess = {
-                            resetUIState()
+                            showInstallingState()
                         },
                         onFailure = { error ->
                             val downloadErrorMsg = "${getString(R.string.engine_update_download_failed)}: ${error.localizedMessage ?: error.message}"
@@ -308,8 +319,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val UPDATE_PREFS = "app_updater"
-        private const val KEY_LAST_CHECK = "last_check_ms"
         private const val KEY_DISMISSED_BUILDNUM = "dismissed_buildnum"
-        private const val CHECK_INTERVAL_MS = 0
     }
 }
