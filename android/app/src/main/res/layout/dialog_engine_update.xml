@@ -115,6 +115,16 @@
                 android:textSize="13sp"
                 tools:text="changed updater" />
 
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="?attr/colorError"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="Download failed: Connection timed out" />
+
             <LinearLayout
                 android:id="@+id/layoutProgress"
                 android:layout_width="match_parent"

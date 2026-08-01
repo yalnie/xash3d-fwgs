@@ -46,13 +46,18 @@ class LibraryFragment : Fragment(), MenuProvider {
 		Manifest.permission.WRITE_EXTERNAL_STORAGE
 	)
 
-	private val requestPermissionLauncher = registerForActivityResult(
+	private val requestStoragePermissionLauncher = registerForActivityResult(
 		ActivityResultContracts.RequestMultiplePermissions()
 	) { permissions ->
 		val granted = permissions.entries.all { it.value }
 		if (granted) {
 			libraryViewModel.reloadGames(requireContext())
 		}
+	}
+
+	private val requestNotificationPermissionLauncher = registerForActivityResult(
+		ActivityResultContracts.RequestPermission()
+	) { _ ->
 	}
 
 	private fun hasStoragePermission(): Boolean {
@@ -108,8 +113,20 @@ class LibraryFragment : Fragment(), MenuProvider {
 						show()
 					}
 				} else {
-					requestPermissionLauncher.launch(permissionsNeeded)
+					requestStoragePermissionLauncher.launch(permissionsNeeded)
 				}
+			}
+		}
+	}
+
+	private fun checkNotificationPermission() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			if (ContextCompat.checkSelfPermission(
+					requireContext(),
+					Manifest.permission.POST_NOTIFICATIONS
+				) != PackageManager.PERMISSION_GRANTED
+			) {
+				requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
 			}
 		}
 	}
@@ -156,6 +173,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 		} else {
 			showPermissionDialog()
 		}
+		checkNotificationPermission()
 	}
 
 	override fun onDestroyView() {

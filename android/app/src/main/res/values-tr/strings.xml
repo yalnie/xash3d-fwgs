@@ -65,6 +65,9 @@
     <string name="engine_update_grant_permission">İzin ver</string>
     <string name="engine_update_install_now">Şimdi yükle</string>
 	<string name="engine_install_failed">Güncelleme yüklemesi başarısız oldu: %1$s</string>
+	<string name="engine_update_download_failed">İndirme başarısız oldu</string>
+	<string name="engine_update_install_failed">Yükleme başlatılamadı</string>
+	<string name="engine_update_retry">Tekrar dene</string>
 	
 	<string name="app_downloader">Oyun İndirici</string>
 	<string name="downloading_progress">İndiriliyor: %1$d%%</string>

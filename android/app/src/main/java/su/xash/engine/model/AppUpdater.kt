@@ -25,6 +25,7 @@ class AppUpdater(private val context: Context) {
     data class UpdateInfo(
         val buildNum: Int,
         val versionName: String,
+        val commitHash: String,
         val changelog: String?,
         val downloadUrl: String
     )
@@ -56,8 +57,9 @@ class AppUpdater(private val context: Context) {
                 }
 
                 val json = JSONObject(connection.inputStream.bufferedReader().readText())
-                val latestVersion = json.optString("latest_version", "")
+                val latestVersion = json.optString("latest_version_name", "")
                 val remoteVersionCode = json.optString("latest_version_code", "0").toIntOrNull() ?: 0
+                val commitHash = json.optString("latest_version_commit", "")
                 val changelog = json.optString("changelog", "")
 
                 val platforms = json.optJSONObject("platforms")
@@ -72,6 +74,7 @@ class AppUpdater(private val context: Context) {
                     UpdateInfo(
                         buildNum = remoteVersionCode,
                         versionName = latestVersion,
+                        commitHash = commitHash,
                         changelog = changelog,
                         downloadUrl = downloadUrl
                     )

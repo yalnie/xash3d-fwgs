@@ -32,7 +32,6 @@ import su.xash.engine.databinding.ActivityMainBinding
 import su.xash.engine.model.AppUpdater
 import su.xash.engine.util.CrashReports
 import su.xash.engine.util.monospaceTextView
-import su.xash.engine.util.showDownloadProgressDialog
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -45,10 +44,7 @@ class MainActivity : AppCompatActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (!isGranted) {
-        }
-    }
+    ) { _ -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,24 +60,10 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        checkNotificationPermission()
-
         CrashReports.prune(this)
         showPendingCrashReport()
 
         checkForEngineUpdate()
-    }
-
-    private fun checkNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
     }
 
     private fun checkForEngineUpdate() {
@@ -99,151 +81,129 @@ class MainActivity : AppCompatActivity() {
             if (prefs.getInt(KEY_DISMISSED_BUILDNUM, -1) >= info.buildNum)
                 return@launch
 
-            showEngineUpdateDialog(updater, info.buildNum, info.changelog, prefs)
+            showEngineUpdateDialog(updater, info.buildNum, info.commitHash, info.changelog, prefs)
         }
     }
 
-	private fun showEngineUpdateDialog(
-		updater: AppUpdater,
-		remoteBuildNum: Int,
-		changelog: String?,
-		prefs: android.content.SharedPreferences,
-	) {
-		val dialogView = layoutInflater.inflate(R.layout.dialog_engine_update, null)
+    private fun showEngineUpdateDialog(
+        updater: AppUpdater,
+        remoteBuildNum: Int,
+        remoteCommitHash: String,
+        changelog: String?,
+        prefs: android.content.SharedPreferences,
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_engine_update, null)
 
-		val tvTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-		val tvCurrentVersion = dialogView.findViewById<TextView>(R.id.tvCurrentVersion)
-		val tvNewVersion = dialogView.findViewById<TextView>(R.id.tvNewVersion)
-		val tvChangelogHeader = dialogView.findViewById<TextView>(R.id.tvChangelogHeader)
-		val tvChangelog = dialogView.findViewById<TextView>(R.id.tvChangelog)
-		val btnLater = dialogView.findViewById<MaterialButton>(R.id.btnLater)
-		val btnDownload = dialogView.findViewById<MaterialButton>(R.id.btnDownload)
+        val tvCurrentVersion = dialogView.findViewById<TextView>(R.id.tvCurrentVersion)
+        val tvNewVersion = dialogView.findViewById<TextView>(R.id.tvNewVersion)
+        val tvChangelogHeader = dialogView.findViewById<TextView>(R.id.tvChangelogHeader)
+        val tvChangelog = dialogView.findViewById<TextView>(R.id.tvChangelog)
+        val tvError = dialogView.findViewById<TextView>(R.id.tvError)
+        val btnLater = dialogView.findViewById<MaterialButton>(R.id.btnLater)
+        val btnDownload = dialogView.findViewById<MaterialButton>(R.id.btnDownload)
 
-		val layoutProgress = dialogView.findViewById<android.view.View>(R.id.layoutProgress)
-		val progressBar = dialogView.findViewById<com.google.android.material.progressindicator.LinearProgressIndicator>(R.id.progressBar)
-		val tvProgressPercent = dialogView.findViewById<TextView>(R.id.tvProgressPercent)
+        val layoutProgress = dialogView.findViewById<View>(R.id.layoutProgress)
+        val progressBar = dialogView.findViewById<com.google.android.material.progressindicator.LinearProgressIndicator>(R.id.progressBar)
+        val tvProgressPercent = dialogView.findViewById<TextView>(R.id.tvProgressPercent)
 
-		val currentHash = BuildConfig.GIT_HASH.ifEmpty { BuildConfig.VERSION_NAME }
-		tvCurrentVersion.text = "b$currentHash"
-		tvNewVersion.text = "b$remoteBuildNum"
+        val currentHash = BuildConfig.GIT_HASH.ifEmpty { BuildConfig.VERSION_NAME }
+        tvCurrentVersion.text = "b$currentHash"
+        val targetHash = remoteCommitHash.ifEmpty { remoteBuildNum.toString() }
+        tvNewVersion.text = "b$targetHash"
 
-		if (!changelog.isNullOrEmpty()) {
-			tvChangelog.visibility = View.VISIBLE
-			tvChangelog.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-				Html.fromHtml(changelog, Html.FROM_HTML_MODE_COMPACT)
-			} else {
-				@Suppress("DEPRECATION")
-				Html.fromHtml(changelog)
-			}
-		} else {
-			tvChangelog.visibility = View.GONE
-		}
+        if (!changelog.isNullOrEmpty()) {
+            tvChangelog.visibility = View.VISIBLE
+            tvChangelog.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Html.fromHtml(changelog, Html.FROM_HTML_MODE_COMPACT)
+            } else {
+                @Suppress("DEPRECATION")
+                Html.fromHtml(changelog)
+            }
+        } else {
+            tvChangelog.visibility = View.GONE
+        }
 
-		var isDownloading = false
+        var isDownloading = false
 
-		fun updateButtonState() {
-			if (isDownloading) return
-			val hasPermission = updater.canInstall()
-			val hasApk = updater.hasDownloadedApk()
+        fun resetUIState() {
+            isDownloading = false
+            val hasPermission = updater.canInstall()
+            val hasApk = updater.hasDownloadedApk()
 
-			when {
-				!hasPermission -> {
-					btnDownload.setText(R.string.engine_update_grant_permission)
-					btnDownload.setIconResource(R.drawable.ic_baseline_lock_24px)
-				}
-				hasApk -> {
-					btnDownload.setText(R.string.engine_update_install_now)
-					btnDownload.setIconResource(R.drawable.ic_baseline_mobile_arrow_down_24px)
-				}
-				else -> {
-					btnDownload.setText(R.string.engine_update_download)
-					btnDownload.setIconResource(R.drawable.ic_baseline_download_24px)
-				}
-			}
-		}
+            layoutProgress.visibility = View.GONE
+            tvError.visibility = View.GONE
 
-		updateButtonState()
+            if (!changelog.isNullOrEmpty()) {
+                tvChangelogHeader.visibility = View.VISIBLE
+                tvChangelog.visibility = View.VISIBLE
+            }
+            btnLater.visibility = View.VISIBLE
+            btnDownload.visibility = View.VISIBLE
+            btnDownload.isEnabled = true
 
-		val dialog = MaterialAlertDialogBuilder(this)
-			.setView(dialogView)
-			.setCancelable(false)
-			.create()
+            when {
+                !hasPermission -> {
+                    btnDownload.setText(R.string.engine_update_grant_permission)
+                    btnDownload.setIconResource(R.drawable.ic_baseline_lock_24px)
+                }
+                hasApk -> {
+                    btnDownload.setText(R.string.engine_update_install_now)
+                    btnDownload.setIconResource(R.drawable.ic_baseline_mobile_arrow_down_24px)
+                }
+                else -> {
+                    btnDownload.setText(R.string.engine_update_download)
+                    btnDownload.setIconResource(R.drawable.ic_baseline_download_24px)
+                }
+            }
+        }
 
-		dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        fun showError(errorMessage: String) {
+            isDownloading = false
+            layoutProgress.visibility = View.GONE
+            tvChangelogHeader.visibility = View.GONE
+            tvChangelog.visibility = View.GONE
 
-		val lifecycleObserver = object : DefaultLifecycleObserver {
-			override fun onResume(owner: LifecycleOwner) {
-				updateButtonState()
-			}
-		}
-		lifecycle.addObserver(lifecycleObserver)
+            tvError.text = errorMessage
+            tvError.visibility = View.VISIBLE
 
-		dialog.setOnDismissListener {
-			lifecycle.removeObserver(lifecycleObserver)
-		}
+            btnLater.visibility = View.VISIBLE
+            btnDownload.visibility = View.VISIBLE
+            btnDownload.isEnabled = true
+            btnDownload.setText(R.string.engine_update_retry)
+            btnDownload.setIconResource(R.drawable.ic_baseline_replay_24px)
+        }
 
-		btnLater.setOnClickListener {
-			if (!isDownloading) {
-				prefs.edit().putInt(KEY_DISMISSED_BUILDNUM, remoteBuildNum).apply()
-				dialog.dismiss()
-			}
-		}
+        resetUIState()
 
-		btnDownload.setOnClickListener {
-			if (!updater.canInstall()) {
-				val packageIntent = Intent(
-					Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-					"package:$packageName".toUri()
-				)
-				try {
-					startActivity(packageIntent)
-				} catch (_: ActivityNotFoundException) {
-					try {
-						startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES))
-					} catch (_: ActivityNotFoundException) {
-					}
-				}
-			} else if (updater.hasDownloadedApk()) {
-				updater.installDownloadedApk()
-			} else {
-				isDownloading = true
-				btnLater.visibility = View.GONE
-				btnDownload.isEnabled = false
-				btnDownload.text = getString(R.string.engine_update_downloading)
-				
-				tvChangelogHeader.visibility = View.GONE
-				tvChangelog.visibility = View.GONE
-				layoutProgress.visibility = View.VISIBLE
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
 
-				lifecycleScope.launch {
-					withContext(Dispatchers.IO) {
-						updater.downloadAndInstall { current, total ->
-							runOnUiThread {
-								if (total > 0) {
-									val percent = ((current * 100) / total).toInt()
-									progressBar.isIndeterminate = false
-									progressBar.progress = percent
-									tvProgressPercent.text = "%$percent"
-								} else {
-									progressBar.isIndeterminate = true
-									tvProgressPercent.text = ""
-								}
-							}
-						}
-					}
-					dialog.dismiss()
-				}
-			}
-		}
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
 
-		dialog.show()
-	}
+        val lifecycleObserver = object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                if (!isDownloading) {
+                    resetUIState()
+                }
+            }
+        }
+        lifecycle.addObserver(lifecycleObserver)
 
-    private fun promptForInstallPermission() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.engine_update_permission_needed)
-            .setMessage(R.string.engine_update_permission_message)
-            .setPositiveButton(R.string.engine_update_open_settings) { _, _ ->
+        dialog.setOnDismissListener {
+            lifecycle.removeObserver(lifecycleObserver)
+        }
+
+        btnLater.setOnClickListener {
+            if (!isDownloading) {
+                prefs.edit().putInt(KEY_DISMISSED_BUILDNUM, remoteBuildNum).apply()
+                dialog.dismiss()
+            }
+        }
+
+        btnDownload.setOnClickListener {
+            if (!updater.canInstall()) {
                 val packageIntent = Intent(
                     Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                     "package:$packageName".toUri()
@@ -256,9 +216,54 @@ class MainActivity : AppCompatActivity() {
                     } catch (_: ActivityNotFoundException) {
                     }
                 }
+            } else if (updater.hasDownloadedApk()) {
+                try {
+                    updater.installDownloadedApk()
+                } catch (e: Exception) {
+                    val installErrorMsg = "${getString(R.string.engine_update_install_failed)}: ${e.localizedMessage ?: e.message}"
+                    showError(installErrorMsg)
+                }
+            } else {
+                isDownloading = true
+                tvError.visibility = View.GONE
+                btnLater.visibility = View.GONE
+                btnDownload.visibility = View.GONE
+
+                tvChangelogHeader.visibility = View.GONE
+                tvChangelog.visibility = View.GONE
+                layoutProgress.visibility = View.VISIBLE
+
+                lifecycleScope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        updater.downloadAndInstall { current, total ->
+                            runOnUiThread {
+                                if (total > 0) {
+                                    val percent = ((current * 100) / total).toInt()
+                                    progressBar.isIndeterminate = false
+                                    progressBar.progress = percent
+                                    tvProgressPercent.text = "%$percent"
+                                } else {
+                                    progressBar.isIndeterminate = true
+                                    tvProgressPercent.text = ""
+                                }
+                            }
+                        }
+                    }
+
+                    result.fold(
+                        onSuccess = {
+                            resetUIState()
+                        },
+                        onFailure = { error ->
+                            val downloadErrorMsg = "${getString(R.string.engine_update_download_failed)}: ${error.localizedMessage ?: error.message}"
+                            showError(downloadErrorMsg)
+                        }
+                    )
+                }
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        }
+
+        dialog.show()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -305,6 +310,6 @@ class MainActivity : AppCompatActivity() {
         private const val UPDATE_PREFS = "app_updater"
         private const val KEY_LAST_CHECK = "last_check_ms"
         private const val KEY_DISMISSED_BUILDNUM = "dismissed_buildnum"
-        private const val CHECK_INTERVAL_MS = 0L
+        private const val CHECK_INTERVAL_MS = 0
     }
 }
