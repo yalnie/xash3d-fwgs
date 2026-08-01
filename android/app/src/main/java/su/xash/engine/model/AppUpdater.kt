@@ -201,7 +201,7 @@ class AppUpdater(private val context: Context) {
     companion object {
         private const val TAG = "AppUpdater"
         private const val PROGRESS_INTERVAL_MS = 100L
-        private const val INSTALL_ACTION = "su.xash.engine.INSTALL_RESULT"
+        const val INSTALL_ACTION = "su.xash.engine.INSTALL_RESULT"
         private const val UPDATE_JSON_URL = "https://xash3d.yalnie.workers.dev/"
     }
 }
