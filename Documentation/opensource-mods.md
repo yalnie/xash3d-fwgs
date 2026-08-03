@@ -115,6 +115,13 @@ Mirrored on github - https://github.com/solidi/hl-mods/tree/master/pong
 ## Half-Life: Quest Mode
 Available on cs-mapping.com.ua - https://old.cs-mapping.com.ua/forum/showthread.php?t=38030
 
+## Half-Life: Sum
+Original Version: Branch **sum_orig** in halflife-featureful - https://github.com/FreeSlave/halflife-featureful/tree/sum_orig
+
+Version 2022: Branch **sum_2022** in halflife-featureful - https://github.com/FreeSlave/halflife-featureful/tree/sum_2022
+
+Current Version: Branch **sum** in halflife-featureful - https://github.com/FreeSlave/halflife-featureful/tree/sum
+
 ## Half-Life: Top-Down
 Official gitlab repository - https://gitlab.com/Sockman/hltopdown
 
@@ -259,6 +266,9 @@ Mirrored on github - https://github.com/a1batross/XashXT_original
 
 ## Yet another PS2 Half-Life port
 Official github repository - https://github.com/supadupaplex/ya-ps2hl-dll
+
+## Zombie Panic!
+Official github repository - https://github.com/Monochrome-Inc/ZombiePanic-HL
 
 ## Zombie-X
 Available in mod archive on ModDB - https://www.moddb.com/mods/zombie-x-10-final/downloads/zombie-x-10-dle-beta6-last-version
