@@ -28,6 +28,7 @@
 	<string name="crash_share">Поделиться</string>
 	<string name="crash_dismiss">Закрыть</string>
 	<string name="crash_logs">Журналы сбоев</string>
+	<string name="crash_logs_summary">Увидеть, удалить или поделиться краш логами.</string>
 	<string name="crash_logs_empty">Нет сохранённых журналов сбоев</string>
 	<string name="crash_log_delete">Удалить</string>
 	<string name="crash_email_body">К письму прикреплены подробности сбоя. Опишите, пожалуйста, как можно подробнее, что вы делали, когда игра вылетела — любая мелочь поможет нам исправить ошибку!</string>
@@ -37,7 +38,6 @@
 	<string name="downloading">Загрузка…</string>
 	<string name="download_progress">Загрузка… %1$s / %2$s</string>
 	<string name="download_progress_unknown">Загрузка… %1$s</string>
-	<string name="download_failed">Ошибка загрузки</string>
 	<string name="download_error">Произошла ошибка при загрузке игровых библиотек.</string>
 	<string name="update_available">Доступно обновление</string>
 	<string name="update_available_message">Доступна более новая версия игровых библиотек. Загрузить обновление?</string>
@@ -52,7 +52,7 @@
 	<string name="downloaded_at">Загружено</string>
 	<string name="engine_update_available">Доступно обновление движка</string>
 	<string name="engine_update_message">Доступна сборка %1$d. Обновить?</string>
-	<string name="engine_update_changelog_header">Изменения с вашей сборки:</string>
+	<string name="engine_update_changelog_header">Список изменений:</string>
 	<string name="engine_update_changelog_more">+ ещё %1$d коммитов</string>
 	<string name="engine_update_download">Обновить</string>
 	<string name="engine_update_later">Позже</string>
@@ -60,8 +60,60 @@
 	<string name="engine_update_permission_needed">Нужно разрешение</string>
 	<string name="engine_update_permission_message">Чтобы установить обновление, разрешите Xash3D FWGS устанавливать неизвестные приложения в настройках системы.</string>
 	<string name="engine_update_open_settings">Открыть настройки</string>
+	<string name="engine_update_grant_permission">Выдать разрешение</string>
+	<string name="engine_update_install_now">Установить</string>
 	<string name="engine_install_failed">Не удалось установить обновление: %1$s</string>
+	<string name="engine_update_download_failed">Не удалось скачать</string>
+	<string name="engine_update_install_failed">Не удалось установить</string>
+	<string name="engine_update_retry">Пробывать снова</string>
 	
+	<string name="app_downloader">Установщик иги</string>
+	<string name="downloading_progress">Скачивается: %1$d%%</string>
+	<string name="extracting_files">Распаковка файлов...</string>
+	<string name="download_success">%1$s успешно установлен!</string>
+	<string name="download_failed">Не удалось скачать игру!</string>
+	<string name="download_cancelled">Операция отменена</string>
+	<string name="label_hd">HD</string>
+	<string name="btn_download">Скачать</string>
+	<string name="conflict_title">Уже установлена</string>
+	<string name="conflict_message">Эта игра уже есть в памяти телефона. Что вы хотите сделать?</string>
+	<string name="btn_replace">Заменить</string>
+	<string name="btn_clean_install">Скачать заново</string>
+	<string name="btn_skip_existing">Скачать снова и пропустить существующие файлы</string>
+	<string name="download_size_format">Скачивается: %1$s MB</string>
+	<string name="installed_size_format">Занимает: %1$s MB</string>
+	<string name="dialog_cancel_download_title">Отменить установку?</string>
+	<string name="dialog_cancel_download_message">Игра ещё скачивается. Хотите ли вы её отменить и выйти?</string>
+	<string name="btn_yes">Да</string>
+	<string name="btn_no">Нет</string>
+	<string name="btn_pause">Пауза</string>
+	<string name="btn_resume">Продолжить</string>
+	<string name="btn_cancel">Отменить</string>
+	<string name="downloader_status_format">Скачивается... %1$s: %2$s MB / %3$s MB (%4$d%%)</string>
+	<string name="downloader_extracting_format">Идет распаковка... %1$s…</string>
+	<string name="downloader_deleting_format">Удаляется %1$s…</string>
+	<string name="downloader_canceling_format">Операция отменяется...</string>
+	<string name="download_stage_base">игра</string>
+	<string name="download_stage_hd">HD пак</string>
+	<string name="hl_required_title">Нужна Half-Life</string>
+	<string name="hl_required_message">папка Half-Life (valve) не существует или она пустая. %1$s нужны файлы Half-Life чтобы работать корректно. Все равно её установить?</string>
+	<string name="btn_install_anyway">Все равно установить</string>
+	<string name="settings_download_source">Сервер с файлами</string>
+	<string name="dialog_select_source_title">Выберите сервер с файлами игр</string>
+	<string name="source_speed_fastest">Самый быстрый</string>
+	<string name="source_speed_fast">Быстрый</string>
+	<string name="source_speed_medium">Средний</string>
+	<string name="source_speed_slow">Медленный</string>
+	<string name="settings_application_icon">Иконка приложения</string>
+	<string name="icon_name_default">Обычный</string>
+	<string name="icon_name_xash">Xash3D FWGS</string>
+	<string name="icon_name_pride">Прайд</string>
+	<string name="icon_name_trans">Трансгендер</string>
+	<string name="icon_name_lambda">Ламбда</string>
+	<string name="icon_name_salih">Falcon Salih Senol</string>
+	<string name="dialog_change_icon_title">Изменить иконку на %1$s?</string>
+	<string name="dialog_change_icon_message">Приложение закроется, чтобы поменять иконку.</string>
+
 	<!-- FPicker -->
 	<string name="select_folder">Выбрать путь игровых файлов</string>
 	<string name="folder">Выбрать текущий каталог</string>
@@ -73,7 +125,7 @@
 		<item quantity="zero">Нет папок</item>
 		<item quantity="one">%d папка</item>
 		<item quantity="few">%d папки</item>
-        <item quantity="other">%d папок</item>
+		<item quantity="other">%d папок</item>
 	</plurals>
 	<!-- /FPicker -->
 </resources>

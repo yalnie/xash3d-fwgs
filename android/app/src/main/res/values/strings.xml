@@ -108,7 +108,7 @@
     <string name="source_speed_slow">Slow</string>
     <string name="settings_application_icon">Application icon</string>
     <string name="icon_name_default">Default</string>
-    <string name="icon_name_xash">Xash3D FWGS</string>
+    <string name="icon_name_xash" translatable="false">Xash3D FWGS</string>
     <string name="icon_name_pride">Pride</string>
     <string name="icon_name_trans">Transgender</string>
     <string name="icon_name_lambda">Lambda</string>
