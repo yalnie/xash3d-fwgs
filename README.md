@@ -17,6 +17,13 @@ If you like Xash3D FWGS, consider supporting individual engine maintainers. By s
 * Changed Xash3D app icon.
 * Legacy `AlertDialog` structures for Command-line arguments and Crash reports have been completely deprecated and rewritten using `MaterialAlertDialogBuilder` (Material 3).
 * Fixed colors.
+* Added app icon settings. You can change launcher icon from settings!
+* Updated pt-BR translation. Thanks to [@ZangonyBlack](https://github.com/ZangonyBlack)
+* targetAPI now 36. Predictive back animation support added.
+* [ANDROID] Removed "Custom game" from main menu. It wasnt working.
+* Removed "Use icons insted backgrounds". It had no function.
+* Added summary for "Crash logs"
+* Added file manager for custom game dir (from old engine)
 
 ## FWGS fork features
 * Steam Half-Life (HLSDK 2.5) support.
