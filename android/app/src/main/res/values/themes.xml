@@ -19,6 +19,8 @@
 		<item name="colorOnPrimaryContainer">@color/hl_orange</item>
 		<item name="colorPrimaryContainer">@color/hl_orange_dark</item>
 		<item name="colorSecondary">@color/hl_orange_light</item>
+		<item name="colorSecondaryContainer">@color/hl_orange_dark</item>
+		<item name="colorOnSecondaryContainer">@color/hl_orange</item>
 	</style>
 	
 </resources>
