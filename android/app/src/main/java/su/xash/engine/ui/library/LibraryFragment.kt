@@ -9,26 +9,20 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import su.xash.engine.BuildConfig
 import su.xash.engine.R
 import su.xash.engine.adapters.GameAdapter
 import su.xash.engine.databinding.FragmentLibraryBinding
 
-class LibraryFragment : Fragment(), MenuProvider {
+class LibraryFragment : Fragment() {
 	private var _binding: FragmentLibraryBinding? = null
 	private val binding get() = _binding!!
 
@@ -38,6 +32,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 		registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
 			if (hasStoragePermission()) {
 				libraryViewModel.reloadGames(requireContext())
+				checkNotificationPermission()
 			}
 		}
 
@@ -52,6 +47,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 		val granted = permissions.entries.all { it.value }
 		if (granted) {
 			libraryViewModel.reloadGames(requireContext())
+			checkNotificationPermission()
 		}
 	}
 
@@ -139,8 +135,6 @@ class LibraryFragment : Fragment(), MenuProvider {
 		val adapter = GameAdapter(libraryViewModel)
 		binding.gamesList.adapter = adapter
 
-		requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
-
 		return binding.root
 	}
 
@@ -170,32 +164,14 @@ class LibraryFragment : Fragment(), MenuProvider {
 
 		if (hasStoragePermission()) {
 			libraryViewModel.reloadGames(requireContext())
+			checkNotificationPermission()
 		} else {
 			showPermissionDialog()
 		}
-		checkNotificationPermission()
 	}
 
 	override fun onDestroyView() {
 		super.onDestroyView()
 		_binding = null
-	}
-
-	override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-		menuInflater.inflate(R.menu.menu_library, menu)
-	}
-
-	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-		return when (menuItem.itemId) {
-			R.id.action_download_panel -> {
-				findNavController().navigate(R.id.action_libraryFragment_to_downloadPanelFragment)
-				true
-			}
-			R.id.action_settings -> {
-				findNavController().navigate(R.id.action_libraryFragment_to_appSettingsFragment)
-				true
-			}
-			else -> false
-		}
 	}
 }

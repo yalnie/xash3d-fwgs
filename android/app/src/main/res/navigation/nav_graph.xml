@@ -16,20 +16,6 @@
 			app:exitAnim="@animator/fragment_open_exit"
 			app:popEnterAnim="@animator/fragment_close_enter"
 			app:popExitAnim="@animator/fragment_close_exit" />
-		<action
-			android:id="@+id/action_libraryFragment_to_appSettingsFragment"
-			app:destination="@id/appSettingsFragment"
-			app:enterAnim="@animator/fragment_open_enter"
-			app:exitAnim="@animator/fragment_open_exit"
-			app:popEnterAnim="@animator/fragment_close_enter"
-			app:popExitAnim="@animator/fragment_close_exit" />
-		<action
-			android:id="@+id/action_libraryFragment_to_downloadPanelFragment"
-			app:destination="@id/downloadPanelFragment"
-			app:enterAnim="@animator/fragment_open_enter"
-			app:exitAnim="@animator/fragment_open_exit"
-			app:popEnterAnim="@animator/fragment_close_enter"
-			app:popExitAnim="@animator/fragment_close_exit" />
 	</fragment>
 	
 	<fragment
