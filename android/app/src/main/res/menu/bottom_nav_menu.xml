@@ -13,7 +13,7 @@
 
     <item
         android:id="@+id/appSettingsFragment"
-        android:icon="@drawable/ic_baseline_settings_24px"
+        android:icon="@drawable/ic_baseline_settings_24"
         android:title="@string/app_settings" />
 
 </menu>
