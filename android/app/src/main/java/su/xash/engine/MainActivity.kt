@@ -69,6 +69,19 @@ class MainActivity : AppCompatActivity() {
 
         binding.bottomNav.setupWithNavController(navController)
 
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.libraryFragment,
+                R.id.downloadPanelFragment,
+                R.id.appSettingsFragment -> {
+                    binding.bottomNav.visibility = View.VISIBLE
+                }
+                else -> {
+                    binding.bottomNav.visibility = View.GONE // bye bye
+                }
+            }
+        }
+
         CrashReports.prune(this)
         showPendingCrashReport()
 
