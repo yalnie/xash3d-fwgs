@@ -22,4 +22,13 @@
 		app:layout="@layout/edit_text_preference"
 		app:title="@string/crash_logs"
 		android:summary="@string/crash_logs_summary" />
+
+	<ListPreference
+		app:key="app_theme"
+		app:layout="@layout/edit_text_preference"
+		app:title="@string/pref_theme_title"
+		app:entries="@array/theme_entries"
+		app:entryValues="@array/theme_values"
+		app:useSimpleSummaryProvider="true" />
+
 </PreferenceScreen>

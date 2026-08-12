@@ -116,6 +116,17 @@
     <string name="dialog_change_icon_title">Change icon to %1$s?</string>
     <string name="dialog_change_icon_message">The application will close itself to change the application icon.</string>
     
+    <!-- Theme Preferences -->
+    <string name="pref_theme_title">App Theme</string>
+    <string name="theme_legacy">Legacy</string>
+    <string name="theme_fixed_sys">Default (Automatic)</string>
+    <string name="theme_fixed_light">Default (Light)</string>
+    <string name="theme_fixed_dark">Default (Dark)</string>
+    <string name="theme_dynamic_sys">Dynamic (Automatic)</string>
+    <string name="theme_dynamic_light">Dynamic (Light)</string>
+    <string name="theme_dynamic_dark">Dynamic (Dark)</string>
+    <!-- /Theme Preferences -->
+
 	<!-- FPicker -->
 	<string name="select_folder">Select game data location</string>
 	<string name="folder">Set current folder</string>

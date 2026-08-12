@@ -3,10 +3,12 @@ package su.xash.engine.ui.settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.navigation.fragment.findNavController
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import su.xash.engine.FPicker
@@ -29,8 +31,22 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat() {
 	override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
 		preferenceManager.sharedPreferencesName = "app_preferences"
 		setPreferencesFromResource(R.xml.app_preferences, rootKey)
-		val gamePathPref = findPreference<Preference>("game_path")
 		val prefs = requireContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+
+		val themePref = findPreference<ListPreference>("app_theme")
+		
+		if (prefs.getString("app_theme", null) == null) {
+			val defaultTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) "dynamic_sys" else "fixed_sys"
+			themePref?.value = defaultTheme
+			prefs.edit().putString("app_theme", defaultTheme).apply()
+		}
+
+		themePref?.setOnPreferenceChangeListener { _, _ ->
+			requireActivity().recreate()
+			true
+		}
+
+		val gamePathPref = findPreference<Preference>("game_path")
 		val defaultPath = File(Environment.getExternalStorageDirectory(), "xash").absolutePath
 		val currentPath = prefs.getString("game_path", defaultPath) ?: defaultPath
 		gamePathPref?.summary = currentPath

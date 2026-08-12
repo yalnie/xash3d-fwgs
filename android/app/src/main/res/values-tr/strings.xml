@@ -113,6 +113,17 @@
 	<string name="dialog_change_icon_title">Simge %1$s olarak değiştirilsin mi?</string>
     <string name="dialog_change_icon_message">Uygulama simgesini değiştirmek için uygulama kendiliğinden kapatılacaktır.</string>
     
+    <!-- Theme Preferences -->
+    <string name="pref_theme_title">Uygulama Teması</string>
+    <string name="theme_legacy">Eski</string>
+    <string name="theme_fixed_sys">Varsayılan (Otomatik)</string>
+    <string name="theme_fixed_light">Default (Açık)</string>
+    <string name="theme_fixed_dark">Default (Karanlık)</string>
+    <string name="theme_dynamic_sys">Dynamic (Otomatik)</string>
+    <string name="theme_dynamic_light">Dynamic (Açık)</string>
+    <string name="theme_dynamic_dark">Dynamic (Karanlık)</string>
+    <!-- /Theme Preferences -->
+
 	<!-- FPicker -->
 	<string name="select_folder">Oyun verilerinin konumunu seçin</string>
 	<string name="folder">Geçerli klasörü ayarla</string>
