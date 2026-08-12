@@ -194,7 +194,7 @@
 
 		<service
 			android:name=".XashService"
-			android:enabled="true"
+			android:enabled="false"
 			android:exported="false"
 			android:foregroundServiceType="dataSync">
 		</service>

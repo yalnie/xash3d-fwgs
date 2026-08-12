@@ -19,6 +19,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import com.google.android.material.color.DynamicColors
 import java.io.File
 import java.text.DateFormat
 import java.util.ArrayList
@@ -36,8 +39,27 @@ class FPicker : Activity() {
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
+		val prefs = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+		val defaultTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) "dynamic_sys" else "fixed_sys"
+		val themeMode = prefs.getString("app_theme", defaultTheme) ?: defaultTheme
+
+		when {
+			themeMode.contains("light") -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+			themeMode.contains("dark") -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+			else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+		}
+
+		if (themeMode == "legacy") {
+			setTheme(R.style.Theme_App_Legacy)
+		} else {
+			setTheme(R.style.Theme_App_Fixed)
+		}
+
+		if (themeMode.startsWith("dynamic") && DynamicColors.isDynamicColorAvailable()) {
+			DynamicColors.applyToActivityIfAvailable(this)
+		}
+
 		super.onCreate(savedInstanceState)
-		setTheme(R.style.Theme_App)
 		setContentView(R.layout.activity_fpicker)
 
 		val toolbar = findViewById<MaterialToolbar>(R.id.fpicker_toolbar)
