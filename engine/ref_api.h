@@ -74,9 +74,11 @@ GNU General Public License for more details.
 //	 Moved creation of default textures to the engine
 // 16. RefGetParm return type changed from int to intptr_t.
 // 17. _Mem_AllocPool now takes a flags argument (see MEM_SMALL_ALLOC_OPT in engine/common/common.h).
-//	 Pools that opt into MEM_SMALL_ALLOC_OPT use a compact 16/24-byte header for allocations
-//	 <= 255 bytes, dropping per-allocation filename/fileline tracking.
-#define REF_API_VERSION 17
+//     Pools that opt into MEM_SMALL_ALLOC_OPT use a compact 16/24-byte header for allocations
+//     <= 255 bytes, dropping per-allocation filename/fileline tracking.
+// 18. PARM_GET_{LIGHT,SCREEN,LINEAR}GAMMATABLE_PTR now point to uint16_t arrays instead of uint.
+//     Their entries never exceed 1023, so the narrowing is lossless.
+#define REF_API_VERSION 18
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP|TF_ALLOW_NEAREST)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP|TF_ALLOW_NEAREST)

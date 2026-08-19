@@ -113,9 +113,13 @@ typedef int qboolean;
 		// lcc doesn't support it at all
 		#define PFN_RETURNS_NONNULL RETURNS_NONNULL
 	#endif
-	#define NORETURN		   __attribute__(( noreturn ))
-	#define NONNULL			__attribute__(( nonnull ))
-	#define FORMAT_CHECK( x )  __attribute__(( format( printf, x, x + 1 )))
+	#define NORETURN           __attribute__(( noreturn ))
+	#define NONNULL            __attribute__(( nonnull ))
+	#if defined( __MINGW32__ )
+		#define FORMAT_CHECK( x )  __attribute__(( format( gnu_printf, x, x + 1 )))
+	#else
+		#define FORMAT_CHECK( x )  __attribute__(( format( printf, x, x + 1 )))
+	#endif
 	#define ALLOC_CHECK( x )   __attribute__(( alloc_size( x )))
 	#define WARN_UNUSED_RESULT __attribute__(( warn_unused_result ))
 	#define MAYBE_UNUSED	   __attribute__(( unused ))

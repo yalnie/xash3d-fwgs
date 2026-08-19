@@ -248,11 +248,11 @@ typedef struct
 	color24	  *palette;
 	cl_entity_t  *viewent;
 	lightstyle_t *lightstyles;
-	dlight_t	 *elights;
-	byte		 *texgammatable;
-	uint		 *lightgammatable;
-	uint		 *lineargammatable;
-	uint		 *screengammatable;
+	dlight_t     *elights;
+	byte         *texgammatable;
+	uint16_t     *lightgammatable;
+	uint16_t     *lineargammatable;
+	uint16_t     *screengammatable;
 
 	uint		 max_entities;
 } gl_globals_t;
