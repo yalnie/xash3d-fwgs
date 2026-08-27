@@ -169,6 +169,7 @@
 			</intent-filter>
 		</receiver>
 
+		<!-- the window is always fullscreen, so the system ignores windowSoftInputMode and SoftKeyboardPan pans the view on its own -->
 		<activity
 			android:name=".XashActivity"
 			android:alwaysRetainTaskState="true"
@@ -176,7 +177,7 @@
 			android:exported="true"
 			android:launchMode="singleTask"
 			android:preferMinimalPostProcessing="true"
-			android:windowSoftInputMode="adjustResize"
+			android:windowSoftInputMode="adjustPan"
 			android:enableOnBackInvokedCallback="false">
 			<intent-filter>
 				<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
