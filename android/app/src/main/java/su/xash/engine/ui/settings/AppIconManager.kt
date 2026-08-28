@@ -10,6 +10,7 @@ object AppIconManager {
 	enum class AppIcon(val aliasClassName: String) {
 		DEFAULT("su.xash.engine.MainActivityDefault"),
 		XASH("su.xash.engine.MainActivityXash"),
+		LEGACY("su.xash.engine.MainActivityLegacy"),
 		PRIDE("su.xash.engine.MainActivityPride"),
 		TRANS("su.xash.engine.MainActivityTrans"),
 		LAMBDA("su.xash.engine.MainActivityLambda"),
@@ -41,6 +42,7 @@ object AppIconManager {
 		return when (savedIconName) {
 			"XASH" -> R.mipmap.ic_launcher_xash
 			"PRIDE" -> R.mipmap.ic_launcher_pride
+			"LEGACY" -> R.mipmap.ic_launcher_legacy
 			"TRANS" -> R.mipmap.ic_launcher_trans
 			"LAMBDA" -> R.mipmap.ic_launcher_lambda
 			"SALIH" -> R.mipmap.ic_launcher_salih

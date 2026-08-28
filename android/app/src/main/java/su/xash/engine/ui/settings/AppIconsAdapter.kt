@@ -71,7 +71,7 @@ class AppIconsAdapter(
 						Handler(Looper.getMainLooper()).postDelayed({
 							android.os.Process.killProcess(android.os.Process.myPid())
 							kotlin.system.exitProcess(0)
-						}, 3000)
+						}, 2000)
 					}
 				}
 

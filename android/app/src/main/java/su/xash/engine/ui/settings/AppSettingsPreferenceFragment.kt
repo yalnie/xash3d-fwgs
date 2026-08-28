@@ -67,6 +67,7 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat() {
 		
 		iconPref?.summary = when(currentIcon) {
 			"XASH" -> getString(R.string.icon_name_xash)
+			"LEGACY" -> getString(R.string.icon_name_legacy)
 			"PRIDE" -> getString(R.string.icon_name_pride)
 			"TRANS" -> getString(R.string.icon_name_trans)
 			"LAMBDA" -> getString(R.string.icon_name_lambda)

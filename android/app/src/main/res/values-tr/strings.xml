@@ -106,6 +106,7 @@
 	<string name="source_speed_slow">Yavaş</string>
 	<string name="settings_application_icon">Uygulama simgesi</string>
 	<string name="icon_name_default">Varsayılan</string>
+    <string name="icon_name_legacy" >Eski (Eski Motor)</string>
 	<string name="icon_name_pride">Onur</string>
 	<string name="icon_name_trans">Trans</string>
 	<string name="icon_name_lambda">Lambda</string>
