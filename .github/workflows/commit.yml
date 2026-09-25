@@ -13,8 +13,9 @@ jobs:
           ref: ${{ github.head_ref }}
           token: ${{ secrets.TOKEN_ACTION }}
           persist-credentials: true
-          submodules: true
-      - run: git submodule update --init --recursive --remote --force --merge
+          fetch-depth: 0
+          submodules: recursive 
+      - run: git submodule update --init --recursive --remote --merge
       - uses: stefanzweifel/git-auto-commit-action@v7.2.0
         id: auto-commit-action
         with:
