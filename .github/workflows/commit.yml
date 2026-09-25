@@ -1,0 +1,21 @@
+name: Commit
+
+on: workflow_dispatch
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.TOKEN_ACTION }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.TOKEN_ACTION }}
+          persist-credentials: true
+          submodules: true
+      - run: git submodule update --init --recursive --remote --merge
+      - uses: stefanzweifel/git-auto-commit-action@v7.2.0
+        id: auto-commit-action
+        with:
+          commit_message: Updated. submodule
