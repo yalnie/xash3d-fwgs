@@ -14,7 +14,9 @@ jobs:
           token: ${{ secrets.TOKEN_ACTION }}
           persist-credentials: true
           submodules: true
-      - run: git submodule update --init --recursive --remote --merge
+      - run: |
+         git submodule sync --recursive
+         git submodule update --init --recursive --remote --merge
       - uses: stefanzweifel/git-auto-commit-action@v7.2.0
         id: auto-commit-action
         with:
