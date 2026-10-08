@@ -1,12 +1,16 @@
 package su.xash.engine;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
+import android.media.AudioAttributes;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -24,6 +28,7 @@ import java.util.List;
 public class XashActivity extends SDLActivity {
 	private boolean mUseVolumeKeys;
 	private String mPackageName;
+	private Vibrator mVibrator;
 	private static final String TAG = "XashActivity";
 
 	@Override
@@ -40,7 +45,24 @@ public class XashActivity extends SDLActivity {
 	}
 
 	@Override
+	protected void onPause() {
+		if (mVibrator != null) {
+			try {
+				mVibrator.cancel();
+			} catch (Exception ignored) {
+			}
+		}
+		super.onPause();
+	}
+
+	@Override
 	public void onDestroy() {
+		if (mVibrator != null) {
+			try {
+				mVibrator.cancel();
+			} catch (Exception ignored) {
+			}
+		}
 		super.onDestroy();
 
 		// Now that we don't exit from native code, we need to exit here, resetting
@@ -48,6 +70,55 @@ public class XashActivity extends SDLActivity {
 		//
 		// When the issue with global variables will be resolved, remove that exit() call
 		System.exit(0);
+	}
+
+	public void vibrate(int milliseconds, float amplitude) {
+		if (mVibrator == null) {
+			mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+		}
+
+		if (mVibrator == null || !mVibrator.hasVibrator()) {
+			return;
+		}
+
+		if (milliseconds <= 0 || amplitude <= 0.0f) {
+			try {
+				mVibrator.cancel();
+			} catch (Exception e) {
+				Log.e(TAG, "Failed to cancel vibration: " + e.getMessage());
+			}
+			return;
+		}
+
+		int vibeValue = Math.round(amplitude * 255.0f);
+		if (vibeValue > 255) {
+			vibeValue = 255;
+		} else if (vibeValue < 1) {
+			vibeValue = 1;
+		}
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			AudioAttributes audioAttributes = new AudioAttributes.Builder()
+					.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+					.setUsage(AudioAttributes.USAGE_GAME)
+					.build();
+			VibrationEffect effect = VibrationEffect.createOneShot(milliseconds, vibeValue);
+			try {
+				mVibrator.vibrate(effect, audioAttributes);
+			} catch (Exception e) {
+				try {
+					mVibrator.vibrate(effect);
+				} catch (Exception ex) {
+					mVibrator.vibrate(milliseconds);
+				}
+			}
+		} else {
+			mVibrator.vibrate(milliseconds);
+		}
+	}
+
+	public void vibrate(int milliseconds) {
+		vibrate(milliseconds, 1.0f);
 	}
 
 	@Override

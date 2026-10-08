@@ -352,9 +352,7 @@ void Platform_Vibrate2( float time, int val1, int val2, uint flags )
 {
 #if SDL_VERSION_ATLEAST( 2, 0, 9 )
 	SDL_GameController *gc = g_current_gamepad;
-
-	if( g_current_gamepad_id < 0 || !gc )
-		return;
+	int ret = -1;
 
 	if( val1 < 0 )
 		val1 = COM_RandomLong( 0x7FFF, 0xFFFF );
@@ -363,7 +361,26 @@ void Platform_Vibrate2( float time, int val1, int val2, uint flags )
 		val2 = COM_RandomLong( 0x7FFF, 0xFFFF );
 
 	Uint32 ms = (Uint32)ceil( time );
-	SDL_GameControllerRumble( gc, val1, val2, ms );
+	if( g_current_gamepad_id >= 0 && gc )
+		ret = SDL_GameControllerRumble( gc, val1, val2, ms );
+
+#if XASH_ANDROID
+	float amp = bound( 0.0f, (float)( val1 + val2 ) / 65535.0f, 1.0f );
+	if( time <= 0.0f )
+	{
+		Android_Vibrate( 0.0f, 0.0f );
+	}
+	else if( g_current_gamepad_id < 0 || !gc || ret != 0 )
+	{
+		Android_Vibrate( time, amp );
+	}
+#endif // XASH_ANDROID
+#elif XASH_ANDROID
+	float amp = bound( 0.0f, (float)( val1 + val2 ) / 65535.0f, 1.0f );
+	if( time <= 0.0f )
+		Android_Vibrate( 0.0f, 0.0f );
+	else
+		Android_Vibrate( time, amp );
 #endif // SDL_VERSION_ATLEAST( 2, 0, 9 )
 }
 

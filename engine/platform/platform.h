@@ -99,6 +99,7 @@ const char *Android_GetAndroidID( void );
 const char *Android_LoadID( void );
 void Android_SaveID( const char *id );
 void Android_Init( void );
+void Android_Vibrate( float time, float amplitude );
 void *Android_GetNativeObject( const char *name );
 int Android_GetKeyboardHeight( void );
 void Android_Shutdown( void );
@@ -170,7 +171,9 @@ static inline void Platform_Init( qboolean con_showalways )
 
 static inline void Platform_Shutdown( void )
 {
-#if XASH_NSWITCH
+#if XASH_ANDROID
+	Android_Shutdown( );
+#elif XASH_NSWITCH
 	NSwitch_Shutdown( );
 #elif XASH_PSVITA
 	PSVita_Shutdown( );

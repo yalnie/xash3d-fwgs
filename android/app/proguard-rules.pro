@@ -27,6 +27,8 @@
     java.lang.String getCallingPackage();
     java.lang.String[] getAssetsList(boolean, java.lang.String);
     android.content.res.AssetManager getAssets(boolean);
+    void vibrate(int, float);
+    void vibrate(int);
 }
 
 -keep,includedescriptorclasses,allowoptimization class org.libsdl.app.SDLInputConnection {

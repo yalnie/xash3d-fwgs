@@ -34,6 +34,7 @@ struct jnimethods_s
 	jmethodID loadAndroidID;
 	jmethodID getAndroidID;
 	jmethodID saveAndroidID;
+	jmethodID vibrate;
 } jni;
 
 void Android_Init( void )
@@ -43,10 +44,19 @@ void Android_Init( void )
 #if XASH_SDL
 	jni.env = (JNIEnv *)SDL_AndroidGetJNIEnv();
 	jni.activity = (jobject)SDL_AndroidGetActivity();
-	jni.actcls = (*jni.env)->GetObjectClass( jni.env, jni.activity );
+	if( !jni.env || !jni.activity )
+		return;
+
+	jclass cls = (*jni.env)->GetObjectClass( jni.env, jni.activity );
+	jni.actcls = (*jni.env)->NewGlobalRef( jni.env, cls );
+	(*jni.env)->DeleteLocalRef( jni.env, cls );
+
 	jni.loadAndroidID = (*jni.env)->GetMethodID( jni.env, jni.actcls, "loadAndroidID", "()Ljava/lang/String;" );
 	jni.getAndroidID = (*jni.env)->GetMethodID( jni.env, jni.actcls, "getAndroidID", "()Ljava/lang/String;" );
 	jni.saveAndroidID = (*jni.env)->GetMethodID( jni.env, jni.actcls, "saveAndroidID", "(Ljava/lang/String;)V" );
+	jni.vibrate = (*jni.env)->GetMethodID( jni.env, jni.actcls, "vibrate", "(IF)V" );
+	if( (*jni.env)->ExceptionCheck( jni.env ))
+		(*jni.env)->ExceptionClear( jni.env );
 #endif // !XASH_SDL
 }
 
@@ -129,5 +139,44 @@ void Platform_ShellExecute( const char *path, const char *parms )
 {
 #if XASH_SDL
 	SDL_OpenURL( path );
+#endif // XASH_SDL
+}
+
+/*
+========================
+Android_Vibrate
+========================
+*/
+void Android_Vibrate( float time, float amplitude )
+{
+#if XASH_SDL
+	JNIEnv *env = (JNIEnv *)SDL_AndroidGetJNIEnv();
+	if( !env || !jni.activity || !jni.vibrate )
+		return;
+
+	int ms = (int)ceil( time );
+	if( ms < 0 )
+		ms = 0;
+
+	(*env)->CallVoidMethod( env, jni.activity, jni.vibrate, (jint)ms, (jfloat)amplitude );
+	if( (*env)->ExceptionCheck( env ))
+		(*env)->ExceptionClear( env );
+#endif // XASH_SDL
+}
+
+/*
+========================
+Android_Shutdown
+========================
+*/
+void Android_Shutdown( void )
+{
+#if XASH_SDL
+	JNIEnv *env = (JNIEnv *)SDL_AndroidGetJNIEnv();
+	if( env && jni.actcls )
+	{
+		(*env)->DeleteGlobalRef( env, jni.actcls );
+		jni.actcls = NULL;
+	}
 #endif // XASH_SDL
 }
