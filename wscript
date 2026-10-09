@@ -332,7 +332,7 @@ def configure(conf):
 	# Set default options for some platforms
 	if conf.env.DEST_OS == 'android':
 		conf.options.NANOGL           = True
-		conf.options.GLWES            = False # deprecated
+		conf.options.GLWES            = True # i dont why how they deprecated this renderer
 		conf.options.GL4ES            = True
 		conf.options.GLES3COMPAT      = True
 		conf.options.GL               = False
