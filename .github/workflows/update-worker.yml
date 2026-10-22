@@ -1,0 +1,27 @@
+name: Update Cloudflare Worker API
+
+on:
+  workflow_dispatch:
+    inputs:
+      changelog:
+        description: 'Changelog description (leave empty to use latest commit message)'
+        required: false
+        default: ''
+
+jobs:
+  update-worker:
+    name: "Update Cloudflare Worker"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: Update Cloudflare Worker API
+      env:
+        CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        CF_WORKER_NAME: ${{ secrets.CF_WORKER_NAME }}
+        CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
+        CUSTOM_CHANGELOG: ${{ github.event.inputs.changelog }}
+      run: bash scripts/gha/update_worker.sh
