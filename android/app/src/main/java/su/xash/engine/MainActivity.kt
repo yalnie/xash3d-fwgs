@@ -49,6 +49,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var navController: NavController
 
+    private val requestNotificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ -> }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val prefs = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
         val defaultTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -122,6 +126,8 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             val result = updater.checkForUpdate()
+            if (isFinishing || isDestroyed)
+                return@launch
             if (result !is AppUpdater.UpdateCheck.Available)
                 return@launch
             val info = result.info
@@ -141,12 +147,13 @@ class MainActivity : AppCompatActivity() {
             .setCancelable(true)
             .setNegativeButton(android.R.string.cancel) { d, _ -> d.dismiss() }
             .create()
+        if (isFinishing || isDestroyed) return
         dialog.show()
 
         val updater = AppUpdater(this)
         val job = lifecycleScope.launch {
             val result = updater.checkForUpdate()
-            if (!dialog.isShowing)
+            if (!dialog.isShowing || isFinishing || isDestroyed)
                 return@launch
             dialog.dismiss()
             when (result) {
@@ -319,34 +326,32 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val requestPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { _ -> }
-
         val filter = IntentFilter(AppUpdater.INSTALL_ACTION)
         val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            RECEIVER_EXPORTED
+            ContextCompat.RECEIVER_EXPORTED
         } else {
             0
         }
         ContextCompat.registerReceiver(this, installReceiver, filter, flags)
 
-        lifecycle.addObserver(object : DefaultLifecycleObserver {
+        val lifecycleObserver = object : DefaultLifecycleObserver {
             override fun onResume(owner: LifecycleOwner) {
                 if (!isDownloading && !isInstalling) {
                     resetUIState()
                 }
             }
-        })
+        }
+        lifecycle.addObserver(lifecycleObserver)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
-                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
 
         dialog.setOnDismissListener {
+            lifecycle.removeObserver(lifecycleObserver)
             try {
                 unregisterReceiver(installReceiver)
             } catch (_: Exception) {}
@@ -421,6 +426,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        if (isFinishing || isDestroyed) return
         dialog.show()
     }
 
