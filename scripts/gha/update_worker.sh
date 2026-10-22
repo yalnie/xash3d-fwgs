@@ -69,7 +69,9 @@ if [ -n "$CF_KV_NAMESPACE_ID" ]; then
 		--data "$PAYLOAD")
 else
 	echo "Updating Worker script directly ($WORKER_NAME)..."
-	WORKER_SCRIPT=$(cat <<EOF
+	TMP_DIR=$(mktemp -d)
+	WORKER_FILE="$TMP_DIR/worker.js"
+	cat <<EOF > "$WORKER_FILE"
 export default {
   async fetch(request) {
     const data = $PAYLOAD;
@@ -82,13 +84,42 @@ export default {
   }
 };
 EOF
-	)
 
+	# 1. Try uploading as an ES Module (requires multipart with main_module)
+	echo "Uploading as ES Module..."
 	RESP=$(curl -s -w "\n%{http_code}" -X PUT \
 		"https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}" \
 		-H "Authorization: Bearer ${CF_API_TOKEN}" \
-		-H "Content-Type: application/javascript" \
-		--data "$WORKER_SCRIPT")
+		-F 'metadata={"main_module": "worker.js"};type=application/json' \
+		-F "worker.js=@${WORKER_FILE};filename=worker.js;type=application/javascript+module")
+
+	HTTP_CODE=$(echo "$RESP" | tail -n1)
+
+	# 2. If rejected (e.g. legacy Service Worker syntax expected), fallback to Service Worker syntax
+	if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+		echo "ES Module upload returned HTTP $HTTP_CODE, trying Service Worker format..."
+		SW_FILE="$TMP_DIR/worker_sw.js"
+		cat <<EOF > "$SW_FILE"
+addEventListener("fetch", (event) => {
+  const data = $PAYLOAD;
+  event.respondWith(
+    new Response(JSON.stringify(data), {
+      headers: {
+        "content-type": "application/json;charset=UTF-8",
+        "access-control-allow-origin": "*"
+      }
+    })
+  );
+});
+EOF
+		RESP=$(curl -s -w "\n%{http_code}" -X PUT \
+			"https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}" \
+			-H "Authorization: Bearer ${CF_API_TOKEN}" \
+			-H "Content-Type: application/javascript" \
+			--data-binary "@${SW_FILE}")
+	fi
+
+	rm -rf "$TMP_DIR"
 fi
 
 HTTP_CODE=$(echo "$RESP" | tail -n1)
