@@ -1,186 +1,407 @@
 package su.xash.engine
 
+import android.Manifest
 import android.content.ActivityNotFoundException
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageInstaller
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import androidx.appcompat.app.AlertDialog
+import android.text.Html
+import android.view.View
+import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import su.xash.engine.databinding.ActivityMainBinding
 import su.xash.engine.model.AppUpdater
 import su.xash.engine.util.CrashReports
 import su.xash.engine.util.monospaceTextView
-import su.xash.engine.util.showDownloadProgressDialog
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
-	private lateinit var binding: ActivityMainBinding
-	private lateinit var appBarConfiguration: AppBarConfiguration
-	private lateinit var navController: NavController
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var navController: NavController
 
-	override fun onCreate(savedInstanceState: Bundle?) {
-		super.onCreate(savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        val prefs = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val defaultTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            "dynamic_sys"
+        } else {
+            "fixed_sys"
+        }
 
-		binding = ActivityMainBinding.inflate(layoutInflater)
-		setContentView(binding.root)
+        val themeMode = prefs.getString("app_theme", defaultTheme) ?: defaultTheme
 
-		setSupportActionBar(binding.toolbar)
+        when {
+            themeMode.contains("light") -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            themeMode.contains("dark") -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        }
 
-		val navHostFragment =
-			supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
-		navController = navHostFragment.navController
-		appBarConfiguration = AppBarConfiguration(navController.graph)
-		setupActionBarWithNavController(navController, appBarConfiguration)
+        if (themeMode == "legacy") {
+            setTheme(R.style.Theme_App_Legacy)
+        } else {
+            setTheme(R.style.Theme_App_Fixed)
+        }
 
-		CrashReports.prune(this)
-		showPendingCrashReport()
+        if (themeMode.startsWith("dynamic") && DynamicColors.isDynamicColorAvailable()) {
+            DynamicColors.applyToActivityIfAvailable(this)
+        }
 
-		checkForEngineUpdate()
-	}
+        super.onCreate(savedInstanceState)
 
-	private fun checkForEngineUpdate() {
-		val prefs = getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
-		val now = System.currentTimeMillis()
-		if (now - prefs.getLong(KEY_LAST_CHECK, 0L) < CHECK_INTERVAL_MS)
-			return
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-		val updater = AppUpdater(this)
-		lifecycleScope.launch {
-			val info = updater.checkForUpdate()
-			prefs.edit().putLong(KEY_LAST_CHECK, now).apply()
-			if (info == null)
-				return@launch
-			if (prefs.getInt(KEY_DISMISSED_BUILDNUM, -1) >= info.buildNum)
-				return@launch
-			val changelog = updater.fetchChangelog(BuildConfig.GIT_HASH, info.tagName)
-			showEngineUpdateDialog(updater, info.buildNum, changelog, prefs)
-		}
-	}
+        setSupportActionBar(binding.toolbar)
 
-	private fun showEngineUpdateDialog(
-		updater: AppUpdater,
-		remoteBuildNum: Int,
-		changelog: List<AppUpdater.CommitInfo>?,
-		prefs: android.content.SharedPreferences,
-	) {
-		val builder = MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.engine_update_available)
-			.setMessage(getString(R.string.engine_update_message, remoteBuildNum))
-			.setPositiveButton(R.string.engine_update_download) { _, _ ->
-				showEngineDownloadDialog(updater)
-			}
-			.setNegativeButton(R.string.engine_update_later) { _, _ ->
-				prefs.edit().putInt(KEY_DISMISSED_BUILDNUM, remoteBuildNum).apply()
-			}
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+        navController = navHostFragment.navController
 
-		if (!changelog.isNullOrEmpty()) {
-			val text = buildString {
-				append(getString(R.string.engine_update_changelog_header))
-				val shown = changelog.take(CHANGELOG_MAX_LINES)
-				for (c in shown)
-					append("\n• ").append(c.subject)
-				val extra = changelog.size - shown.size
-				if (extra > 0)
-					append("\n").append(getString(R.string.engine_update_changelog_more, extra))
-			}
-			builder.setView(monospaceTextView(this, text))
-		}
+        appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.libraryFragment,
+                R.id.downloadPanelFragment,
+                R.id.appSettingsFragment
+            )
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
 
-		builder.show()
-	}
+        binding.bottomNav.setupWithNavController(navController)
 
-	private fun showEngineDownloadDialog(updater: AppUpdater) {
-		if (!updater.canInstall()) {
-			promptForInstallPermission()
-			return
-		}
-		showDownloadProgressDialog(
-			ctx = this,
-			titleRes = R.string.engine_update_downloading,
-			cancelable = true,
-			scope = lifecycleScope,
-			download = { onProgress -> updater.downloadAndInstall(onProgress) },
-		)
-	}
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.libraryFragment,
+                R.id.downloadPanelFragment,
+                R.id.appSettingsFragment -> {
+                    binding.bottomNav.visibility = View.VISIBLE
+                }
+                else -> {
+                    binding.bottomNav.visibility = View.GONE // bye bye
+                }
+            }
+        }
 
-	private fun promptForInstallPermission() {
-		MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.engine_update_permission_needed)
-			.setMessage(R.string.engine_update_permission_message)
-			.setPositiveButton(R.string.engine_update_open_settings) { _, _ ->
-				val packageIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-					"package:$packageName".toUri())
-				try {
-					startActivity(packageIntent)
-				} catch (_: ActivityNotFoundException) {
-					try {
-						startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES))
-					} catch (_: ActivityNotFoundException) {
-						// no settings screen — nothing more we can do
-					}
-				}
-			}
-			.setNegativeButton(android.R.string.cancel, null)
-			.show()
-	}
+        CrashReports.prune(this)
+        showPendingCrashReport()
 
-	override fun onSupportNavigateUp(): Boolean {
-		return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-	}
+        checkForEngineUpdate()
+    }
 
-	private fun showPendingCrashReport() {
-		val pending = CrashReports.pendingStacktrace(this)
-		if (!pending.exists() || pending.length() == 0L)
-			return
+    private fun checkForEngineUpdate() {
+        val prefs = getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
+        val updater = AppUpdater(this)
+        
+        lifecycleScope.launch {
+            val info = updater.checkForUpdate() ?: return@launch
+            if (prefs.getInt(KEY_DISMISSED_BUILDNUM, -1) >= info.buildNum)
+                return@launch
 
-		val historyDir = CrashReports.historyDir(this).apply { mkdirs() }
-		val ts = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
-		val entryDir = File(historyDir, "crash-$ts").apply { mkdirs() }
+            showEngineUpdateDialog(updater, info.buildNum, info.commitHash, info.changelog, prefs)
+        }
+    }
 
-		moveOrCopy(pending, File(entryDir, CrashReports.STACKTRACE_NAME))
-		moveOrCopy(CrashReports.pendingSysinfo(this), File(entryDir, CrashReports.SYSINFO_NAME))
-		moveOrCopy(CrashReports.pendingIntent(this), File(entryDir, CrashReports.INTENT_NAME))
-		moveOrCopy(CrashReports.pendingEngineLog(this), File(entryDir, CrashReports.ENGINELOG_NAME))
+    private fun showEngineUpdateDialog(
+        updater: AppUpdater,
+        remoteBuildNum: Int,
+        remoteCommitHash: String,
+        changelog: String?,
+        prefs: android.content.SharedPreferences,
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_engine_update, null)
 
-		val entry = CrashReports.Entry(entryDir)
-		AlertDialog.Builder(this)
-			.setTitle(R.string.crash_dialog_title)
-			.setView(monospaceTextView(this, entry.summary()))
-			.setPositiveButton(R.string.crash_send_to_developers) { _, _ -> CrashReports.sendByEmail(this, entry) }
-			.setNeutralButton(R.string.crash_share) { _, _ -> CrashReports.share(this, entry) }
-			.setNegativeButton(R.string.crash_dismiss, null)
-			.show()
-	}
+        val tvCurrentVersion = dialogView.findViewById<TextView>(R.id.tvCurrentVersion)
+        val tvNewVersion = dialogView.findViewById<TextView>(R.id.tvNewVersion)
+        val tvChangelogHeader = dialogView.findViewById<TextView>(R.id.tvChangelogHeader)
+        val tvChangelog = dialogView.findViewById<TextView>(R.id.tvChangelog)
+        val tvError = dialogView.findViewById<TextView>(R.id.tvError)
+        val btnLater = dialogView.findViewById<MaterialButton>(R.id.btnLater)
+        val btnDownload = dialogView.findViewById<MaterialButton>(R.id.btnDownload)
 
-	private fun moveOrCopy(src: File, dst: File) {
-		if (!src.exists())
-			return
+        val layoutProgress = dialogView.findViewById<View>(R.id.layoutProgress)
+        val progressBar = dialogView.findViewById<com.google.android.material.progressindicator.LinearProgressIndicator>(R.id.progressBar)
+        val tvProgressPercent = dialogView.findViewById<TextView>(R.id.tvProgressPercent)
 
-		if (src.renameTo(dst))
-			return
+        val currentHash = BuildConfig.GIT_HASH.ifEmpty { BuildConfig.VERSION_NAME }
+        tvCurrentVersion.text = "b$currentHash"
+        val targetHash = remoteCommitHash.ifEmpty { remoteBuildNum.toString() }
+        tvNewVersion.text = "b$targetHash"
 
-		src.copyTo(dst, overwrite = true)
-		src.delete()
-	}
+        if (!changelog.isNullOrEmpty()) {
+            val formattedChangelog = changelog.replace("\n", "<br>")
+            tvChangelog.visibility = View.VISIBLE
+            tvChangelog.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Html.fromHtml(formattedChangelog, Html.FROM_HTML_MODE_COMPACT)
+            } else {
+                @Suppress("DEPRECATION")
+                Html.fromHtml(formattedChangelog)
+            }
+        } else {
+            tvChangelog.visibility = View.GONE
+        }
 
-	companion object {
-		private const val CHANGELOG_MAX_LINES = 15
-		private const val UPDATE_PREFS = "app_updater"
-		private const val KEY_LAST_CHECK = "last_check_ms"
-		private const val KEY_DISMISSED_BUILDNUM = "dismissed_buildnum"
-		private const val CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L
-	}
+        var isDownloading = false
+        var isInstalling = false
+
+        fun resetUIState() {
+            isDownloading = false
+            isInstalling = false
+            val hasPermission = updater.canInstall()
+            val hasApk = updater.hasDownloadedApk()
+
+            layoutProgress.visibility = View.GONE
+            tvError.visibility = View.GONE
+
+            if (!changelog.isNullOrEmpty()) {
+                tvChangelogHeader.visibility = View.VISIBLE
+                tvChangelog.visibility = View.VISIBLE
+            }
+            btnLater.visibility = View.VISIBLE
+            btnDownload.visibility = View.VISIBLE
+            btnDownload.isEnabled = true
+
+            when {
+                !hasPermission -> {
+                    btnDownload.setText(R.string.engine_update_grant_permission)
+                    btnDownload.setIconResource(R.drawable.ic_baseline_lock_24px)
+                }
+                hasApk -> {
+                    btnDownload.setText(R.string.engine_update_install_now)
+                    btnDownload.setIconResource(R.drawable.ic_baseline_mobile_arrow_down_24px)
+                }
+                else -> {
+                    btnDownload.setText(R.string.engine_update_download)
+                    btnDownload.setIconResource(R.drawable.ic_baseline_download_24px)
+                }
+            }
+        }
+
+        fun showInstallingState() {
+            isInstalling = true
+            tvError.visibility = View.GONE
+            tvChangelogHeader.visibility = View.GONE
+            tvChangelog.visibility = View.GONE
+            btnLater.visibility = View.GONE
+            btnDownload.visibility = View.GONE
+
+            layoutProgress.visibility = View.VISIBLE
+            progressBar.isIndeterminate = true
+            tvProgressPercent.text = ""
+        }
+
+        fun showError(errorMessage: String) {
+            isDownloading = false
+            isInstalling = false
+            layoutProgress.visibility = View.GONE
+            tvChangelogHeader.visibility = View.GONE
+            tvChangelog.visibility = View.GONE
+
+            tvError.text = errorMessage
+            tvError.visibility = View.VISIBLE
+
+            btnLater.visibility = View.VISIBLE
+            btnDownload.visibility = View.VISIBLE
+            btnDownload.isEnabled = true
+            btnDownload.setText(R.string.engine_update_retry)
+            btnDownload.setIconResource(R.drawable.ic_baseline_replay_24px)
+        }
+
+        resetUIState()
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        val installReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == AppUpdater.INSTALL_ACTION) {
+                    val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
+                    val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
+
+                    when (status) {
+                        PackageInstaller.STATUS_PENDING_USER_ACTION -> {
+                        }
+                        PackageInstaller.STATUS_SUCCESS -> {
+                        }
+                        PackageInstaller.STATUS_FAILURE_ABORTED -> {
+                            resetUIState()
+                        }
+                        else -> {
+                            val errorMsg = message ?: getString(R.string.engine_update_install_failed)
+                            showError(errorMsg)
+                        }
+                    }
+                }
+            }
+        }
+
+        val filter = IntentFilter(AppUpdater.INSTALL_ACTION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(installReceiver, filter, RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(installReceiver, filter)
+        }
+
+        val lifecycleObserver = object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                if (!isDownloading && !isInstalling) {
+                    resetUIState()
+                }
+            }
+        }
+        lifecycle.addObserver(lifecycleObserver)
+
+        dialog.setOnDismissListener {
+            lifecycle.removeObserver(lifecycleObserver)
+            try {
+                unregisterReceiver(installReceiver)
+            } catch (_: Exception) {}
+        }
+
+        btnLater.setOnClickListener {
+            if (!isDownloading && !isInstalling) {
+                prefs.edit().putInt(KEY_DISMISSED_BUILDNUM, remoteBuildNum).apply()
+                dialog.dismiss()
+            }
+        }
+
+        btnDownload.setOnClickListener {
+            if (!updater.canInstall()) {
+                val packageIntent = Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    "package:$packageName".toUri()
+                )
+                try {
+                    startActivity(packageIntent)
+                } catch (_: ActivityNotFoundException) {
+                    try {
+                        startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES))
+                    } catch (_: ActivityNotFoundException) {
+                    }
+                }
+            } else if (updater.hasDownloadedApk()) {
+                showInstallingState()
+                try {
+                    updater.installDownloadedApk()
+                } catch (e: Exception) {
+                    val installErrorMsg = "${getString(R.string.engine_update_install_failed)}: ${e.localizedMessage ?: e.message}"
+                    showError(installErrorMsg)
+                }
+            } else {
+                isDownloading = true
+                tvError.visibility = View.GONE
+                btnLater.visibility = View.GONE
+                btnDownload.visibility = View.GONE
+
+                tvChangelogHeader.visibility = View.GONE
+                tvChangelog.visibility = View.GONE
+                layoutProgress.visibility = View.VISIBLE
+
+                lifecycleScope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        updater.downloadAndInstall { current, total ->
+                            runOnUiThread {
+                                if (total > 0) {
+                                    val percent = ((current * 100) / total).toInt()
+                                    progressBar.isIndeterminate = false
+                                    progressBar.progress = percent
+                                    tvProgressPercent.text = "%$percent"
+                                } else {
+                                    progressBar.isIndeterminate = true
+                                    tvProgressPercent.text = ""
+                                }
+                            }
+                        }
+                    }
+
+                    result.fold(
+                        onSuccess = {
+                            showInstallingState()
+                        },
+                        onFailure = { error ->
+                            val downloadErrorMsg = "${getString(R.string.engine_update_download_failed)}: ${error.localizedMessage ?: error.message}"
+                            showError(downloadErrorMsg)
+                        }
+                    )
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    private fun showPendingCrashReport() {
+        val pending = CrashReports.pendingStacktrace(this)
+        if (!pending.exists() || pending.length() == 0L)
+            return
+
+        val historyDir = CrashReports.historyDir(this).apply { mkdirs() }
+        val ts = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
+        val entryDir = File(historyDir, "crash-$ts").apply { mkdirs() }
+
+        moveOrCopy(pending, File(entryDir, CrashReports.STACKTRACE_NAME))
+        moveOrCopy(CrashReports.pendingSysinfo(this), File(entryDir, CrashReports.SYSINFO_NAME))
+        moveOrCopy(CrashReports.pendingIntent(this), File(entryDir, CrashReports.INTENT_NAME))
+        moveOrCopy(CrashReports.pendingEngineLog(this), File(entryDir, CrashReports.ENGINELOG_NAME))
+
+        val entry = CrashReports.Entry(entryDir)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.crash_dialog_title)
+            .setView(monospaceTextView(this, entry.summary()))
+            .setPositiveButton(R.string.crash_share) { _, _ ->
+                CrashReports.share(this, entry)
+            }
+            .setNegativeButton(R.string.crash_dismiss, null)
+            .show()
+    }
+
+    private fun moveOrCopy(src: File, dst: File) {
+        if (!src.exists())
+            return
+
+        if (src.renameTo(dst))
+            return
+
+        src.copyTo(dst, overwrite = true)
+        src.delete()
+    }
+
+    companion object {
+        private const val UPDATE_PREFS = "app_updater"
+        private const val KEY_DISMISSED_BUILDNUM = "dismissed_buildnum"
+    }
 }

@@ -29,23 +29,23 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
 		application.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
 
 	fun reloadGames(ctx: Context) {
-		if (isReloading.value == true) {
-			return
-		}
-		_isReloading.value = true
+	    if (isReloading.value == true) {
+   	     return
+	    }
+	    _isReloading.value = true
 
-		viewModelScope.launch {
-			withContext(Dispatchers.IO) {
-				val rootPath = appPreferences.getString("game_path", null)
-					?: (Environment.getExternalStorageDirectory().absolutePath + "/xash")
-				val root = File(rootPath)
+	    viewModelScope.launch {
+	        withContext(Dispatchers.IO) {
+ 	           val defaultPath = File(Environment.getExternalStorageDirectory(), "xash").absolutePath
+    	        val rootPath = appPreferences.getString("game_path", defaultPath) ?: defaultPath
+  	          val root = File(rootPath)
 
-				Nomedia.ensureNomedia(root)
+   	         Nomedia.ensureNomedia(root)
 
-				_installedGames.postValue(Game.getGames(ctx, root))
-				_isReloading.postValue(false)
-			}
-		}
+   	         _installedGames.postValue(Game.getGames(ctx, root))
+     	       _isReloading.postValue(false)
+ 	       }
+  	  }
 	}
 
 	fun setSelectedGame(game: Game) {

@@ -54,7 +54,8 @@ class GameLibDownloader(private val context: Context) {
 		val platformArch: String,
 		val filename: String,
 		val sha256: String,
-		val sourceJson: String?
+		val sourceJson: String?,
+		val isYalnieBuild: Boolean
 	)
 
 	data class SourceInfo(
@@ -63,40 +64,37 @@ class GameLibDownloader(private val context: Context) {
 		val commit: String?
 	)
 
-	private fun manifestCacheFile(): File = File(context.cacheDir, "hlsdk-manifest.json")
+	private fun fwgsCacheFile(): File = File(context.cacheDir, "hlsdk-manifest-fwgs.json")
+	private fun yalnieCacheFile(): File = File(context.cacheDir, "hlsdk-manifest-yalnie.json")
 
-	private suspend fun fetchManifest(): JSONObject? = fetchManifestOrError().first
+	private suspend fun fetchCombinedManifests(): Pair<JSONObject?, JSONObject?> {
+		val yalnie = fetchSingleManifest(YALNIE_MANIFEST_URL, yalnieCacheFile())
+		val fwgs = fetchSingleManifest(FWGS_MANIFEST_URL, fwgsCacheFile())
+		return fwgs to yalnie
+	}
 
-	private suspend fun fetchManifestOrError(): Pair<JSONObject?, Throwable?> {
-		val cacheFile = manifestCacheFile()
+	private suspend fun fetchSingleManifest(urlStr: String, cacheFile: File): JSONObject? {
 		var connection: HttpURLConnection? = null
 		try {
-			connection = URL(MANIFEST_URL).openConnection() as HttpURLConnection
+			connection = URL(urlStr).openConnection() as HttpURLConnection
 			connection.connectTimeout = 10000
 			connection.readTimeout = 15000
 			connection.instanceFollowRedirects = true
 			connection.connect()
 
 			if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-				val err = IOException("HTTP ${connection.responseCode} fetching manifest")
-				Log.w(TAG, "Manifest fetch failed: ${err.message}")
-				val cached = readCachedManifest(cacheFile)
-				return if (cached != null) cached to null else null to err
+				return readCachedManifest(cacheFile)
 			}
 
 			val text = connection.inputStream.bufferedReader().use { it.readText() }
 			val json = JSONObject(text)
-			val versionError = checkManifestVersion(json)
-			if (versionError != null) {
-				Log.w(TAG, "Manifest rejected: ${versionError.message}")
-				return null to versionError
+			if (checkManifestVersion(json) != null) {
+				return readCachedManifest(cacheFile)
 			}
 			cacheFile.writeText(text)
-			return json to null
+			return json
 		} catch (e: Exception) {
-			Log.w(TAG, "Manifest fetch failed: ${e.message}")
-			val cached = readCachedManifest(cacheFile)
-			return if (cached != null) cached to null else null to e
+			return readCachedManifest(cacheFile)
 		} finally {
 			connection?.disconnect()
 		}
@@ -122,9 +120,23 @@ class GameLibDownloader(private val context: Context) {
 		return null
 	}
 
-	private fun lookupEntry(manifest: JSONObject, gamedir: String): ManifestEntry? {
+	private fun lookupEntryCombined(fwgs: JSONObject?, yalnie: JSONObject?, gamedir: String): ManifestEntry? {
 		val arch = getArch() ?: return null
 		val platformArch = "android-$arch"
+
+		if (yalnie != null) {
+			val entry = extractEntryFromManifest(yalnie, gamedir, platformArch, true)
+			if (entry != null) return entry
+		}
+
+		if (fwgs != null) {
+			return extractEntryFromManifest(fwgs, gamedir, platformArch, false)
+		}
+
+		return null
+	}
+
+	private fun extractEntryFromManifest(manifest: JSONObject, gamedir: String, platformArch: String, isYalnie: Boolean): ManifestEntry? {
 		val mods = manifest.optJSONObject("mods") ?: return null
 
 		// Find mod key case-insensitively
@@ -148,7 +160,7 @@ class GameLibDownloader(private val context: Context) {
 			return null
 
 		val sourceJson = build.optJSONObject("source")?.toString()
-		return ManifestEntry(modKey, platformArch, filename, sha256.lowercase(), sourceJson)
+		return ManifestEntry(modKey, platformArch, filename, sha256.lowercase(), sourceJson, isYalnie)
 	}
 
 	fun getSourceInfo(gamedir: String): SourceInfo? {
@@ -176,10 +188,10 @@ class GameLibDownloader(private val context: Context) {
 
 	suspend fun lookupBuild(gamedir: String): Lookup {
 		return withContext(Dispatchers.IO) {
-			val (manifest, error) = fetchManifestOrError()
-			if (manifest == null)
-				return@withContext Lookup.Error(error ?: IOException("Failed to fetch manifest"))
-			val entry = lookupEntry(manifest, gamedir)
+			val (fwgs, yalnie) = fetchCombinedManifests()
+			if (fwgs == null && yalnie == null)
+				return@withContext Lookup.Error(IOException("Failed to fetch manifests from both sources"))
+			val entry = lookupEntryCombined(fwgs, yalnie, gamedir)
 				?: return@withContext Lookup.NotInManifest
 			Lookup.Available(entry)
 		}
@@ -187,14 +199,17 @@ class GameLibDownloader(private val context: Context) {
 
 	suspend fun isUpdateAvailable(gamedir: String): Boolean {
 		return withContext(Dispatchers.IO) {
-			val manifest = fetchManifest() ?: return@withContext false
-			val entry = lookupEntry(manifest, gamedir) ?: return@withContext false
+			val (fwgs, yalnie) = fetchCombinedManifests()
+			val entry = lookupEntryCombined(fwgs, yalnie, gamedir) ?: return@withContext false
 			val storedSha = prefs.getString("${gamedir}_sha256", null)
 			storedSha == null || !storedSha.equals(entry.sha256, ignoreCase = true)
 		}
 	}
 
-	private fun urlForFilename(filename: String): String = "$RELEASE_BASE_URL/$filename"
+	private fun urlForEntry(entry: ManifestEntry): String {
+		val baseUrl = if (entry.isYalnieBuild) YALNIE_BASE_URL else FWGS_BASE_URL
+		return "$baseUrl/${entry.filename}"
+	}
 
 	private suspend fun tryDownload(
 		url: String,
@@ -247,13 +262,14 @@ class GameLibDownloader(private val context: Context) {
 
 	suspend fun download(gamedir: String, onProgress: (Long, Long) -> Unit): Result<Unit> {
 		return withContext(Dispatchers.IO) {
-			val manifest = fetchManifest()
-				?: return@withContext Result.failure(IOException("Failed to fetch manifest"))
+			val (fwgs, yalnie) = fetchCombinedManifests()
+			if (fwgs == null && yalnie == null)
+				return@withContext Result.failure(IOException("Failed to fetch manifests"))
 
-			val entry = lookupEntry(manifest, gamedir)
+			val entry = lookupEntryCombined(fwgs, yalnie, gamedir)
 				?: return@withContext Result.failure(IOException("No build for '$gamedir' on ${getArch() ?: "this arch"}"))
 
-			val url = urlForFilename(entry.filename)
+			val url = urlForEntry(entry)
 			val tempFile = File(context.cacheDir, entry.filename)
 
 			try {
@@ -292,7 +308,9 @@ class GameLibDownloader(private val context: Context) {
 							if (!outFile.canonicalPath.startsWith(destCanon + File.separator))
 								throw SecurityException("Zip path traversal: ${zipEntry.name}")
 							outFile.parentFile?.mkdirs()
-							FileOutputStream(outFile).use { zip.copyTo(it) }
+							FileOutputStream(outFile).use { fos ->
+								zip.copyTo(fos)
+							}
 							// ZipInputStream doesn't restore Unix permissions; shared libraries
 							// need the execute bit so dlopen can mmap them with PROT_EXEC
 							if (outFile.name.endsWith(".so"))
@@ -368,10 +386,13 @@ class GameLibDownloader(private val context: Context) {
 	companion object {
 		private const val TAG = "GameLibDownloader"
 		private const val PROGRESS_INTERVAL_MS = 100L
-		private const val RELEASE_BASE_URL =
-			"https://github.com/FWGS/hlsdk-mega-build/releases/download/continuous"
-		private const val MANIFEST_URL =
-			"$RELEASE_BASE_URL/manifest.json"
+		
+		private const val FWGS_BASE_URL = "https://github.com/FWGS/hlsdk-mega-build/releases/download/continuous"
+		private const val FWGS_MANIFEST_URL = "$FWGS_BASE_URL/manifest.json"
+
+		private const val YALNIE_BASE_URL = "https://github.com/yalnie/hlsdk-other-builds/releases/download/continuous"
+		private const val YALNIE_MANIFEST_URL = "$YALNIE_BASE_URL/manifest.json"
+
 		private const val MANIFEST_VERSION = 1
 	}
 }

@@ -22,184 +22,186 @@ import kotlin.coroutines.coroutineContext
 
 class AppUpdater(private val context: Context) {
 
-	data class UpdateInfo(val buildNum: Int, val tagName: String)
-	data class CommitInfo(val sha: String, val subject: String)
+    data class UpdateInfo(
+        val buildNum: Int,
+        val versionName: String,
+        val commitHash: String,
+        val changelog: String?,
+        val downloadUrl: String
+    )
 
-	fun canInstall(): Boolean =
-		Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
-			context.packageManager.canRequestPackageInstalls()
+    private var cachedDownloadUrl: String? = null
 
-	suspend fun checkForUpdate(): UpdateInfo? {
-		if (!BuildConfig.ENABLE_AUTO_UPDATE) return null
-		return withContext(Dispatchers.IO) {
-			var connection: HttpURLConnection? = null
-			try {
-				connection = URL(RELEASE_API_URL).openConnection() as HttpURLConnection
-				connection.connectTimeout = 5000
-				connection.readTimeout = 5000
-				connection.setRequestProperty("Accept", "application/vnd.github+json")
-				connection.connect()
+    val downloadedApkFile: File
+        get() = File(context.cacheDir, "xash3d-fwgs-update.apk")
 
-				if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-					Log.w(TAG, "Release API check failed: HTTP ${connection.responseCode}")
-					return@withContext null
-				}
+    fun hasDownloadedApk(): Boolean = downloadedApkFile.exists() && downloadedApkFile.length() > 0
 
-				val release = JSONObject(connection.inputStream.bufferedReader().readText())
-				val body = release.optString("body", "")
-				val tagName = release.optString("tag_name").ifEmpty { TAG_CONTINUOUS }
+    fun canInstall(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+            context.packageManager.canRequestPackageInstalls()
 
-				// buildnum is days-since-2015-04-01, same metric as VERSION_CODE / 10000
-				val remote = BUILDNUM_REGEX.find(body)?.groupValues?.get(1)?.toIntOrNull()
-				val localDays = BuildConfig.VERSION_CODE / 10000
-				Log.i(TAG, "Remote buildnum: $remote (tag=$tagName), local: $localDays")
+    suspend fun checkForUpdate(): UpdateInfo? {
+        if (!BuildConfig.ENABLE_AUTO_UPDATE) return null
+        return withContext(Dispatchers.IO) {
+            var connection: HttpURLConnection? = null
+            try {
+                connection = URL(UPDATE_JSON_URL).openConnection() as HttpURLConnection
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+                connection.connect()
 
-				if (remote != null && remote - localDays >= STALENESS_DAYS)
-					UpdateInfo(remote, tagName)
-				else
-					null
-			} catch (e: CancellationException) {
-				throw e
-			} catch (e: IOException) {
-				Log.w(TAG, "Update check failed: ${e.message}")
-				null
-			} catch (e: JSONException) {
-				Log.w(TAG, "Update check parse failed: ${e.message}")
-				null
-			} finally {
-				connection?.disconnect()
-			}
-		}
-	}
+                if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                    Log.w(TAG, "Update JSON check failed: HTTP ${connection.responseCode}")
+                    return@withContext null
+                }
 
-	suspend fun fetchChangelog(fromRef: String, toRef: String): List<CommitInfo>? {
-		if (fromRef.isEmpty() || toRef.isEmpty())
-			return null
-		return withContext(Dispatchers.IO) {
-			var connection: HttpURLConnection? = null
-			try {
-				connection = URL("$COMPARE_API_BASE/$fromRef...$toRef").openConnection() as HttpURLConnection
-				connection.connectTimeout = 5000
-				connection.readTimeout = 5000
-				connection.setRequestProperty("Accept", "application/vnd.github+json")
-				connection.connect()
+                val json = JSONObject(connection.inputStream.bufferedReader().readText())
+                val latestVersion = json.optString("latest_version_name", "")
+                val remoteVersionCode = json.optString("latest_version_code", "0").toIntOrNull() ?: 0
+                val commitHash = json.optString("latest_version_commit", "")
+                val changelog = json.optString("changelog", "")
 
-				if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-					Log.w(TAG, "Compare API failed: HTTP ${connection.responseCode}")
-					return@withContext null
-				}
+                val platforms = json.optJSONObject("platforms")
+                val androidPlatform = platforms?.optJSONObject("android")
+                val downloadUrl = androidPlatform?.optString("download_url", "") ?: ""
 
-				val json = JSONObject(connection.inputStream.bufferedReader().readText())
-				val commits = json.optJSONArray("commits") ?: return@withContext null
-				val result = ArrayList<CommitInfo>(commits.length())
-				for (i in 0 until commits.length()) {
-					val c = commits.getJSONObject(i)
-					val sha = c.optString("sha").ifEmpty { continue }
-					val msg = c.optJSONObject("commit")?.optString("message") ?: continue
-					val subject = msg.substringBefore('\n').trim()
-					if (subject.isNotEmpty())
-						result.add(CommitInfo(sha, subject))
-				}
-				// GitHub returns oldest first
-				result.reverse()
-				result
-			} catch (e: CancellationException) {
-				throw e
-			} catch (e: IOException) {
-				Log.w(TAG, "Changelog fetch failed: ${e.message}")
-				null
-			} catch (e: JSONException) {
-				Log.w(TAG, "Changelog parse failed: ${e.message}")
-				null
-			} finally {
-				connection?.disconnect()
-			}
-		}
-	}
+                val localVersionCode = BuildConfig.VERSION_CODE
+                Log.i(TAG, "Remote versionCode: $remoteVersionCode, local: $localVersionCode")
 
-	suspend fun downloadAndInstall(onProgress: (Long, Long) -> Unit): Result<Unit> {
-		return withContext(Dispatchers.IO) {
-			val tempFile = File(context.cacheDir, "xash3d-fwgs-update.apk")
-			var connection: HttpURLConnection? = null
-			try {
-				connection = URL(APK_URL).openConnection() as HttpURLConnection
-				connection.connectTimeout = 10000
-				connection.readTimeout = 30000
-				connection.instanceFollowRedirects = true
-				connection.connect()
+                if (remoteVersionCode > localVersionCode && downloadUrl.isNotEmpty()) {
+                    cachedDownloadUrl = downloadUrl
+                    UpdateInfo(
+                        buildNum = remoteVersionCode,
+                        versionName = latestVersion,
+                        commitHash = commitHash,
+                        changelog = changelog,
+                        downloadUrl = downloadUrl
+                    )
+                } else {
+                    if (hasDownloadedApk()) {
+                        downloadedApkFile.delete()
+                    }
+                    null
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IOException) {
+                Log.w(TAG, "Update check failed: ${e.message}")
+                null
+            } catch (e: JSONException) {
+                Log.w(TAG, "Update check parse failed: ${e.message}")
+                null
+            } finally {
+                connection?.disconnect()
+            }
+        }
+    }
 
-				if (connection.responseCode != HttpURLConnection.HTTP_OK)
-					return@withContext Result.failure(IOException("HTTP ${connection.responseCode}"))
+    suspend fun downloadAndInstall(
+        customUrl: String? = null,
+        onProgress: (Long, Long) -> Unit
+    ): Result<Unit> {
+        val targetUrl = customUrl ?: cachedDownloadUrl
+        
+        if (hasDownloadedApk() && targetUrl.isNullOrEmpty()) {
+            return try {
+                triggerInstall(downloadedApkFile)
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
 
-				val total = connection.contentLengthLong
-				var downloaded = 0L
-				var lastEmit = 0L
+        if (targetUrl.isNullOrEmpty()) {
+            return Result.failure(IOException("Download URL is empty"))
+        }
 
-				connection.inputStream.use { input ->
-					FileOutputStream(tempFile).use { output ->
-						val buffer = ByteArray(65536)
-						while (true) {
-							coroutineContext.ensureActive()
-							val read = input.read(buffer)
-							if (read < 0)
-								break
-							output.write(buffer, 0, read)
-							downloaded += read
-							val now = System.currentTimeMillis()
-							if (now - lastEmit >= PROGRESS_INTERVAL_MS) {
-								lastEmit = now
-								withContext(Dispatchers.Main) { onProgress(downloaded, total) }
-							}
-						}
-					}
-				}
-				withContext(Dispatchers.Main) { onProgress(downloaded, total) }
+        return withContext(Dispatchers.IO) {
+            val tempFile = downloadedApkFile
+            var connection: HttpURLConnection? = null
+            try {
+                connection = URL(targetUrl).openConnection() as HttpURLConnection
+                connection.connectTimeout = 10000
+                connection.readTimeout = 30000
+                connection.instanceFollowRedirects = true
+                connection.connect()
 
-				Log.i(TAG, "Downloaded APK: ${tempFile.length()} bytes -> ${tempFile.absolutePath}")
+                if (connection.responseCode != HttpURLConnection.HTTP_OK)
+                    return@withContext Result.failure(IOException("HTTP ${connection.responseCode}"))
 
-				triggerInstall(tempFile)
-				Result.success(Unit)
-			} catch (e: CancellationException) {
-				tempFile.delete()
-				throw e
-			} catch (e: IOException) {
-				tempFile.delete()
-				Result.failure(e)
-			} finally {
-				connection?.disconnect()
-			}
-		}
-	}
+                val total = connection.contentLengthLong
+                var downloaded = 0L
+                var lastEmit = 0L
 
-	private fun triggerInstall(apk: File) {
-		val installer = context.packageManager.packageInstaller
-		val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
-		val sessionId = installer.createSession(params)
-		installer.openSession(sessionId).use { session ->
-			session.openWrite("base.apk", 0, apk.length()).use { out ->
-				apk.inputStream().use { it.copyTo(out) }
-				session.fsync(out)
-			}
-			val statusIntent = Intent(INSTALL_ACTION).setPackage(context.packageName)
-			val piFlags = PendingIntent.FLAG_UPDATE_CURRENT or
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-			val pi = PendingIntent.getBroadcast(context, sessionId, statusIntent, piFlags)
-			session.commit(pi.intentSender)
-		}
-	}
+                connection.inputStream.use { input ->
+                    FileOutputStream(tempFile).use { output ->
+                        val buffer = ByteArray(65536)
+                        while (true) {
+                            coroutineContext.ensureActive()
+                            val read = input.read(buffer)
+                            if (read < 0)
+                                break
+                            output.write(buffer, 0, read)
+                            downloaded += read
+                            val now = System.currentTimeMillis()
+                            if (now - lastEmit >= PROGRESS_INTERVAL_MS) {
+                                lastEmit = now
+                                withContext(Dispatchers.Main) { onProgress(downloaded, total) }
+                            }
+                        }
+                    }
+                }
+                withContext(Dispatchers.Main) { onProgress(downloaded, total) }
 
-	companion object {
-		private const val TAG = "AppUpdater"
-		private const val STALENESS_DAYS = 3
-		private const val PROGRESS_INTERVAL_MS = 100L
-		private const val TAG_CONTINUOUS = "continuous"
-		private const val INSTALL_ACTION = "su.xash.engine.INSTALL_RESULT"
-		private const val APK_URL =
-			"https://github.com/FWGS/xash3d-fwgs/releases/download/continuous/xash3d-fwgs-android.apk"
-		private const val RELEASE_API_URL =
-			"https://api.github.com/repos/FWGS/xash3d-fwgs/releases/tags/continuous"
-		private const val COMPARE_API_BASE =
-			"https://api.github.com/repos/FWGS/xash3d-fwgs/compare"
-		private val BUILDNUM_REGEX = Regex("""buildnum\s+(\d+)""")
-	}
+                Log.i(TAG, "Downloaded APK: ${tempFile.length()} bytes -> ${tempFile.absolutePath}")
+
+                triggerInstall(tempFile)
+                Result.success(Unit)
+            } catch (e: CancellationException) {
+                tempFile.delete()
+                throw e
+            } catch (e: IOException) {
+                tempFile.delete()
+                Result.failure(e)
+            } finally {
+                connection?.disconnect()
+            }
+        }
+    }
+
+    fun installDownloadedApk() {
+        if (hasDownloadedApk()) {
+            triggerInstall(downloadedApkFile)
+        }
+    }
+
+    private fun triggerInstall(apk: File) {
+        val installer = context.packageManager.packageInstaller
+        val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
+        }
+
+        val sessionId = installer.createSession(params)
+        installer.openSession(sessionId).use { session ->
+            session.openWrite("base.apk", 0, apk.length()).use { out ->
+                apk.inputStream().use { it.copyTo(out) }
+                session.fsync(out)
+            }
+            val statusIntent = Intent(INSTALL_ACTION).setPackage(context.packageName)
+            val piFlags = PendingIntent.FLAG_UPDATE_CURRENT or
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+            val pi = PendingIntent.getBroadcast(context, sessionId, statusIntent, piFlags)
+            session.commit(pi.intentSender)
+        }
+    }
+
+    companion object {
+        private const val TAG = "AppUpdater"
+        private const val PROGRESS_INTERVAL_MS = 100L
+        const val INSTALL_ACTION = "su.xash.engine.INSTALL_RESULT"
+        private const val UPDATE_JSON_URL = "https://xash3d.yalnie.workers.dev/"
+    }
 }

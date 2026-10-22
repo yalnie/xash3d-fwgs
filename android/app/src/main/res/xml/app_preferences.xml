@@ -7,12 +7,28 @@
 		app:title="@string/game_data_location"
 		android:summary="/storage/emulated/0/xash" />
 
-	<SwitchPreferenceCompat
+	<!-- <SwitchPreferenceCompat
 		app:key="use_icons"
 		app:layout="@layout/switch_preference"
-		app:title="@string/preferences_use_icons" />
+		app:title="@string/preferences_use_icons" /> -->
+
+	<Preference
+		app:key="open_app_icons_screen"
+		app:layout="@layout/edit_text_preference"
+		app:title="@string/settings_application_icon" />
 
 	<Preference
 		app:key="crash_logs"
-		app:title="@string/crash_logs" />
+		app:layout="@layout/edit_text_preference"
+		app:title="@string/crash_logs"
+		android:summary="@string/crash_logs_summary" />
+
+	<ListPreference
+		app:key="app_theme"
+		app:layout="@layout/edit_text_preference"
+		app:title="@string/pref_theme_title"
+		app:entries="@array/theme_entries"
+		app:entryValues="@array/theme_values"
+		app:useSimpleSummaryProvider="true" />
+
 </PreferenceScreen>

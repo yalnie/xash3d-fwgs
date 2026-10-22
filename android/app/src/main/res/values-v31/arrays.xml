@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="theme_entries">
+        <item>@string/theme_legacy</item>
+        <item>@string/theme_fixed_sys</item>
+        <item>@string/theme_fixed_light</item>
+        <item>@string/theme_fixed_dark</item>
+        <item>@string/theme_dynamic_sys</item>
+        <item>@string/theme_dynamic_light</item>
+        <item>@string/theme_dynamic_dark</item>
+    </string-array>
+
+    <string-array name="theme_values">
+        <item>legacy</item>
+        <item>fixed_sys</item>
+        <item>fixed_light</item>
+        <item>fixed_dark</item>
+        <item>dynamic_sys</item>
+        <item>dynamic_light</item>
+        <item>dynamic_dark</item>
+    </string-array>
+</resources>
