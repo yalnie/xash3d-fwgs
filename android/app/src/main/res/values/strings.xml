@@ -66,8 +66,8 @@
 	<string name="engine_update_install_now">Install now</string>
 	<string name="check_updates">Check for updates</string>
 	<string name="engine_update_checking">Checking for updates…</string>
-	<string name="engine_update_up_to_date">You're already on the latest build.</string>
-	<string name="engine_update_check_failed">Couldn't check for updates. Check your connection and try again.</string>
+	<string name="engine_update_up_to_date">You\'re already on the latest build.</string>
+	<string name="engine_update_check_failed">Couldn\'t check for updates. Check your connection and try again.</string>
 	<string name="engine_install_failed">Update install failed: %1$s</string>
 	<string name="engine_update_download_failed">Download failed</string>
 	<string name="engine_update_install_failed">Install failed</string>
