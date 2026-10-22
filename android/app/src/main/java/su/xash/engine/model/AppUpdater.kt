@@ -30,6 +30,13 @@ class AppUpdater(private val context: Context) {
         val downloadUrl: String
     )
 
+    sealed interface UpdateCheck {
+        data class Available(val info: UpdateInfo) : UpdateCheck
+        object UpToDate : UpdateCheck
+        object Disabled : UpdateCheck
+        data class Failed(val reason: String?) : UpdateCheck
+    }
+
     private var cachedDownloadUrl: String? = null
 
     val downloadedApkFile: File
@@ -41,8 +48,8 @@ class AppUpdater(private val context: Context) {
         Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
             context.packageManager.canRequestPackageInstalls()
 
-    suspend fun checkForUpdate(): UpdateInfo? {
-        if (!BuildConfig.ENABLE_AUTO_UPDATE) return null
+    suspend fun checkForUpdate(): UpdateCheck {
+        if (!BuildConfig.ENABLE_AUTO_UPDATE) return UpdateCheck.Disabled
         return withContext(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
             try {
@@ -53,7 +60,7 @@ class AppUpdater(private val context: Context) {
 
                 if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                     Log.w(TAG, "Update JSON check failed: HTTP ${connection.responseCode}")
-                    return@withContext null
+                    return@withContext UpdateCheck.Failed("HTTP ${connection.responseCode}")
                 }
 
                 val json = JSONObject(connection.inputStream.bufferedReader().readText())
@@ -71,27 +78,29 @@ class AppUpdater(private val context: Context) {
 
                 if (remoteVersionCode > localVersionCode && downloadUrl.isNotEmpty()) {
                     cachedDownloadUrl = downloadUrl
-                    UpdateInfo(
-                        buildNum = remoteVersionCode,
-                        versionName = latestVersion,
-                        commitHash = commitHash,
-                        changelog = changelog,
-                        downloadUrl = downloadUrl
+                    UpdateCheck.Available(
+                        UpdateInfo(
+                            buildNum = remoteVersionCode,
+                            versionName = latestVersion,
+                            commitHash = commitHash,
+                            changelog = changelog,
+                            downloadUrl = downloadUrl
+                        )
                     )
                 } else {
                     if (hasDownloadedApk()) {
                         downloadedApkFile.delete()
                     }
-                    null
+                    UpdateCheck.UpToDate
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: IOException) {
                 Log.w(TAG, "Update check failed: ${e.message}")
-                null
+                UpdateCheck.Failed(e.message)
             } catch (e: JSONException) {
                 Log.w(TAG, "Update check parse failed: ${e.message}")
-                null
+                UpdateCheck.Failed(e.message)
             } finally {
                 connection?.disconnect()
             }

@@ -62,6 +62,10 @@
 	<string name="engine_update_open_settings">Открыть настройки</string>
 	<string name="engine_update_grant_permission">Выдать разрешение</string>
 	<string name="engine_update_install_now">Установить</string>
+	<string name="check_updates">Проверить обновления</string>
+	<string name="engine_update_checking">Проверка обновлений…</string>
+	<string name="engine_update_up_to_date">У вас уже последняя сборка.</string>
+	<string name="engine_update_check_failed">Не удалось проверить обновления. Проверьте подключение и попробуйте снова.</string>
 	<string name="engine_install_failed">Не удалось установить обновление: %1$s</string>
 	<string name="engine_update_download_failed">Не удалось скачать</string>
 	<string name="engine_update_install_failed">Не удалось установить</string>

@@ -11,7 +11,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import su.xash.engine.BuildConfig
 import su.xash.engine.FPicker
+import su.xash.engine.MainActivity
 import su.xash.engine.R
 import java.io.File
 
@@ -60,6 +62,14 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat() {
 		findPreference<Preference>("crash_logs")?.setOnPreferenceClickListener {
 			findNavController().navigate(R.id.action_appSettingsFragment_to_crashLogsFragment)
 			true
+		}
+
+		findPreference<Preference>("check_updates")?.apply {
+			isVisible = BuildConfig.ENABLE_AUTO_UPDATE
+			setOnPreferenceClickListener {
+				(requireActivity() as MainActivity).checkForUpdatesManually()
+				true
+			}
 		}
 
 		val iconPref = findPreference<Preference>("open_app_icons_screen")

@@ -23,6 +23,11 @@
 		app:title="@string/crash_logs"
 		android:summary="@string/crash_logs_summary" />
 
+	<Preference
+		app:key="check_updates"
+		app:layout="@layout/edit_text_preference"
+		app:title="@string/check_updates" />
+
 	<ListPreference
 		app:key="app_theme"
 		app:layout="@layout/edit_text_preference"

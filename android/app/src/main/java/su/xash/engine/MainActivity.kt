@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.Html
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -118,14 +119,57 @@ class MainActivity : AppCompatActivity() {
     private fun checkForEngineUpdate() {
         val prefs = getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
         val updater = AppUpdater(this)
-        
+
         lifecycleScope.launch {
-            val info = updater.checkForUpdate() ?: return@launch
+            val result = updater.checkForUpdate()
+            if (result !is AppUpdater.UpdateCheck.Available)
+                return@launch
+            val info = result.info
             if (prefs.getInt(KEY_DISMISSED_BUILDNUM, -1) >= info.buildNum)
                 return@launch
 
             showEngineUpdateDialog(updater, info.buildNum, info.commitHash, info.changelog, prefs)
         }
+    }
+
+    fun checkForUpdatesManually() {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_download_progress, null)
+        view.findViewById<TextView>(R.id.downloadStatus).text = getString(R.string.engine_update_checking)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.engine_update_checking)
+            .setView(view)
+            .setCancelable(true)
+            .setNegativeButton(android.R.string.cancel) { d, _ -> d.dismiss() }
+            .create()
+        dialog.show()
+
+        val updater = AppUpdater(this)
+        val job = lifecycleScope.launch {
+            val result = updater.checkForUpdate()
+            if (!dialog.isShowing)
+                return@launch
+            dialog.dismiss()
+            when (result) {
+                is AppUpdater.UpdateCheck.Available -> {
+                    val prefs = getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
+                    showEngineUpdateDialog(updater, result.info.buildNum, result.info.commitHash, result.info.changelog, prefs)
+                }
+                is AppUpdater.UpdateCheck.UpToDate,
+                is AppUpdater.UpdateCheck.Disabled ->
+                    MaterialAlertDialogBuilder(this@MainActivity)
+                        .setTitle(R.string.check_updates)
+                        .setMessage(R.string.engine_update_up_to_date)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show()
+                is AppUpdater.UpdateCheck.Failed ->
+                    MaterialAlertDialogBuilder(this@MainActivity)
+                        .setTitle(R.string.check_updates)
+                        .setMessage(R.string.engine_update_check_failed)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show()
+            }
+        }
+        dialog.setOnDismissListener { job.cancel() }
     }
 
     private fun showEngineUpdateDialog(
@@ -155,7 +199,8 @@ class MainActivity : AppCompatActivity() {
         tvNewVersion.text = "b$targetHash"
 
         if (!changelog.isNullOrEmpty()) {
-            val formattedChangelog = changelog.replace("\n", "<br>")
+            val formattedChangelog = changelog.replace("
+", "<br>")
             tvChangelog.visibility = View.VISIBLE
             tvChangelog.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 Html.fromHtml(formattedChangelog, Html.FROM_HTML_MODE_COMPACT)
@@ -198,13 +243,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 else -> {
                     btnDownload.setText(R.string.engine_update_download)
-                    btnDownload.setIconResource(R.drawable.ic_baseline_download_24px)
+                    btnDownload.icon = null
                 }
             }
         }
 
         fun showInstallingState() {
             isInstalling = true
+            isDownloading = false
             tvError.visibility = View.GONE
             tvChangelogHeader.visibility = View.GONE
             tvChangelog.visibility = View.GONE
@@ -213,24 +259,25 @@ class MainActivity : AppCompatActivity() {
 
             layoutProgress.visibility = View.VISIBLE
             progressBar.isIndeterminate = true
-            tvProgressPercent.text = ""
+            tvProgressPercent.setText(R.string.extracting_files)
         }
 
-        fun showError(errorMessage: String) {
+        fun showError(errorText: String) {
             isDownloading = false
             isInstalling = false
             layoutProgress.visibility = View.GONE
-            tvChangelogHeader.visibility = View.GONE
-            tvChangelog.visibility = View.GONE
-
-            tvError.text = errorMessage
+            if (!changelog.isNullOrEmpty()) {
+                tvChangelogHeader.visibility = View.VISIBLE
+                tvChangelog.visibility = View.VISIBLE
+            }
             tvError.visibility = View.VISIBLE
+            tvError.text = errorText
 
             btnLater.visibility = View.VISIBLE
             btnDownload.visibility = View.VISIBLE
             btnDownload.isEnabled = true
             btnDownload.setText(R.string.engine_update_retry)
-            btnDownload.setIconResource(R.drawable.ic_baseline_replay_24px)
+            btnDownload.icon = null
         }
 
         resetUIState()
@@ -240,49 +287,67 @@ class MainActivity : AppCompatActivity() {
             .setCancelable(false)
             .create()
 
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val installReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent?.action == AppUpdater.INSTALL_ACTION) {
-                    val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
-                    val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
+                if (intent?.action != AppUpdater.INSTALL_ACTION) return
 
-                    when (status) {
-                        PackageInstaller.STATUS_PENDING_USER_ACTION -> {
+                val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, -999)
+                when (status) {
+                    PackageInstaller.STATUS_PENDING_USER_ACTION -> {
+                        val confirmIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            intent.getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java)
+                        } else {
+                            @Suppress("DEPRECATION")
+                            intent.getParcelableExtra(Intent.EXTRA_INTENT)
                         }
-                        PackageInstaller.STATUS_SUCCESS -> {
+                        if (confirmIntent != null) {
+                            confirmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            startActivity(confirmIntent)
                         }
-                        PackageInstaller.STATUS_FAILURE_ABORTED -> {
-                            resetUIState()
-                        }
-                        else -> {
-                            val errorMsg = message ?: getString(R.string.engine_update_install_failed)
-                            showError(errorMsg)
-                        }
+                    }
+                    PackageInstaller.STATUS_SUCCESS -> {
+                        updater.downloadedApkFile.delete()
+                        dialog.dismiss()
+                    }
+                    else -> {
+                        val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
+                            ?: "Status code: $status"
+                        showError(getString(R.string.engine_install_failed, message))
                     }
                 }
             }
         }
 
-        val filter = IntentFilter(AppUpdater.INSTALL_ACTION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(installReceiver, filter, RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(installReceiver, filter)
-        }
+        val requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { _ -> }
 
-        val lifecycleObserver = object : DefaultLifecycleObserver {
+        val filter = IntentFilter(AppUpdater.INSTALL_ACTION)
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            RECEIVER_EXPORTED
+        } else {
+            0
+        }
+        ContextCompat.registerReceiver(this, installReceiver, filter, flags)
+
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onResume(owner: LifecycleOwner) {
                 if (!isDownloading && !isInstalling) {
                     resetUIState()
                 }
             }
+        })
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
         }
-        lifecycle.addObserver(lifecycleObserver)
 
         dialog.setOnDismissListener {
-            lifecycle.removeObserver(lifecycleObserver)
             try {
                 unregisterReceiver(installReceiver)
             } catch (_: Exception) {}
