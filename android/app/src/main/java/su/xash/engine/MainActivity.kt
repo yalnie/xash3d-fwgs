@@ -199,8 +199,7 @@ class MainActivity : AppCompatActivity() {
         tvNewVersion.text = "b$targetHash"
 
         if (!changelog.isNullOrEmpty()) {
-            val formattedChangelog = changelog.replace("
-", "<br>")
+            val formattedChangelog = changelog.replace("\n", "<br>")
             tvChangelog.visibility = View.VISIBLE
             tvChangelog.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 Html.fromHtml(formattedChangelog, Html.FROM_HTML_MODE_COMPACT)
