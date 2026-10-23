@@ -7,7 +7,7 @@ export PATH=$PATH:$JAVA_HOME/bin:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$AN
 
 pushd android || exit 1
 
-./gradlew assembleContinuous --no-daemon || exit 1
+./gradlew assembleContinuous --daemon || exit 1
 
 popd || exit 1
 

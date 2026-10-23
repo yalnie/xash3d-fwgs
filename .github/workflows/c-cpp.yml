@@ -23,7 +23,6 @@ jobs:
       YY_THUNKS_VERSION: v1.2.1
       GH_CPU_ARCH: ${{ matrix.targetarch }}
       GH_CPU_OS: ${{ matrix.targetos }}
-      GH_CROSSCOMPILING: ${{ matrix.cross }}
     steps:
     - name: Checkout
       uses: actions/checkout@v6
