@@ -168,8 +168,7 @@ static inline void Platform_Init( qboolean con_showalways )
 #endif
 
 #if XASH_SDL
-	if( !Host_IsDedicated( ))
-		SDLash_Init( );
+	SDLash_Init( );
 #endif
 
 #if XASH_ANDROID
@@ -204,8 +203,7 @@ static inline void Platform_Shutdown( void )
 #endif
 
 #if XASH_SDL
-	if( !Host_IsDedicated( ))
-		SDLash_Shutdown( );
+	SDLash_Shutdown( );
 #endif
 }
 

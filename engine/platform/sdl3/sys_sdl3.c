@@ -94,6 +94,9 @@ static void SDLCALL SDLash_LogOutputFunction( void *userdata, int category, SDL_
 
 void SDLash_Init( void )
 {
+	if( Host_IsDedicated( ))
+		return;
+
 #if XASH_IOS
 	const char *path = SDL_GetBasePath();
 	if( path != NULL )
@@ -150,6 +153,9 @@ void SDLash_Init( void )
 
 void SDLash_Shutdown( void )
 {
+	if( Host_IsDedicated( ))
+		return;
+
 	SDLash_ShutdownSensors();
 	SDLash_FreeCursors();
 
