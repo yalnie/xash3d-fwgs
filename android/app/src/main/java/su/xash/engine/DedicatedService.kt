@@ -18,6 +18,7 @@ import android.os.Message
 import android.os.Messenger
 import android.os.RemoteException
 import android.util.Log
+import androidx.annotation.Keep
 import androidx.core.app.NotificationCompat
 import su.xash.engine.ui.settings.AppIconManager
 import su.xash.engine.util.CrashReports
@@ -260,6 +261,7 @@ class DedicatedService : Service() {
 	}
 
 	// Called from native code via JNI (engine/platform/android/android.c)
+	@Keep
 	@Suppress("unused")
 	fun onConsoleOutput(bytes: ByteArray) {
 		val text = String(bytes, Charsets.UTF_8)
@@ -268,6 +270,7 @@ class DedicatedService : Service() {
 		}
 	}
 
+	@Keep
 	@Suppress("unused")
 	fun onConsoleOutput(text: String) {
 		mainHandler.post {
@@ -276,12 +279,14 @@ class DedicatedService : Service() {
 	}
 
 	// Called from native code via JNI (filesystem/android.c)
+	@Keep
 	@Suppress("unused")
 	fun getCallingPackage(): String? {
 		return callingPackageName
 	}
 
 	// Called from native code via JNI (filesystem/android.c)
+	@Keep
 	@Suppress("unused")
 	fun getAssets(isEngine: Boolean): AssetManager? {
 		if (isEngine) {
@@ -297,6 +302,7 @@ class DedicatedService : Service() {
 	}
 
 	// Called from native code via JNI (filesystem/android.c)
+	@Keep
 	@Suppress("unused")
 	fun getAssetsList(isEngine: Boolean, path: String): Array<String> {
 		val am = getAssets(isEngine) ?: return emptyArray()
@@ -457,6 +463,7 @@ class DedicatedService : Service() {
 		}
 	}
 
+	@Keep
 	private external fun nativeMain(argv: Array<String>): Int
 
 	companion object {
@@ -489,13 +496,16 @@ class DedicatedService : Service() {
 		private var instance: DedicatedService? = null
 
 		// Called from native code via JNI (filesystem/android.c)
+		@Keep
 		@JvmStatic
 		@Suppress("unused")
 		fun getContext(): Context? = instance
 
+		@Keep
 		@JvmStatic
 		external fun nativeSendCommand(cmd: String)
 
+		@Keep
 		@JvmStatic
 		external fun nativeSetenv(name: String, value: String)
 	}

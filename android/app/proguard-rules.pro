@@ -30,6 +30,24 @@
     android.content.res.AssetManager getAssets(boolean);
 }
 
+-keep,includedescriptorclasses class su.xash.engine.DedicatedService {
+    public static android.content.Context getContext();
+    java.lang.String getCallingPackage();
+    java.lang.String[] getAssetsList(boolean, java.lang.String);
+    android.content.res.AssetManager getAssets(boolean);
+    void onConsoleOutput(byte[]);
+    void onConsoleOutput(java.lang.String);
+    int nativeMain(java.lang.String[]);
+    public static void nativeSendCommand(java.lang.String);
+    public static void nativeSetenv(java.lang.String, java.lang.String);
+}
+
+-keep class su.xash.engine.DedicatedService$Companion {
+    android.content.Context getContext();
+    void nativeSendCommand(java.lang.String);
+    void nativeSetenv(java.lang.String, java.lang.String);
+}
+
 -keep,includedescriptorclasses,allowoptimization class org.libsdl.app.SDLInputConnection {
     void nativeCommitText(java.lang.String, int);
     void nativeGenerateScancodeForUnichar(char);
