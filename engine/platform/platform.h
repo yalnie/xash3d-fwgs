@@ -104,6 +104,8 @@ void Android_Init( void );
 void *Android_GetNativeObject( const char *name );
 void Android_GetWindowInsets( float insets[4] );
 int Android_GetKeyboardHeight( void );
+char *Android_Input( void );
+void Android_Print( const char *msg );
 void Android_Shutdown( void );
 #endif
 
@@ -166,7 +168,8 @@ static inline void Platform_Init( qboolean con_showalways )
 #endif
 
 #if XASH_SDL
-	SDLash_Init( );
+	if( !Host_IsDedicated( ))
+		SDLash_Init( );
 #endif
 
 #if XASH_ANDROID
@@ -186,7 +189,9 @@ static inline void Platform_Init( qboolean con_showalways )
 
 static inline void Platform_Shutdown( void )
 {
-#if XASH_NSWITCH
+#if XASH_ANDROID
+	Android_Shutdown( );
+#elif XASH_NSWITCH
 	NSwitch_Shutdown( );
 #elif XASH_PSVITA
 	PSVita_Shutdown( );
@@ -199,7 +204,8 @@ static inline void Platform_Shutdown( void )
 #endif
 
 #if XASH_SDL
-	SDLash_Shutdown( );
+	if( !Host_IsDedicated( ))
+		SDLash_Shutdown( );
 #endif
 }
 
@@ -365,6 +371,8 @@ static inline char *Platform_Input( void )
 {
 #if XASH_WIN32
 	return Wcon_Input();
+#elif XASH_ANDROID
+	return Android_Input();
 #elif XASH_POSIX && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY
 	return Posix_Input();
 #else

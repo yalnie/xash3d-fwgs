@@ -3988,6 +3988,9 @@ CL_Shutdown
 */
 void CL_Shutdown( void )
 {
+	if( Host_IsDedicated( ))
+		return;
+
 	Con_Printf( "%s()\n", __func__ );
 
 	if( host.status != HOST_CRASHED && cls.initialized )

@@ -64,6 +64,9 @@ class GameAdapter(private val libraryViewModel: LibraryViewModel) :
 				launchButton.setOnClickListener {
 					libraryViewModel.startEngine(it.context, game)
 				}
+				dedicatedButton.setOnClickListener {
+					libraryViewModel.startDedicated(it.context, game)
+				}
 			}
 		}
 	}

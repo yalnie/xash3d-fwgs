@@ -686,6 +686,9 @@ Called every frame, even if not generating commands
 */
 void Host_InputFrame( void )
 {
+	if( Host_IsDedicated( ))
+		return;
+
 	IN_Commands();
 
 	IN_MouseMove();

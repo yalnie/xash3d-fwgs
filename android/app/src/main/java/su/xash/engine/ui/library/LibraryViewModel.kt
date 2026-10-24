@@ -55,4 +55,8 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
 	fun startEngine(ctx: Context, game: Game) {
 		game.startEngine(ctx)
 	}
+
+	fun startDedicated(ctx: Context, game: Game) {
+		game.startDedicated(ctx)
+	}
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto">
+
+	<item
+		android:id="@+id/action_clear"
+		android:icon="@drawable/ic_baseline_delete_24"
+		android:title="@string/dedicated_clear"
+		app:showAsAction="ifRoom" />
+
+	<item
+		android:id="@+id/action_toggle_server"
+		android:icon="@drawable/ic_baseline_stop_24px"
+		android:title="@string/dedicated_stop"
+		app:showAsAction="always|withText" />
+
+</menu>

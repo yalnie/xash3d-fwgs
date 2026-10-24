@@ -1306,7 +1306,8 @@ int EXPORT Host_Main( int argc, char **argv, const char *progname, int bChangeGa
 	SCR_CheckStartupVids();	// must be last
 
 #ifndef XASH_DEDICATED
-	IN_GyroCheckAvailability();
+	if( !Host_IsDedicated( ))
+		IN_GyroCheckAvailability();
 #endif
 
 	string demoname;

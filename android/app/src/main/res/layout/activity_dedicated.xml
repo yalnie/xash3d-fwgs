@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:fitsSystemWindows="true">
+
+	<com.google.android.material.appbar.AppBarLayout
+		android:id="@+id/appBarLayout"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintTop_toTopOf="parent">
+
+		<androidx.appcompat.widget.Toolbar
+			android:id="@+id/toolbar"
+			android:layout_width="match_parent"
+			android:layout_height="?attr/actionBarSize"
+			app:navigationIcon="@drawable/ic_back" />
+
+	</com.google.android.material.appbar.AppBarLayout>
+
+	<ScrollView
+		android:id="@+id/consoleScrollView"
+		android:layout_width="0dp"
+		android:layout_height="0dp"
+		android:layout_marginHorizontal="8dp"
+		android:layout_marginTop="4dp"
+		android:background="@color/hl_dark_grey"
+		android:fillViewport="true"
+		android:scrollbars="vertical"
+		app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+		app:layout_constraintBottom_toTopOf="@id/quickCommandsScroll"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent">
+
+		<TextView
+			android:id="@+id/consoleTextView"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:fontFamily="monospace"
+			android:padding="12dp"
+			android:textColor="@android:color/white"
+			android:textIsSelectable="true"
+			android:textSize="12sp"
+			tools:text="XashDS 0.21\nType 'map &lt;mapname&gt;' to start game..." />
+
+	</ScrollView>
+
+	<HorizontalScrollView
+		android:id="@+id/quickCommandsScroll"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:paddingHorizontal="8dp"
+		android:paddingTop="4dp"
+		android:scrollbars="none"
+		app:layout_constraintBottom_toTopOf="@id/inputBar"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent">
+
+		<com.google.android.material.chip.ChipGroup
+			android:id="@+id/quickCommandsGroup"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			app:singleLine="true" />
+
+	</HorizontalScrollView>
+
+	<LinearLayout
+		android:id="@+id/inputBar"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:gravity="center_vertical"
+		android:orientation="horizontal"
+		android:paddingHorizontal="8dp"
+		android:paddingBottom="8dp"
+		android:paddingTop="4dp"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent">
+
+		<com.google.android.material.textfield.TextInputEditText
+			android:id="@+id/commandInput"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:fontFamily="monospace"
+			android:hint="@string/dedicated_command_hint"
+			android:imeOptions="actionSend|flagNoExtractUi"
+			android:inputType="textNoSuggestions"
+			android:maxLines="1"
+			android:singleLine="true"
+			android:textSize="14sp" />
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/sendButton"
+			style="@style/Widget.Material3.Button.TonalButton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginStart="8dp"
+			android:text="@string/dedicated_send" />
+
+	</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

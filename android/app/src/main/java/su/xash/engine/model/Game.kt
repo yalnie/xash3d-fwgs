@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import su.xash.engine.DedicatedActivity
 import su.xash.engine.R
 import su.xash.engine.XashActivity
 import su.xash.engine.util.showDownloadProgressDialog
@@ -53,6 +54,21 @@ class Game(val ctx: Context, val basedir: File, val gameInfoFile: File) {
 	}
 
 	fun startEngine(ctx: Context) {
+		prepareLaunch(ctx) { args, packageName, gameLibDir ->
+			launchEngine(ctx, args, packageName = packageName, gameLibDir = gameLibDir)
+		}
+	}
+
+	fun startDedicated(ctx: Context) {
+		prepareLaunch(ctx) { args, packageName, gameLibDir ->
+			launchDedicated(ctx, args, packageName = packageName, gameLibDir = gameLibDir)
+		}
+	}
+
+	private fun prepareLaunch(
+		ctx: Context,
+		onReady: (commandLineArgs: String, packageName: String?, gameLibDir: String?) -> Unit
+	) {
 		val packageNames = getPackageNamesForGameDir(basedir.name)
 		var externalGame = false
 		var commandLineArgs = ""
@@ -107,7 +123,7 @@ class Game(val ctx: Context, val basedir: File, val gameInfoFile: File) {
 				return
 			}
 
-			launchEngine(ctx, commandLineArgs, packageName = packageName, gameLibDir = gameLibDir)
+			onReady(commandLineArgs, packageName, gameLibDir)
 			return
 		}
 
@@ -118,40 +134,44 @@ class Game(val ctx: Context, val basedir: File, val gameInfoFile: File) {
 
 			if (downloader.isDownloaded(basedir.name)) {
 				downloader.logExistingLibs(basedir.name)
-				launchEngine(ctx, args)
+				onReady(args, null, null)
 				return
 			}
 
 			val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 			scope.launch {
 				when (val r = downloader.lookupBuild(basedir.name)) {
-					is GameLibDownloader.Lookup.Available -> showDownloadDialog(ctx, downloader, args)
-					is GameLibDownloader.Lookup.NotInManifest -> launchEngine(ctx, args)
-					is GameLibDownloader.Lookup.Error -> showManifestErrorDialog(ctx, args, r.cause)
+					is GameLibDownloader.Lookup.Available -> showDownloadDialog(ctx, downloader) {
+						onReady(args, null, null)
+					}
+					is GameLibDownloader.Lookup.NotInManifest -> onReady(args, null, null)
+					is GameLibDownloader.Lookup.Error -> showManifestErrorDialog(ctx, r.cause) {
+						onReady(args, null, null)
+					}
 				}
 			}
 			return
 		}
 
-		launchEngine(ctx, commandLineArgs)
+		onReady(commandLineArgs, null, null)
 	}
 
-	private fun showDownloadDialog(ctx: Context, downloader: GameLibDownloader, commandLineArgs: String) {
+	private fun showDownloadDialog(ctx: Context, downloader: GameLibDownloader, onReady: () -> Unit) {
 		showDownloadProgressDialog(
 			ctx = ctx,
 			titleRes = R.string.downloading_game_libs,
 			cancelable = true,
 			scope = CoroutineScope(Dispatchers.Main + SupervisorJob()),
 			download = { onProgress -> downloader.download(basedir.name, onProgress) },
-			onSuccess = { launchEngine(ctx, commandLineArgs) },
+			onSuccess = { onReady() },
 		)
 	}
 
-	private fun showManifestErrorDialog(ctx: Context, commandLineArgs: String, cause: Throwable) {
+	private fun showManifestErrorDialog(ctx: Context, cause: Throwable, onReady: () -> Unit) {
 		MaterialAlertDialogBuilder(ctx)
 			.setTitle(R.string.manifest_error_title)
 			.setMessage(ctx.getString(R.string.manifest_error_message, cause.message ?: cause.javaClass.simpleName))
-			.setPositiveButton(R.string.launch_anyway) { _, _ -> launchEngine(ctx, commandLineArgs) }
+			.setPositiveButton(R.string.launch_anyway) { _, _ -> onReady() }
 			.setNegativeButton(android.R.string.cancel, null)
 			.show()
 	}
@@ -168,6 +188,23 @@ class Game(val ctx: Context, val basedir: File, val gameInfoFile: File) {
 			putExtra("gamedir", defaultGameDir)
 			putExtra("argv", commandLineArgs)
 			putExtra("usevolume", pref.getBoolean("use_volume_buttons", false))
+			putExtra("basedir", basedir.parent)
+
+			if (gameLibDir != null) putExtra("gamelibdir", gameLibDir)
+			if (packageName != null) putExtra("package", packageName)
+		})
+	}
+
+	private fun launchDedicated(
+		ctx: Context,
+		commandLineArgs: String,
+		packageName: String? = null,
+		gameLibDir: String? = null
+	) {
+		ctx.startActivity(Intent(ctx, DedicatedActivity::class.java).apply {
+			putExtra("title", title)
+			putExtra("gamedir", defaultGameDir)
+			putExtra("argv", commandLineArgs)
 			putExtra("basedir", basedir.parent)
 
 			if (gameLibDir != null) putExtra("gamelibdir", gameLibDir)

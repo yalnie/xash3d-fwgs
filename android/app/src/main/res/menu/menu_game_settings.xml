@@ -4,6 +4,6 @@
 		android:id="@+id/action_dedicated"
 		android:icon="@drawable/ic_baseline_terminal_24"
 		android:title="@string/dedicated_server"
-		android:visible="false"
+		android:visible="true"
 		app:showAsAction="always|withText" />
 </menu>
