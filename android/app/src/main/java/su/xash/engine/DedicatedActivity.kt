@@ -349,39 +349,28 @@ class DedicatedActivity : AppCompatActivity() {
 
 	private fun applyAppTheme() {
 		val prefs = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
-		val themePref = prefs.getString("app_theme_preference", null)
-		val defaultOption = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) "dynamic_sys" else "legacy"
-		val selectedOption = themePref ?: defaultOption
+		val defaultTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+			"dynamic_sys"
+		} else {
+			"fixed_sys"
+		}
 
-		when (selectedOption) {
-			"legacy" -> {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-				setTheme(R.style.Theme.App.Legacy)
-			}
-			"fixed_sys" -> {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-				setTheme(R.style.Theme.App.Fixed)
-			}
-			"fixed_light" -> {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-				setTheme(R.style.Theme.App.Fixed)
-			}
-			"fixed_dark" -> {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-				setTheme(R.style.Theme.App.Fixed)
-			}
-			"dynamic_sys" -> {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-				DynamicColors.applyToActivityIfAvailable(this)
-			}
-			"dynamic_light" -> {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-				DynamicColors.applyToActivityIfAvailable(this)
-			}
-			"dynamic_dark" -> {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-				DynamicColors.applyToActivityIfAvailable(this)
-			}
+		val themeMode = prefs.getString("app_theme", defaultTheme) ?: defaultTheme
+
+		when {
+			themeMode.contains("light") -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+			themeMode.contains("dark") -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+			else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+		}
+
+		if (themeMode == "legacy") {
+			setTheme(R.style.Theme_App_Legacy)
+		} else {
+			setTheme(R.style.Theme_App_Fixed)
+		}
+
+		if (themeMode.startsWith("dynamic") && DynamicColors.isDynamicColorAvailable()) {
+			DynamicColors.applyToActivityIfAvailable(this)
 		}
 	}
 
