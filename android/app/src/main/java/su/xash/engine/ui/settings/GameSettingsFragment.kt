@@ -2,10 +2,16 @@ package su.xash.engine.ui.settings
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import su.xash.engine.R
 import su.xash.engine.databinding.FragmentGameSettingsBinding
 import su.xash.engine.ui.library.LibraryViewModel
 
@@ -47,7 +53,23 @@ class GameSettingsFragment : Fragment() {
 
 		childFragmentManager.beginTransaction()
 			.add(binding.settingsFragment.id, GameSettingsPreferenceFragment(game))
-			.commit();
+			.commit()
+
+		requireActivity().addMenuProvider(object : MenuProvider {
+			override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+				menuInflater.inflate(R.menu.menu_game_settings, menu)
+			}
+
+			override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+				return when (menuItem.itemId) {
+					R.id.action_dedicated -> {
+						libraryViewModel.startDedicated(requireContext(), game)
+						true
+					}
+					else -> false
+				}
+			}
+		}, viewLifecycleOwner, Lifecycle.State.RESUMED)
 	}
 
 	override fun onDestroyView() {

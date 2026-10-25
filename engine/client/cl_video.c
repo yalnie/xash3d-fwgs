@@ -88,6 +88,9 @@ void SCR_CheckStartupVids( void )
 	char *pfile;
 	string	token;
 
+	if( Host_IsDedicated( ))
+		return;
+
 #if 0
 	if( host_developer.value )
 	{

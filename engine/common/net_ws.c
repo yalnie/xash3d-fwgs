@@ -925,7 +925,7 @@ static qboolean NET_StringToAdrEx( const char *string, netadr_t *adr, int family
 
 	memset( adr, 0, sizeof( netadr_t ));
 
-	if( !Q_stricmp( string, "localhost" ) || !Q_stricmp( string, "loopback" ))
+	if( !Q_stricmp( string, "loopback" ) || ( SV_Active( ) && !Q_stricmp( string, "localhost" )))
 	{
 		NET_NetadrSetType( adr, NA_LOOPBACK );
 		return true;
@@ -949,7 +949,7 @@ net_gai_state_t NET_StringToAdrNB( const char *string, netadr_t *adr, qboolean v
 
 	memset( adr, 0, sizeof( netadr_t ));
 
-	if( !Q_stricmp( string, "localhost" ) || !Q_stricmp( string, "loopback" ))
+	if( !Q_stricmp( string, "loopback" ) || ( SV_Active( ) && !Q_stricmp( string, "localhost" )))
 	{
 		NET_NetadrSetType( adr, NA_LOOPBACK );
 		return NET_EAI_OK;
@@ -1620,13 +1620,6 @@ static int NET_IPSocket( const char *net_iface, int port, int family )
 		Con_DPrintf( S_WARN "%s: port: %d setsockopt SO_BROADCAST: %s\n", __func__, port, NET_ErrorString( ));
 	}
 
-	if( !NET_MakeSocketReuseAddr( net_socket ))
-	{
-		Con_DPrintf( S_WARN "%s: port: %d setsockopt SO_REUSEADDR: %s\n", __func__, port, NET_ErrorString( ));
-		closesocket( net_socket );
-		return INVALID_SOCKET;
-	}
-
 	addr.ss_family = family;
 
 	if( family == AF_INET6 )
@@ -1710,30 +1703,37 @@ static void NET_OpenIP( qboolean change_port, int *sockets, const char *net_ifac
 	qboolean sv_nat = Cvar_VariableInteger( "sv_nat" );
 	qboolean cl_nat = Cvar_VariableInteger( "cl_nat" );
 
-	if( change_port && ( FBitSet( net_hostport.flags, FCVAR_CHANGED ) || sv_nat ))
+	if( Host_IsDedicated( ) || SV_GetMaxClients( ) > 1 )
 	{
-		// reopen socket to set random port
-		if( NET_IsSocketValid( sockets[NS_SERVER] ))
-			closesocket( sockets[NS_SERVER] );
-
-		sockets[NS_SERVER] = INVALID_SOCKET;
-		ClearBits( net_hostport.flags, FCVAR_CHANGED );
-	}
-
-	if( !NET_IsSocketValid( sockets[NS_SERVER] ))
-	{
-		port = hostport;
-		if( !port )
+		if( change_port && ( FBitSet( net_hostport.flags, FCVAR_CHANGED ) || sv_nat ))
 		{
-			port = sv_nat ? PORT_ANY : net_hostport.value;
+			// reopen socket to set random port
+			if( NET_IsSocketValid( sockets[NS_SERVER] ))
+				closesocket( sockets[NS_SERVER] );
 
-			if( !port )
-				port = PORT_SERVER; // forcing to default
+			sockets[NS_SERVER] = INVALID_SOCKET;
+			ClearBits( net_hostport.flags, FCVAR_CHANGED );
 		}
-		sockets[NS_SERVER] = NET_IPSocket( net_iface, port, family );
 
-		if( !NET_IsSocketValid( sockets[NS_SERVER] ) && Host_IsDedicated( ))
-			return;
+		if( !NET_IsSocketValid( sockets[NS_SERVER] ))
+		{
+			port = hostport;
+			if( !port )
+			{
+				port = sv_nat ? PORT_ANY : net_hostport.value;
+
+				if( !port )
+					port = PORT_SERVER; // forcing to default
+			}
+			sockets[NS_SERVER] = NET_IPSocket( net_iface, port, family );
+
+			if( !NET_IsSocketValid( sockets[NS_SERVER] ))
+			{
+				if( Host_IsDedicated( ))
+					return;
+				sockets[NS_SERVER] = NET_IPSocket( net_iface, PORT_ANY, family );
+			}
+		}
 	}
 
 	// dedicated servers don't need client ports
@@ -1852,11 +1852,15 @@ void NET_Config( qboolean multiplayer, qboolean changeport )
 {
 	static qboolean	bFirst = true;
 	static qboolean	old_config;
+	qboolean need_server_socket;
 
 	if( !net.initialized )
 		return;
 
-	if( old_config == multiplayer )
+	need_server_socket = multiplayer && ( Host_IsDedicated( ) || SV_GetMaxClients( ) > 1 ) &&
+		!NET_IsSocketValid( net.ip_sockets[NS_SERVER] ) && !NET_IsSocketValid( net.ip6_sockets[NS_SERVER] );
+
+	if( old_config == multiplayer && !need_server_socket )
 		return;
 
 	old_config = multiplayer;
@@ -1885,7 +1889,7 @@ void NET_Config( qboolean multiplayer, qboolean changeport )
 		}
 
 		// get our local address, if possible
-		if( bFirst )
+		if( bFirst && ( NET_IsSocketValid( net.ip_sockets[NS_SERVER] ) || NET_IsSocketValid( net.ip6_sockets[NS_SERVER] )))
 		{
 			NET_DetermineLocalAddress();
 			bFirst = false;

@@ -1850,6 +1850,13 @@ static void CL_LocalServers_f( void )
 			.port = MSG_BigShort( PORT_SERVER + i ),
 		};
 
+		adr.ip[0] = 127;
+		adr.ip[1] = 0;
+		adr.ip[2] = 0;
+		adr.ip[3] = 1;
+		NET_NetadrSetType( &adr, NA_IP );
+		Netchan_OutOfBandPrint( NS_CLIENT, adr, A2A_INFO" %i", PROTOCOL_VERSION );
+
 		NET_NetadrSetType( &adr, NA_BROADCAST );
 		Netchan_OutOfBandPrint( NS_CLIENT, adr, A2A_INFO" %i", PROTOCOL_VERSION );
 
@@ -3988,6 +3995,9 @@ CL_Shutdown
 */
 void CL_Shutdown( void )
 {
+	if( Host_IsDedicated( ))
+		return;
+
 	Con_Printf( "%s()\n", __func__ );
 
 	if( host.status != HOST_CRASHED && cls.initialized )

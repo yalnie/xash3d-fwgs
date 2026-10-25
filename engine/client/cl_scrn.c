@@ -493,6 +493,9 @@ SCR_BeginLoadingPlaque
 */
 void SCR_BeginLoadingPlaque( qboolean is_background )
 {
+	if( Host_IsDedicated( ))
+		return;
+
 	S_StopAllSounds( true );
 	cl.audio_prepped = false;			// don't play ambients
 

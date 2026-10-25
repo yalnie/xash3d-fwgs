@@ -199,6 +199,21 @@
 		
 		<activity android:name=".FPicker"></activity>
 
+		<activity
+			android:name=".DedicatedActivity"
+			android:exported="false"
+			android:launchMode="singleTop"
+			android:windowSoftInputMode="adjustResize"
+			android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode" />
+
+		<service
+			android:name=".DedicatedService"
+			android:enabled="true"
+			android:exported="false"
+			android:process=":dedicated"
+			android:foregroundServiceType="dataSync">
+		</service>
+
 		<service
 			android:name=".ui.downloader.DownloadService"
 			android:enabled="true"
