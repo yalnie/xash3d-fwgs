@@ -13,23 +13,27 @@ import android.os.Looper
 import android.os.Message
 import android.os.Messenger
 import android.os.RemoteException
-import android.text.Editable
+import android.os.SystemClock
 import android.text.Spannable
 import android.text.SpannableStringBuilder
-import android.text.TextWatcher
 import android.text.style.ForegroundColorSpan
+import android.view.KeyCharacterMap
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.DynamicColors
 import su.xash.engine.databinding.ActivityDedicatedBinding
+import su.xash.engine.ui.extrakeys.ConsoleEditText
 import su.xash.engine.ui.extrakeys.ExtraKeyButton
+import su.xash.engine.ui.extrakeys.ExtraKeysConstants
 import su.xash.engine.ui.extrakeys.ExtraKeysInfo
 import su.xash.engine.ui.extrakeys.ExtraKeysView
 import su.xash.engine.ui.extrakeys.SpecialButton
@@ -49,7 +53,7 @@ class DedicatedActivity : AppCompatActivity() {
 	private val commandHistory = mutableListOf<String>()
 	private var historyIndex = 0
 	private var pendingDraft = ""
-	private var isHandlingCtrlTypedChar = false
+	private var isDispatchingSyntheticKey = false
 
 	private val clientMessenger = Messenger(object : Handler(Looper.getMainLooper()) {
 		override fun handleMessage(msg: Message) {
@@ -69,6 +73,11 @@ class DedicatedActivity : AppCompatActivity() {
 				DedicatedService.MSG_LOG_APPEND -> {
 					val line = msg.data?.getString(DedicatedService.KEY_LOG_LINE) ?: return
 					appendConsoleText(line)
+				}
+				DedicatedService.MSG_AUTOCOMPLETE_RESULT -> {
+					val completed = msg.data?.getString(DedicatedService.KEY_AUTOCOMPLETE_TEXT) ?: return
+					binding.commandInput.setText(completed)
+					binding.commandInput.setSelection(completed.length)
 				}
 			}
 		}
@@ -196,6 +205,20 @@ class DedicatedActivity : AppCompatActivity() {
 			): Boolean {
 				return false
 			}
+
+			override fun onSpecialButtonToggled(
+				specialButton: SpecialButton,
+				isActive: Boolean,
+				isLocked: Boolean
+			) {
+				if (isActive) {
+					// Finalize any active IME composing span so the next soft-keyboard
+					// press is intercepted cleanly as a modified key event.
+					binding.commandInput.text?.let { BaseInputConnection.removeComposingSpans(it) }
+					val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+					imm?.restartInput(binding.commandInput)
+				}
+			}
 		}
 
 		val keysMatrix = arrayOf(
@@ -206,70 +229,156 @@ class DedicatedActivity : AppCompatActivity() {
 		binding.extraKeysView.reload(extraKeysInfo)
 	}
 
-	private fun handleExtraKeyPress(buttonInfo: ExtraKeyButton) {
+	private fun readMetaStateFromExtraKeys(): Int {
 		val ctrlDown = binding.extraKeysView.readSpecialButton(SpecialButton.CTRL, true) == true
 		val altDown = binding.extraKeysView.readSpecialButton(SpecialButton.ALT, true) == true
+		val shiftDown = binding.extraKeysView.readSpecialButton(SpecialButton.SHIFT, true) == true
+		var metaState = 0
+		if (ctrlDown) {
+			metaState = metaState or KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+		}
+		if (altDown) {
+			metaState = metaState or KeyEvent.META_ALT_ON or KeyEvent.META_ALT_LEFT_ON
+		}
+		if (shiftDown) {
+			metaState = metaState or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+		}
+		return metaState
+	}
+
+	private fun dispatchRealKeyEvent(keyCode: Int, metaState: Int = 0): Boolean {
+		val now = SystemClock.uptimeMillis()
+		val downEvent = KeyEvent(
+			now,
+			now,
+			KeyEvent.ACTION_DOWN,
+			keyCode,
+			0,
+			metaState,
+			KeyCharacterMap.VIRTUAL_KEYBOARD,
+			0,
+			0
+		)
+		val upEvent = KeyEvent(
+			now,
+			now,
+			KeyEvent.ACTION_UP,
+			keyCode,
+			0,
+			metaState,
+			KeyCharacterMap.VIRTUAL_KEYBOARD,
+			0,
+			0
+		)
+		isDispatchingSyntheticKey = true
+		return try {
+			val handledDown = binding.commandInput.dispatchKeyEvent(downEvent)
+			binding.commandInput.dispatchKeyEvent(upEvent)
+			handledDown
+		} finally {
+			isDispatchingSyntheticKey = false
+		}
+	}
+
+	private fun handleExtraKeyPress(buttonInfo: ExtraKeyButton) {
+		val metaState = readMetaStateFromExtraKeys()
+		val ctrlDown = (metaState and KeyEvent.META_CTRL_ON) != 0
+		val altDown = (metaState and KeyEvent.META_ALT_ON) != 0
 		val editText = binding.commandInput
 		editText.requestFocus()
+		editText.text?.let { BaseInputConnection.removeComposingSpans(it) }
 
 		when (val key = buttonInfo.key) {
 			"ESC" -> {
-				editText.text?.clear()
-				historyIndex = commandHistory.size
-				pendingDraft = ""
+				dispatchRealKeyEvent(KeyEvent.KEYCODE_ESCAPE, metaState)
+				if (editText.hasSelection()) {
+					editText.setSelection(editText.selectionEnd)
+				} else if (!editText.text.isNullOrEmpty()) {
+					editText.text?.clear()
+					historyIndex = commandHistory.size
+					pendingDraft = ""
+				} else {
+					val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+					imm?.hideSoftInputFromWindow(editText.windowToken, 0)
+				}
 			}
 			"TAB" -> {
-				autocompleteCommand()
+				requestEngineAutoComplete()
 			}
 			"HOME" -> {
-				editText.setSelection(0)
+				if (ctrlDown) {
+					binding.consoleScrollView.fullScroll(View.FOCUS_UP)
+				} else {
+					dispatchRealKeyEvent(KeyEvent.KEYCODE_MOVE_HOME, metaState)
+				}
 			}
 			"END" -> {
-				editText.setSelection(editText.text?.length ?: 0)
+				if (ctrlDown) {
+					binding.consoleScrollView.fullScroll(View.FOCUS_DOWN)
+				} else {
+					dispatchRealKeyEvent(KeyEvent.KEYCODE_MOVE_END, metaState)
+				}
 			}
 			"UP" -> {
-				navigateHistory(-1)
+				if (ctrlDown || altDown) {
+					val lineStep = (binding.consoleTextView.lineHeight * 3).coerceAtLeast(48)
+					binding.consoleScrollView.smoothScrollBy(0, -lineStep)
+				} else {
+					navigateHistory(-1)
+				}
 			}
 			"DOWN" -> {
-				navigateHistory(1)
+				if (ctrlDown || altDown) {
+					val lineStep = (binding.consoleTextView.lineHeight * 3).coerceAtLeast(48)
+					binding.consoleScrollView.smoothScrollBy(0, lineStep)
+				} else {
+					navigateHistory(1)
+				}
 			}
 			"LEFT" -> {
-				val text = editText.text?.toString().orEmpty()
-				val cursor = editText.selectionStart.coerceAtLeast(0)
-				if (cursor > 0) {
-					val newPos = if (ctrlDown || altDown) {
-						findPreviousWordBoundary(text, cursor)
-					} else {
-						cursor - 1
-					}
-					editText.setSelection(newPos)
+				val effectiveMeta = if (altDown && !ctrlDown) {
+					(metaState and KeyEvent.META_ALT_MASK.inv()) or KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+				} else {
+					metaState
 				}
+				dispatchRealKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT, effectiveMeta)
 			}
 			"RIGHT" -> {
-				val text = editText.text?.toString().orEmpty()
-				val cursor = editText.selectionEnd.coerceAtLeast(0)
-				if (cursor < text.length) {
-					val newPos = if (ctrlDown || altDown) {
-						findNextWordBoundary(text, cursor)
-					} else {
-						cursor + 1
-					}
-					editText.setSelection(newPos)
+				val effectiveMeta = if (altDown && !ctrlDown) {
+					(metaState and KeyEvent.META_ALT_MASK.inv()) or KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+				} else {
+					metaState
 				}
+				dispatchRealKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT, effectiveMeta)
 			}
 			"PGUP" -> {
-				val page = (binding.consoleScrollView.height * 0.8f).toInt().coerceAtLeast(100)
-				binding.consoleScrollView.smoothScrollBy(0, -page)
+				if (ctrlDown) {
+					binding.consoleScrollView.fullScroll(View.FOCUS_UP)
+				} else {
+					val page = (binding.consoleScrollView.height * 0.8f).toInt().coerceAtLeast(100)
+					binding.consoleScrollView.smoothScrollBy(0, -page)
+				}
 			}
 			"PGDN" -> {
-				val page = (binding.consoleScrollView.height * 0.8f).toInt().coerceAtLeast(100)
-				binding.consoleScrollView.smoothScrollBy(0, page)
+				if (ctrlDown) {
+					binding.consoleScrollView.fullScroll(View.FOCUS_DOWN)
+				} else {
+					val page = (binding.consoleScrollView.height * 0.8f).toInt().coerceAtLeast(100)
+					binding.consoleScrollView.smoothScrollBy(0, page)
+				}
 			}
 			else -> {
-				val editable = editText.editableText ?: return
-				val start = editText.selectionStart.coerceAtLeast(0)
-				val end = editText.selectionEnd.coerceAtLeast(0)
-				editable.replace(minOf(start, end), maxOf(start, end), key)
+				val keyCode = ExtraKeysConstants.PRIMARY_KEY_CODES_FOR_STRINGS[key]
+				if (keyCode != null) {
+					dispatchRealKeyEvent(keyCode, metaState)
+				} else if (key.length == 1 && (ctrlDown || altDown)) {
+					handleModifiedCharacter(key[0], metaState)
+				} else {
+					val editable = editText.editableText ?: return
+					val start = editText.selectionStart.coerceAtLeast(0)
+					val end = editText.selectionEnd.coerceAtLeast(0)
+					editable.replace(minOf(start, end), maxOf(start, end), key)
+				}
 			}
 		}
 	}
@@ -292,44 +401,21 @@ class DedicatedActivity : AppCompatActivity() {
 		editText.setSelection(nextText.length)
 	}
 
-	private fun autocompleteCommand() {
-		val editText = binding.commandInput
-		val current = editText.text?.toString().orEmpty()
-		val trimmed = current.trimStart()
-		if (trimmed.isEmpty()) {
-			appendConsoleText("^3Commands: ${SERVER_COMMANDS.joinToString(", ")}^7\n")
+	private fun requestEngineAutoComplete() {
+		val messenger = serviceMessenger
+		if (messenger == null || !isServerRunning) {
 			return
 		}
-		if (trimmed.contains(' ')) return
-
-		val matches = SERVER_COMMANDS.filter { it.startsWith(trimmed, ignoreCase = true) }
-		when {
-			matches.size == 1 -> {
-				val completed = matches[0] + " "
-				editText.setText(completed)
-				editText.setSelection(completed.length)
-			}
-			matches.size > 1 -> {
-				val commonPrefix = longestCommonPrefix(matches)
-				if (commonPrefix.length > trimmed.length) {
-					editText.setText(commonPrefix)
-					editText.setSelection(commonPrefix.length)
+		val current = binding.commandInput.text?.toString().orEmpty()
+		try {
+			val msg = Message.obtain(null, DedicatedService.MSG_AUTOCOMPLETE).apply {
+				data = Bundle().apply {
+					putString(DedicatedService.KEY_AUTOCOMPLETE_TEXT, current)
 				}
-				appendConsoleText("^3Matches: ${matches.joinToString("  ")}^7\n")
 			}
+			messenger.send(msg)
+		} catch (_: RemoteException) {
 		}
-	}
-
-	private fun longestCommonPrefix(strings: List<String>): String {
-		if (strings.isEmpty()) return ""
-		var prefix = strings[0]
-		for (i in 1 until strings.size) {
-			while (!strings[i].startsWith(prefix, ignoreCase = true)) {
-				prefix = prefix.substring(0, prefix.length - 1)
-				if (prefix.isEmpty()) return ""
-			}
-		}
-		return prefix
 	}
 
 	private fun findPreviousWordBoundary(text: String, cursor: Int): Int {
@@ -363,60 +449,304 @@ class DedicatedActivity : AppCompatActivity() {
 			}
 		}
 
-		binding.commandInput.addTextChangedListener(object : TextWatcher {
-			override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-			override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-				if (isHandlingCtrlTypedChar || count != 1 || before != 0 || s == null) return
-				val ctrlActive = binding.extraKeysView.readSpecialButton(SpecialButton.CTRL, true) == true
-				if (!ctrlActive) return
-
-				val typedChar = s[start].lowercaseChar()
-				isHandlingCtrlTypedChar = true
-				try {
-					val editable = binding.commandInput.editableText ?: return
-					// Remove the literal character that was just typed while CTRL was active
-					editable.delete(start, start + 1)
-					handleCtrlCombination(typedChar)
-				} finally {
-					isHandlingCtrlTypedChar = false
-				}
+		binding.commandInput.consoleKeyListener = object : ConsoleEditText.OnConsoleKeyListener {
+			override fun isSpecialModifierActive(): Boolean {
+				return binding.extraKeysView.isAnySpecialButtonActive
 			}
 
-			override fun afterTextChanged(s: Editable?) {}
-		})
-	}
-
-	private fun handleCtrlCombination(ch: Char) {
-		val editText = binding.commandInput
-		when (ch) {
-			'c', 'u' -> {
-				editText.text?.clear()
+			override fun onModifiedCharTyped(ch: Char): Boolean {
+				val metaState = readMetaStateFromExtraKeys()
+				if (metaState == 0) return false
+				return handleModifiedCharacter(ch, metaState)
 			}
-			'l' -> {
-				binding.consoleTextView.text = ""
-				serviceMessenger?.let { messenger ->
-					try {
-						messenger.send(Message.obtain(null, DedicatedService.MSG_CLEAR_LOGS))
-					} catch (_: RemoteException) {
+
+			override fun onModifiedBackspace(): Boolean {
+				val metaState = readMetaStateFromExtraKeys()
+				if (metaState == 0) return false
+				deletePreviousWord()
+				return true
+			}
+
+			override fun onConsoleKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+				if (isDispatchingSyntheticKey) return false
+
+				val extraMeta = readMetaStateFromExtraKeys()
+				val combinedMeta = event.metaState or extraMeta
+				val ctrlDown = (combinedMeta and KeyEvent.META_CTRL_ON) != 0
+				val altDown = (combinedMeta and KeyEvent.META_ALT_ON) != 0
+
+				when (keyCode) {
+					KeyEvent.KEYCODE_TAB -> {
+						requestEngineAutoComplete()
+						return true
+					}
+					KeyEvent.KEYCODE_DPAD_UP -> {
+						if (ctrlDown || altDown) {
+							val lineStep = (binding.consoleTextView.lineHeight * 3).coerceAtLeast(48)
+							binding.consoleScrollView.smoothScrollBy(0, -lineStep)
+						} else {
+							navigateHistory(-1)
+						}
+						return true
+					}
+					KeyEvent.KEYCODE_DPAD_DOWN -> {
+						if (ctrlDown || altDown) {
+							val lineStep = (binding.consoleTextView.lineHeight * 3).coerceAtLeast(48)
+							binding.consoleScrollView.smoothScrollBy(0, lineStep)
+						} else {
+							navigateHistory(1)
+						}
+						return true
+					}
+					KeyEvent.KEYCODE_PAGE_UP -> {
+						if (ctrlDown) {
+							binding.consoleScrollView.fullScroll(View.FOCUS_UP)
+						} else {
+							val page = (binding.consoleScrollView.height * 0.8f).toInt().coerceAtLeast(100)
+							binding.consoleScrollView.smoothScrollBy(0, -page)
+						}
+						return true
+					}
+					KeyEvent.KEYCODE_PAGE_DOWN -> {
+						if (ctrlDown) {
+							binding.consoleScrollView.fullScroll(View.FOCUS_DOWN)
+						} else {
+							val page = (binding.consoleScrollView.height * 0.8f).toInt().coerceAtLeast(100)
+							binding.consoleScrollView.smoothScrollBy(0, page)
+						}
+						return true
+					}
+					KeyEvent.KEYCODE_ESCAPE -> {
+						val editText = binding.commandInput
+						if (!editText.text.isNullOrEmpty()) {
+							editText.text?.clear()
+							historyIndex = commandHistory.size
+							pendingDraft = ""
+							return true
+						}
+					}
+					KeyEvent.KEYCODE_DEL -> {
+						if (ctrlDown || altDown) {
+							deletePreviousWord()
+							return true
+						}
 					}
 				}
+
+				if (ctrlDown || altDown) {
+					val unicodeChar = event.getUnicodeChar( event.metaState and (KeyEvent.META_CTRL_MASK or KeyEvent.META_ALT_MASK).inv() )
+					if (unicodeChar > 0) {
+						return handleModifiedCharacter(unicodeChar.toChar(), combinedMeta)
+					} else if (extraMeta != 0) {
+						return dispatchRealKeyEvent(keyCode, combinedMeta)
+					}
+				}
+
+				return false
 			}
-			'a' -> {
-				editText.setSelection(0)
+		}
+	}
+
+	private fun deletePreviousWord() {
+		val editText = binding.commandInput
+		val editable = editText.editableText ?: return
+		val start = editText.selectionStart.coerceAtLeast(0)
+		val end = editText.selectionEnd.coerceAtLeast(0)
+		if (start != end) {
+			editable.delete(minOf(start, end), maxOf(start, end))
+			return
+		}
+		if (start > 0) {
+			val prevWord = findPreviousWordBoundary(editable.toString(), start)
+			editable.delete(prevWord, start)
+		}
+	}
+
+	private fun clearConsoleLogs() {
+		binding.consoleTextView.text = ""
+		serviceMessenger?.let { messenger ->
+			try {
+				messenger.send(Message.obtain(null, DedicatedService.MSG_CLEAR_LOGS))
+			} catch (_: RemoteException) {
 			}
-			'e' -> {
-				editText.setSelection(editText.text?.length ?: 0)
-			}
-			'w' -> {
-				val editable = editText.editableText ?: return
-				val cursor = editText.selectionStart.coerceAtLeast(0)
-				if (cursor > 0) {
-					val prevWord = findPreviousWordBoundary(editable.toString(), cursor)
-					editable.delete(prevWord, cursor)
+		}
+	}
+
+	private fun handleModifiedCharacter(rawChar: Char, metaState: Int): Boolean {
+		val editText = binding.commandInput
+		val ctrlDown = (metaState and KeyEvent.META_CTRL_ON) != 0
+		val altDown = (metaState and KeyEvent.META_ALT_ON) != 0
+		val ch = rawChar.lowercaseChar()
+
+		if (ctrlDown) {
+			when (ch) {
+				'a' -> {
+					val len = editText.text?.length ?: 0
+					if (len > 0 && (editText.selectionStart != 0 || editText.selectionEnd != len)) {
+						dispatchRealKeyEvent(KeyEvent.KEYCODE_A, metaState)
+					} else {
+						editText.setSelection(0)
+					}
+					return true
+				}
+				'c' -> {
+					if (editText.hasSelection()) {
+						dispatchRealKeyEvent(KeyEvent.KEYCODE_C, metaState)
+					} else {
+						val current = editText.text?.toString().orEmpty()
+						if (current.isNotEmpty()) {
+							appendConsoleText("^5> $current^1^C^7\n")
+							editText.text?.clear()
+							historyIndex = commandHistory.size
+							pendingDraft = ""
+						}
+					}
+					return true
+				}
+				'x' -> {
+					if (!editText.hasSelection() && !editText.text.isNullOrEmpty()) {
+						editText.selectAll()
+					}
+					dispatchRealKeyEvent(KeyEvent.KEYCODE_X, metaState)
+					return true
+				}
+				'v' -> {
+					dispatchRealKeyEvent(KeyEvent.KEYCODE_V, metaState)
+					return true
+				}
+				'z' -> {
+					dispatchRealKeyEvent(KeyEvent.KEYCODE_Z, metaState)
+					return true
+				}
+				'y' -> {
+					dispatchRealKeyEvent(KeyEvent.KEYCODE_Y, metaState)
+					return true
+				}
+				'l' -> {
+					clearConsoleLogs()
+					return true
+				}
+				'u' -> {
+					val editable = editText.editableText ?: return true
+					val cursor = editText.selectionStart.coerceAtLeast(0)
+					if (cursor > 0) {
+						editable.delete(0, cursor)
+					} else {
+						editable.clear()
+					}
+					return true
+				}
+				'k' -> {
+					val editable = editText.editableText ?: return true
+					val cursor = editText.selectionStart.coerceAtLeast(0)
+					if (cursor < editable.length) {
+						editable.delete(cursor, editable.length)
+					}
+					return true
+				}
+				'w' -> {
+					deletePreviousWord()
+					return true
+				}
+				'e' -> {
+					editText.setSelection(editText.text?.length ?: 0)
+					return true
+				}
+				'b' -> {
+					dispatchRealKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT, 0)
+					return true
+				}
+				'f' -> {
+					dispatchRealKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT, 0)
+					return true
+				}
+				'p' -> {
+					navigateHistory(-1)
+					return true
+				}
+				'n' -> {
+					navigateHistory(1)
+					return true
+				}
+				'h' -> {
+					dispatchRealKeyEvent(KeyEvent.KEYCODE_DEL, 0)
+					return true
+				}
+				'd' -> {
+					if (editText.text.isNullOrEmpty()) {
+						sendCommand("quit")
+					} else {
+						dispatchRealKeyEvent(KeyEvent.KEYCODE_FORWARD_DEL, 0)
+					}
+					return true
 				}
 			}
 		}
+
+		if (altDown && !ctrlDown) {
+			when (ch) {
+				'b' -> {
+					dispatchRealKeyEvent(
+						KeyEvent.KEYCODE_DPAD_LEFT,
+						KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+					)
+					return true
+				}
+				'f' -> {
+					dispatchRealKeyEvent(
+						KeyEvent.KEYCODE_DPAD_RIGHT,
+						KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+					)
+					return true
+				}
+				'd' -> {
+					val editable = editText.editableText ?: return true
+					val cursor = editText.selectionStart.coerceAtLeast(0)
+					if (cursor < editable.length) {
+						val nextWord = findNextWordBoundary(editable.toString(), cursor)
+						editable.delete(cursor, nextWord)
+					}
+					return true
+				}
+				'<', ',' -> {
+					if (commandHistory.isNotEmpty()) {
+						navigateHistory(-commandHistory.size)
+					}
+					return true
+				}
+				'>', '.' -> {
+					if (commandHistory.isNotEmpty()) {
+						navigateHistory(commandHistory.size)
+					}
+					return true
+				}
+			}
+		}
+
+		val keyCode = when (ch) {
+			in 'a'..'z' -> KeyEvent.KEYCODE_A + (ch - 'a')
+			in '0'..'9' -> KeyEvent.KEYCODE_0 + (ch - '0')
+			'/' -> KeyEvent.KEYCODE_SLASH
+			'-' -> KeyEvent.KEYCODE_MINUS
+			'=' -> KeyEvent.KEYCODE_EQUALS
+			'[' -> KeyEvent.KEYCODE_LEFT_BRACKET
+			']' -> KeyEvent.KEYCODE_RIGHT_BRACKET
+			'\\' -> KeyEvent.KEYCODE_BACKSLASH
+			';' -> KeyEvent.KEYCODE_SEMICOLON
+			'\'' -> KeyEvent.KEYCODE_APOSTROPHE
+			',' -> KeyEvent.KEYCODE_COMMA
+			'.' -> KeyEvent.KEYCODE_PERIOD
+			'`' -> KeyEvent.KEYCODE_GRAVE
+			' ' -> KeyEvent.KEYCODE_SPACE
+			else -> null
+		}
+
+		if (keyCode != null) {
+			dispatchRealKeyEvent(keyCode, metaState)
+			return true
+		}
+
+		return false
 	}
 
 	private fun submitCurrentInput() {
@@ -636,93 +966,5 @@ class DedicatedActivity : AppCompatActivity() {
 
 	companion object {
 		private const val MAX_UI_LOG_CHARS = 131072
-
-		private val SERVER_COMMANDS = listOf(
-			"addip",
-			"apropos",
-			"banid",
-			"changelevel",
-			"cmdlist",
-			"cvarlist",
-			"echo",
-			"exec",
-			"exit",
-			"find",
-			"heartbeat",
-			"hostname",
-			"kick",
-			"listid",
-			"listip",
-			"log",
-			"map",
-			"maps",
-			"maxplayers",
-			"mp_allowmonsters",
-			"mp_autocrosshair",
-			"mp_decals",
-			"mp_falldamage",
-			"mp_flashlight",
-			"mp_footsteps",
-			"mp_forcerespawn",
-			"mp_fraglimit",
-			"mp_friendlyfire",
-			"mp_teamlist",
-			"mp_teamplay",
-			"mp_timelimit",
-			"mp_weaponstay",
-			"pausable",
-			"quit",
-			"rcon_password",
-			"reload",
-			"removeid",
-			"removeip",
-			"restart",
-			"say",
-			"serverinfo",
-			"stats",
-			"status",
-			"sv_accelerate",
-			"sv_aim",
-			"sv_airaccelerate",
-			"sv_allow_download",
-			"sv_allow_upload",
-			"sv_Bounce",
-			"sv_cheats",
-			"sv_clienttrace",
-			"sv_ClipMode",
-			"sv_friction",
-			"sv_gravity",
-			"sv_lan",
-			"sv_lan_rate",
-			"sv_logbans",
-			"sv_maxclients",
-			"sv_maxrate",
-			"sv_maxspeed",
-			"sv_maxunlag",
-			"sv_minrate",
-			"sv_nat",
-			"sv_password",
-			"sv_proxies",
-			"sv_region",
-			"sv_send_logos",
-			"sv_send_resources",
-			"sv_stepsize",
-			"sv_stopspeed",
-			"sv_timeout",
-			"sv_unlag",
-			"sv_unlagpush",
-			"sv_unlagsamples",
-			"sv_uploadmax",
-			"sv_voiceenable",
-			"sv_wateraccelerate",
-			"sv_wateramp",
-			"sv_waterfriction",
-			"sv_zmax",
-			"sys_ticrate",
-			"users",
-			"version",
-			"writeid",
-			"writeip"
-		)
 	}
 }

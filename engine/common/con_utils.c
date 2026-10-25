@@ -1209,21 +1209,22 @@ void Con_CompleteCommand( field_t *field, qboolean print_suggestions )
 	// autocomplete second arg
 	if(( Cmd_Argc() >= 2 ) || ( Cmd_Argc() == 1 && nextcmd ))
 	{
-		con.completionBuffer = Cmd_Argv( Cmd_Argc() - 1 );
+		int arg_idx = ( Cmd_Argc() == 1 && nextcmd ) ? 1 : ( Cmd_Argc() - 1 );
+		con.completionBuffer = ( Cmd_Argc() == 1 && nextcmd ) ? "" : Cmd_Argv( Cmd_Argc() - 1 );
 
 		// skip backslash
 		while( *con.completionBuffer && (*con.completionBuffer == '\\' || *con.completionBuffer == '/') )
 			con.completionBuffer++;
 
-		if( COM_StringEmpty( con.completionBuffer ) )
+		if( COM_StringEmpty( con.completionBuffer ) && !( Cmd_Argc() == 1 && nextcmd ))
 			return;
 
 		string filename;
-		if( Cmd_AutocompleteName( con.completionBuffer, Cmd_Argc() - 1, filename, sizeof( filename ), print_suggestions ))
+		if( Cmd_AutocompleteName( con.completionBuffer, arg_idx, filename, sizeof( filename ), print_suggestions ))
 		{
 			con.completionField->buffer[0] = 0;
 
-			for( int i = 0; i < Cmd_Argc() - 1; i++ )
+			for( int i = 0; i < arg_idx; i++ )
 			{
 				Q_strncat( con.completionField->buffer, Cmd_Argv( i ), sizeof( con.completionField->buffer ));
 				Q_strncat( con.completionField->buffer, " ", sizeof( con.completionField->buffer ));

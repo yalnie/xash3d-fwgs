@@ -58,6 +58,11 @@ public final class ExtraKeysView extends GridLayout {
 		 */
 		boolean performExtraKeyButtonHapticFeedback(View view, ExtraKeyButton buttonInfo, MaterialButton button);
 
+		/**
+		 * Called when a {@link SpecialButton} (such as CTRL or ALT) is toggled by the user.
+		 */
+		default void onSpecialButtonToggled(SpecialButton specialButton, boolean isActive, boolean isLocked) {}
+
 	}
 
 	/** Defines the default fallback value for {@link #mButtonTextColor}. */
@@ -422,12 +427,15 @@ public final class ExtraKeysView extends GridLayout {
 	public void onAnyExtraKeyButtonClick(View view, @NonNull ExtraKeyButton buttonInfo, MaterialButton button) {
 		if (isSpecialButton(buttonInfo)) {
 			if (mLongPressCount > 0) return;
-			SpecialButtonState state = mSpecialButtons.get(SpecialButton.valueOf(buttonInfo.getKey()));
+			SpecialButton sb = SpecialButton.valueOf(buttonInfo.getKey());
+			SpecialButtonState state = mSpecialButtons.get(sb);
 			if (state == null) return;
 
 			state.setIsActive(!state.isActive);
 			if (!state.isActive)
 				state.setIsLocked(false);
+			if (mExtraKeysViewClient != null)
+				mExtraKeysViewClient.onSpecialButtonToggled(sb, state.isActive, state.isLocked);
 		} else {
 			onExtraKeyButtonClick(view, buttonInfo, button);
 		}
@@ -445,11 +453,12 @@ public final class ExtraKeysView extends GridLayout {
 				mHandler.post(() -> onExtraKeyButtonClick(view, buttonInfo, button));
 			}, mLongPressTimeout, mLongPressRepeatDelay, TimeUnit.MILLISECONDS);
 		} else if (isSpecialButton(buttonInfo)) {
-			SpecialButtonState state = mSpecialButtons.get(SpecialButton.valueOf(buttonInfo.getKey()));
+			SpecialButton sb = SpecialButton.valueOf(buttonInfo.getKey());
+			SpecialButtonState state = mSpecialButtons.get(sb);
 			if (state == null) return;
 			if (mHandler == null)
 				mHandler = new Handler(Looper.getMainLooper());
-			mSpecialButtonsLongHoldRunnable = new SpecialButtonsLongHoldRunnable(state);
+			mSpecialButtonsLongHoldRunnable = new SpecialButtonsLongHoldRunnable(sb, state);
 			mHandler.postDelayed(mSpecialButtonsLongHoldRunnable, mLongPressTimeout);
 		}
 	}
@@ -467,9 +476,11 @@ public final class ExtraKeysView extends GridLayout {
 	}
 
 	public class SpecialButtonsLongHoldRunnable implements Runnable {
+		public final SpecialButton mSpecialButton;
 		public final SpecialButtonState mState;
 
-		public SpecialButtonsLongHoldRunnable(SpecialButtonState state) {
+		public SpecialButtonsLongHoldRunnable(SpecialButton specialButton, SpecialButtonState state) {
+			mSpecialButton = specialButton;
 			mState = state;
 		}
 
@@ -477,7 +488,21 @@ public final class ExtraKeysView extends GridLayout {
 			mState.setIsLocked(!mState.isActive);
 			mState.setIsActive(!mState.isActive);
 			mLongPressCount++;
+			if (mExtraKeysViewClient != null)
+				mExtraKeysViewClient.onSpecialButtonToggled(mSpecialButton, mState.isActive, mState.isLocked);
 		}
+	}
+
+	/**
+	 * Check whether any {@link SpecialButton} is currently active without changing its state.
+	 */
+	public boolean isAnySpecialButtonActive() {
+		for (SpecialButtonState state : mSpecialButtons.values()) {
+			if (state.isCreated && state.isActive) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	void showPopup(View view, ExtraKeyButton extraButton) {

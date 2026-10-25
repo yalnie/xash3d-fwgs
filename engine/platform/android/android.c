@@ -36,6 +36,7 @@ struct jnimethods_s
 	jmethodID saveAndroidID;
 	jmethodID getWindowInsets;
 	jmethodID onConsoleOutput;
+	jmethodID onAutoComplete;
 	pthread_t thread;
 	qboolean dedicated;
 } jni;
@@ -45,6 +46,7 @@ static pthread_mutex_t cmd_mutex = PTHREAD_MUTEX_INITIALIZER;
 static char *cmd_queue[ANDROID_CMD_QUEUE_SIZE];
 static int cmd_head = 0;
 static int cmd_tail = 0;
+static char *autocomplete_req = NULL;
 static char cmd_buf[MAX_PRINT_MSG];
 
 void Android_Init( void )
@@ -68,6 +70,11 @@ void Android_Init( void )
 void Android_Shutdown( void )
 {
 	pthread_mutex_lock( &cmd_mutex );
+	if( autocomplete_req )
+	{
+		free( autocomplete_req );
+		autocomplete_req = NULL;
+	}
 	while( cmd_head != cmd_tail )
 	{
 		free( cmd_queue[cmd_head] );
@@ -196,8 +203,14 @@ Android_Input
 char *Android_Input( void )
 {
 	char *cmd = NULL;
+	char *ac = NULL;
 
 	pthread_mutex_lock( &cmd_mutex );
+	if( autocomplete_req )
+	{
+		ac = autocomplete_req;
+		autocomplete_req = NULL;
+	}
 	if( cmd_head != cmd_tail )
 	{
 		cmd = cmd_queue[cmd_head];
@@ -205,6 +218,30 @@ char *Android_Input( void )
 		cmd_head = ( cmd_head + 1 ) % ANDROID_CMD_QUEUE_SIZE;
 	}
 	pthread_mutex_unlock( &cmd_mutex );
+
+	if( ac )
+	{
+		if( jni.dedicated && jni.env && jni.activity && jni.onAutoComplete && pthread_equal( pthread_self(), jni.thread ))
+		{
+			char complete_buf[MAX_STRING];
+			Q_strncpy( complete_buf, ac, sizeof( complete_buf ));
+			if( !COM_StringEmpty( complete_buf ))
+			{
+				Cmd_AutoComplete( complete_buf );
+				jstring jres = (*jni.env)->NewStringUTF( jni.env, complete_buf );
+				if( jres )
+				{
+					(*jni.env)->CallVoidMethod( jni.env, jni.activity, jni.onAutoComplete, jres );
+					(*jni.env)->DeleteLocalRef( jni.env, jres );
+				}
+			}
+			else
+			{
+				Cbuf_AddText( "cmdlist\n" );
+			}
+		}
+		free( ac );
+	}
 
 	if( !cmd )
 		return NULL;
@@ -258,6 +295,7 @@ JNIEXPORT jint JNICALL Java_su_xash_engine_DedicatedService_nativeMain( JNIEnv *
 	jni.activity = (*env)->NewGlobalRef( env, thiz );
 	jni.actcls = (*env)->NewGlobalRef( env, (*env)->GetObjectClass( env, thiz ));
 	jni.onConsoleOutput = (*env)->GetMethodID( env, jni.actcls, "onConsoleOutput", "([B)V" );
+	jni.onAutoComplete = (*env)->GetMethodID( env, jni.actcls, "onAutoComplete", "(Ljava/lang/String;)V" );
 
 	argc = (*env)->GetArrayLength( env, jargv );
 	argv = calloc( argc + 1, sizeof( char * ));
@@ -335,6 +373,26 @@ JNIEXPORT void JNICALL Java_su_xash_engine_DedicatedService_nativeSendCommand( J
 	}
 
 	(*env)->ReleaseStringUTFChars( env, jcmd, utf );
+}
+
+JNIEXPORT void JNICALL Java_su_xash_engine_DedicatedService_nativeAutoComplete( JNIEnv *env, jclass cls, jstring jtext )
+{
+	const char *utf;
+
+	if( !jtext )
+		return;
+
+	utf = (*env)->GetStringUTFChars( env, jtext, NULL );
+	if( !utf )
+		return;
+
+	pthread_mutex_lock( &cmd_mutex );
+	if( autocomplete_req )
+		free( autocomplete_req );
+	autocomplete_req = strdup( utf );
+	pthread_mutex_unlock( &cmd_mutex );
+
+	(*env)->ReleaseStringUTFChars( env, jtext, utf );
 }
 
 JNIEXPORT void JNICALL Java_su_xash_engine_DedicatedService_nativeSetenv( JNIEnv *env, jclass cls, jstring jname, jstring jvalue )

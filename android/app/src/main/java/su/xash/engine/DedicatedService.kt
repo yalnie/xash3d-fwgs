@@ -20,7 +20,6 @@ import android.os.RemoteException
 import android.util.Log
 import androidx.annotation.Keep
 import androidx.core.app.NotificationCompat
-import su.xash.engine.ui.settings.AppIconManager
 import su.xash.engine.util.CrashReports
 import java.net.Inet4Address
 import java.net.NetworkInterface
@@ -59,6 +58,12 @@ class DedicatedService : Service() {
 				MSG_SEND_COMMAND -> {
 					val cmd = msg.data?.getString(KEY_COMMAND) ?: return
 					handleCommand(cmd)
+				}
+				MSG_AUTOCOMPLETE -> {
+					val text = msg.data?.getString(KEY_AUTOCOMPLETE_TEXT) ?: return
+					if (isServerRunning) {
+						nativeAutoComplete(text)
+					}
 				}
 				MSG_CLEAR_LOGS -> {
 					logBuffer.clear()
@@ -226,6 +231,12 @@ class DedicatedService : Service() {
 		val trimmed = rawCmd.trim()
 		if (trimmed.isEmpty()) return
 
+		if (trimmed.equals("clear", ignoreCase = true)) {
+			logBuffer.clear()
+			broadcastState(includeLogs = true)
+			return
+		}
+
 		appendLog("^5> $trimmed^7\n")
 		if (!isServerRunning) {
 			appendLog("^1Server is not running.^7\n")
@@ -283,6 +294,27 @@ class DedicatedService : Service() {
 	fun onConsoleOutput(text: String) {
 		mainHandler.post {
 			appendLog(text)
+		}
+	}
+
+	@Keep
+	@Suppress("unused")
+	fun onAutoComplete(completed: String) {
+		mainHandler.post {
+			val deadClients = mutableListOf<Messenger>()
+			for (client in clients) {
+				try {
+					val msg = Message.obtain(null, MSG_AUTOCOMPLETE_RESULT).apply {
+						data = Bundle().apply {
+							putString(KEY_AUTOCOMPLETE_TEXT, completed)
+						}
+					}
+					client.send(msg)
+				} catch (e: RemoteException) {
+					deadClients.add(client)
+				}
+			}
+			clients.removeAll(deadClients)
 		}
 	}
 
@@ -430,12 +462,10 @@ class DedicatedService : Service() {
 			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 		)
 
-		val iconRes = AppIconManager.getNotificationIconRes(this)
-
 		return NotificationCompat.Builder(this, CHANNEL_ID)
 			.setContentTitle("$gameTitle — ${getString(R.string.dedicated_server_title)}")
 			.setContentText(statusText)
-			.setSmallIcon(iconRes)
+			.setSmallIcon(R.drawable.ic_baseline_xash_24px)
 			.setOngoing(true)
 			.setOnlyAlertOnce(true)
 			.setContentIntent(openPendingIntent)
@@ -506,9 +536,11 @@ class DedicatedService : Service() {
 		const val MSG_SEND_COMMAND = 3
 		const val MSG_CLEAR_LOGS = 4
 		const val MSG_STOP_SERVER = 5
+		const val MSG_AUTOCOMPLETE = 6
 
 		const val MSG_STATE = 10
 		const val MSG_LOG_APPEND = 11
+		const val MSG_AUTOCOMPLETE_RESULT = 12
 
 		const val KEY_RUNNING = "running"
 		const val KEY_TITLE = "title"
@@ -516,6 +548,7 @@ class DedicatedService : Service() {
 		const val KEY_LOGS = "logs"
 		const val KEY_LOG_LINE = "log_line"
 		const val KEY_COMMAND = "command"
+		const val KEY_AUTOCOMPLETE_TEXT = "autocomplete_text"
 
 		@Volatile
 		private var instance: DedicatedService? = null
@@ -529,6 +562,10 @@ class DedicatedService : Service() {
 		@Keep
 		@JvmStatic
 		external fun nativeSendCommand(cmd: String)
+
+		@Keep
+		@JvmStatic
+		external fun nativeAutoComplete(text: String)
 
 		@Keep
 		@JvmStatic
