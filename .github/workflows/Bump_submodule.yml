@@ -1,0 +1,19 @@
+name: bump all submodule to latest commit # updating means improvement some of stuff from their code
+
+on:
+   workflow_dispatch:
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+          submodules: true
+          persist-credentials: true
+      - run: git submodule update --remote --recursive
+      - uses: stefanzweifel/git-auto-commit-action@master
+        with:
+          commit_message: Bump all Submodule to latest commit
+          
