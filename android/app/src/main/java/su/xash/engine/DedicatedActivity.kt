@@ -16,6 +16,7 @@ import android.os.RemoteException
 import android.text.Editable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
+import android.text.TextWatcher
 import android.text.style.ForegroundColorSpan
 import android.view.KeyEvent
 import android.view.Menu
@@ -25,9 +26,13 @@ import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import com.google.android.material.chip.Chip
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.DynamicColors
 import su.xash.engine.databinding.ActivityDedicatedBinding
+import su.xash.engine.ui.extrakeys.ExtraKeyButton
+import su.xash.engine.ui.extrakeys.ExtraKeysInfo
+import su.xash.engine.ui.extrakeys.ExtraKeysView
+import su.xash.engine.ui.extrakeys.SpecialButton
 
 class DedicatedActivity : AppCompatActivity() {
 
@@ -40,6 +45,11 @@ class DedicatedActivity : AppCompatActivity() {
 	private var gameTitle: String = "XashDS"
 	private var gameDir: String = "valve"
 	private var launchExtras: Bundle? = null
+
+	private val commandHistory = mutableListOf<String>()
+	private var historyIndex = 0
+	private var pendingDraft = ""
+	private var isHandlingCtrlTypedChar = false
 
 	private val clientMessenger = Messenger(object : Handler(Looper.getMainLooper()) {
 		override fun handleMessage(msg: Message) {
@@ -100,7 +110,7 @@ class DedicatedActivity : AppCompatActivity() {
 			finish()
 		}
 
-		setupQuickCommands()
+		setupExtraKeys()
 		setupCommandInput()
 
 		handleLaunchIntent(intent, isInitialCreate = savedInstanceState == null)
@@ -169,32 +179,171 @@ class DedicatedActivity : AppCompatActivity() {
 		}
 	}
 
-	private fun setupQuickCommands() {
-		val quickCommands = listOf(
-			"status" to true,
-			"maps *" to true,
-			"map " to false,
-			"users" to true,
-			"heartbeat" to true,
-			"restart" to true
-		)
+	private fun setupExtraKeys() {
+		binding.extraKeysView.extraKeysViewClient = object : ExtraKeysView.IExtraKeysView {
+			override fun onExtraKeyButtonClick(
+				view: View,
+				buttonInfo: ExtraKeyButton,
+				button: MaterialButton
+			) {
+				handleExtraKeyPress(buttonInfo)
+			}
 
-		for ((cmd, immediate) in quickCommands) {
-			val chip = Chip(this).apply {
-				text = cmd.trim()
-				isCheckable = false
-				setOnClickListener {
-					if (immediate) {
-						sendCommand(cmd)
+			override fun performExtraKeyButtonHapticFeedback(
+				view: View,
+				buttonInfo: ExtraKeyButton,
+				button: MaterialButton
+			): Boolean {
+				return false
+			}
+		}
+
+		val keysMatrix = arrayOf(
+			arrayOf("ESC", "/", "-", "HOME", "UP", "END", "PGUP"),
+			arrayOf("TAB", "CTRL", "ALT", "LEFT", "DOWN", "RIGHT", "PGDN")
+		)
+		val extraKeysInfo = ExtraKeysInfo(keysMatrix)
+		binding.extraKeysView.reload(extraKeysInfo)
+	}
+
+	private fun handleExtraKeyPress(buttonInfo: ExtraKeyButton) {
+		val ctrlDown = binding.extraKeysView.readSpecialButton(SpecialButton.CTRL, true) == true
+		val altDown = binding.extraKeysView.readSpecialButton(SpecialButton.ALT, true) == true
+		val editText = binding.commandInput
+		editText.requestFocus()
+
+		when (val key = buttonInfo.key) {
+			"ESC" -> {
+				editText.text?.clear()
+				historyIndex = commandHistory.size
+				pendingDraft = ""
+			}
+			"TAB" -> {
+				autocompleteCommand()
+			}
+			"HOME" -> {
+				editText.setSelection(0)
+			}
+			"END" -> {
+				editText.setSelection(editText.text?.length ?: 0)
+			}
+			"UP" -> {
+				navigateHistory(-1)
+			}
+			"DOWN" -> {
+				navigateHistory(1)
+			}
+			"LEFT" -> {
+				val text = editText.text?.toString().orEmpty()
+				val cursor = editText.selectionStart.coerceAtLeast(0)
+				if (cursor > 0) {
+					val newPos = if (ctrlDown || altDown) {
+						findPreviousWordBoundary(text, cursor)
 					} else {
-						binding.commandInput.setText(cmd)
-						binding.commandInput.setSelection(cmd.length)
-						binding.commandInput.requestFocus()
+						cursor - 1
 					}
+					editText.setSelection(newPos)
 				}
 			}
-			binding.quickCommandsGroup.addView(chip)
+			"RIGHT" -> {
+				val text = editText.text?.toString().orEmpty()
+				val cursor = editText.selectionEnd.coerceAtLeast(0)
+				if (cursor < text.length) {
+					val newPos = if (ctrlDown || altDown) {
+						findNextWordBoundary(text, cursor)
+					} else {
+						cursor + 1
+					}
+					editText.setSelection(newPos)
+				}
+			}
+			"PGUP" -> {
+				val page = (binding.consoleScrollView.height * 0.8f).toInt().coerceAtLeast(100)
+				binding.consoleScrollView.smoothScrollBy(0, -page)
+			}
+			"PGDN" -> {
+				val page = (binding.consoleScrollView.height * 0.8f).toInt().coerceAtLeast(100)
+				binding.consoleScrollView.smoothScrollBy(0, page)
+			}
+			else -> {
+				val editable = editText.editableText ?: return
+				val start = editText.selectionStart.coerceAtLeast(0)
+				val end = editText.selectionEnd.coerceAtLeast(0)
+				editable.replace(minOf(start, end), maxOf(start, end), key)
+			}
 		}
+	}
+
+	private fun navigateHistory(delta: Int) {
+		if (commandHistory.isEmpty()) return
+		val editText = binding.commandInput
+		if (historyIndex == commandHistory.size) {
+			pendingDraft = editText.text?.toString().orEmpty()
+		}
+		val newIndex = (historyIndex + delta).coerceIn(0, commandHistory.size)
+		if (newIndex == historyIndex) return
+		historyIndex = newIndex
+		val nextText = if (historyIndex == commandHistory.size) {
+			pendingDraft
+		} else {
+			commandHistory[historyIndex]
+		}
+		editText.setText(nextText)
+		editText.setSelection(nextText.length)
+	}
+
+	private fun autocompleteCommand() {
+		val editText = binding.commandInput
+		val current = editText.text?.toString().orEmpty()
+		val trimmed = current.trimStart()
+		if (trimmed.isEmpty()) {
+			appendConsoleText("^3Commands: ${SERVER_COMMANDS.joinToString(", ")}^7\n")
+			return
+		}
+		if (trimmed.contains(' ')) return
+
+		val matches = SERVER_COMMANDS.filter { it.startsWith(trimmed, ignoreCase = true) }
+		when {
+			matches.size == 1 -> {
+				val completed = matches[0] + " "
+				editText.setText(completed)
+				editText.setSelection(completed.length)
+			}
+			matches.size > 1 -> {
+				val commonPrefix = longestCommonPrefix(matches)
+				if (commonPrefix.length > trimmed.length) {
+					editText.setText(commonPrefix)
+					editText.setSelection(commonPrefix.length)
+				}
+				appendConsoleText("^3Matches: ${matches.joinToString("  ")}^7\n")
+			}
+		}
+	}
+
+	private fun longestCommonPrefix(strings: List<String>): String {
+		if (strings.isEmpty()) return ""
+		var prefix = strings[0]
+		for (i in 1 until strings.size) {
+			while (!strings[i].startsWith(prefix, ignoreCase = true)) {
+				prefix = prefix.substring(0, prefix.length - 1)
+				if (prefix.isEmpty()) return ""
+			}
+		}
+		return prefix
+	}
+
+	private fun findPreviousWordBoundary(text: String, cursor: Int): Int {
+		var i = cursor - 1
+		while (i > 0 && text[i].isWhitespace()) i--
+		while (i > 0 && !text[i - 1].isWhitespace()) i--
+		return i.coerceAtLeast(0)
+	}
+
+	private fun findNextWordBoundary(text: String, cursor: Int): Int {
+		var i = cursor
+		while (i < text.length && !text[i].isWhitespace()) i++
+		while (i < text.length && text[i].isWhitespace()) i++
+		return i.coerceAtMost(text.length)
 	}
 
 	private fun setupCommandInput() {
@@ -213,11 +362,71 @@ class DedicatedActivity : AppCompatActivity() {
 				false
 			}
 		}
+
+		binding.commandInput.addTextChangedListener(object : TextWatcher {
+			override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+			override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+				if (isHandlingCtrlTypedChar || count != 1 || before != 0 || s == null) return
+				val ctrlActive = binding.extraKeysView.readSpecialButton(SpecialButton.CTRL, true) == true
+				if (!ctrlActive) return
+
+				val typedChar = s[start].lowercaseChar()
+				isHandlingCtrlTypedChar = true
+				try {
+					val editable = binding.commandInput.editableText ?: return
+					// Remove the literal character that was just typed while CTRL was active
+					editable.delete(start, start + 1)
+					handleCtrlCombination(typedChar)
+				} finally {
+					isHandlingCtrlTypedChar = false
+				}
+			}
+
+			override fun afterTextChanged(s: Editable?) {}
+		})
+	}
+
+	private fun handleCtrlCombination(ch: Char) {
+		val editText = binding.commandInput
+		when (ch) {
+			'c', 'u' -> {
+				editText.text?.clear()
+			}
+			'l' -> {
+				binding.consoleTextView.text = ""
+				serviceMessenger?.let { messenger ->
+					try {
+						messenger.send(Message.obtain(null, DedicatedService.MSG_CLEAR_LOGS))
+					} catch (_: RemoteException) {
+					}
+				}
+			}
+			'a' -> {
+				editText.setSelection(0)
+			}
+			'e' -> {
+				editText.setSelection(editText.text?.length ?: 0)
+			}
+			'w' -> {
+				val editable = editText.editableText ?: return
+				val cursor = editText.selectionStart.coerceAtLeast(0)
+				if (cursor > 0) {
+					val prevWord = findPreviousWordBoundary(editable.toString(), cursor)
+					editable.delete(prevWord, cursor)
+				}
+			}
+		}
 	}
 
 	private fun submitCurrentInput() {
 		val cmd = binding.commandInput.text?.toString()?.trim().orEmpty()
 		if (cmd.isEmpty()) return
+		if (commandHistory.lastOrNull() != cmd) {
+			commandHistory.add(cmd)
+		}
+		historyIndex = commandHistory.size
+		pendingDraft = ""
 		binding.commandInput.text?.clear()
 		sendCommand(cmd)
 	}
@@ -343,6 +552,7 @@ class DedicatedActivity : AppCompatActivity() {
 	}
 
 	override fun onDestroy() {
+		binding.extraKeysView.stopScheduledExecutors()
 		unbindFromService()
 		super.onDestroy()
 	}
@@ -426,5 +636,93 @@ class DedicatedActivity : AppCompatActivity() {
 
 	companion object {
 		private const val MAX_UI_LOG_CHARS = 131072
+
+		private val SERVER_COMMANDS = listOf(
+			"addip",
+			"apropos",
+			"banid",
+			"changelevel",
+			"cmdlist",
+			"cvarlist",
+			"echo",
+			"exec",
+			"exit",
+			"find",
+			"heartbeat",
+			"hostname",
+			"kick",
+			"listid",
+			"listip",
+			"log",
+			"map",
+			"maps",
+			"maxplayers",
+			"mp_allowmonsters",
+			"mp_autocrosshair",
+			"mp_decals",
+			"mp_falldamage",
+			"mp_flashlight",
+			"mp_footsteps",
+			"mp_forcerespawn",
+			"mp_fraglimit",
+			"mp_friendlyfire",
+			"mp_teamlist",
+			"mp_teamplay",
+			"mp_timelimit",
+			"mp_weaponstay",
+			"pausable",
+			"quit",
+			"rcon_password",
+			"reload",
+			"removeid",
+			"removeip",
+			"restart",
+			"say",
+			"serverinfo",
+			"stats",
+			"status",
+			"sv_accelerate",
+			"sv_aim",
+			"sv_airaccelerate",
+			"sv_allow_download",
+			"sv_allow_upload",
+			"sv_Bounce",
+			"sv_cheats",
+			"sv_clienttrace",
+			"sv_ClipMode",
+			"sv_friction",
+			"sv_gravity",
+			"sv_lan",
+			"sv_lan_rate",
+			"sv_logbans",
+			"sv_maxclients",
+			"sv_maxrate",
+			"sv_maxspeed",
+			"sv_maxunlag",
+			"sv_minrate",
+			"sv_nat",
+			"sv_password",
+			"sv_proxies",
+			"sv_region",
+			"sv_send_logos",
+			"sv_send_resources",
+			"sv_stepsize",
+			"sv_stopspeed",
+			"sv_timeout",
+			"sv_unlag",
+			"sv_unlagpush",
+			"sv_unlagsamples",
+			"sv_uploadmax",
+			"sv_voiceenable",
+			"sv_wateraccelerate",
+			"sv_wateramp",
+			"sv_waterfriction",
+			"sv_zmax",
+			"sys_ticrate",
+			"users",
+			"version",
+			"writeid",
+			"writeip"
+		)
 	}
 }

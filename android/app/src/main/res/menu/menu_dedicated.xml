@@ -4,7 +4,7 @@
 
 	<item
 		android:id="@+id/action_clear"
-		android:icon="@drawable/ic_baseline_delete_24"
+		android:icon="@drawable/ic_baseline_clear_all_24"
 		android:title="@string/dedicated_clear"
 		app:showAsAction="ifRoom" />
 

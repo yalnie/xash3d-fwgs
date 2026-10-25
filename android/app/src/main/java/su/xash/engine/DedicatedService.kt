@@ -22,6 +22,8 @@ import androidx.annotation.Keep
 import androidx.core.app.NotificationCompat
 import su.xash.engine.ui.settings.AppIconManager
 import su.xash.engine.util.CrashReports
+import java.net.Inet4Address
+import java.net.NetworkInterface
 import kotlin.system.exitProcess
 
 class DedicatedService : Service() {
@@ -123,8 +125,8 @@ class DedicatedService : Service() {
 		}
 
 		callingPackageName = intent.getStringExtra("package")
-		val gameLibDir = intent.getStringExtra("gamelibdir")
-		val roDir = intent.getStringExtra("rodir")
+		val gameLibDir = intent.getStringExtra("gamelibdir") ?: applicationInfo.nativeLibraryDir
+		val roDir = intent.getStringExtra("rodir") ?: "${filesDir.absolutePath}/gamelibs"
 		val pakFile = intent.getStringExtra("pakfile")
 		val baseDir = intent.getStringExtra("basedir")
 			?: getExternalFilesDir(null)?.absolutePath
@@ -191,6 +193,12 @@ class DedicatedService : Service() {
 		stopRequested = false
 
 		appendLog("^2Starting $gameTitle dedicated server (${finalArgs.joinToString(" ")})...^7\n")
+		val localIps = getLocalIpv4Addresses()
+		if (localIps.isNotEmpty()) {
+			appendLog("^5Local IP: ${localIps.joinToString(", ")} (or 127.0.0.1 on this device)^7\n")
+		} else {
+			appendLog("^5Local IP: 127.0.0.1 (this device)^7\n")
+		}
 		broadcastState(includeLogs = false)
 
 		engineThread = Thread({
@@ -312,6 +320,23 @@ class DedicatedService : Service() {
 			e.printStackTrace()
 			emptyArray()
 		}
+	}
+
+	private fun getLocalIpv4Addresses(): List<String> {
+		val result = mutableListOf<String>()
+		try {
+			val interfaces = NetworkInterface.getNetworkInterfaces() ?: return result
+			for (intf in interfaces.iterator()) {
+				if (!intf.isUp || intf.isLoopback) continue
+				for (addr in intf.inetAddresses.iterator()) {
+					if (!addr.isLoopbackAddress && addr is Inet4Address) {
+						addr.hostAddress?.let { result.add(it) }
+					}
+				}
+			}
+		} catch (_: Exception) {
+		}
+		return result
 	}
 
 	private fun appendLog(text: String) {

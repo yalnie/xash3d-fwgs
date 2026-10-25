@@ -33,7 +33,7 @@
 		android:fillViewport="true"
 		android:scrollbars="vertical"
 		app:layout_constraintTop_toBottomOf="@id/appBarLayout"
-		app:layout_constraintBottom_toTopOf="@id/quickCommandsScroll"
+		app:layout_constraintBottom_toTopOf="@id/extraKeysView"
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintEnd_toEndOf="parent">
 
@@ -50,24 +50,16 @@
 
 	</ScrollView>
 
-	<HorizontalScrollView
-		android:id="@+id/quickCommandsScroll"
+	<su.xash.engine.ui.extrakeys.ExtraKeysView
+		android:id="@+id/extraKeysView"
 		android:layout_width="0dp"
-		android:layout_height="wrap_content"
-		android:paddingHorizontal="8dp"
-		android:paddingTop="4dp"
-		android:scrollbars="none"
+		android:layout_height="72dp"
+		android:layout_marginHorizontal="8dp"
+		android:layout_marginTop="4dp"
+		android:background="@color/hl_dark_grey"
 		app:layout_constraintBottom_toTopOf="@id/inputBar"
 		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintEnd_toEndOf="parent">
-
-		<com.google.android.material.chip.ChipGroup
-			android:id="@+id/quickCommandsGroup"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			app:singleLine="true" />
-
-	</HorizontalScrollView>
+		app:layout_constraintEnd_toEndOf="parent" />
 
 	<LinearLayout
 		android:id="@+id/inputBar"
@@ -97,11 +89,12 @@
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/sendButton"
-			style="@style/Widget.Material3.Button.TonalButton"
+			style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_marginStart="8dp"
-			android:text="@string/dedicated_send" />
+			android:contentDescription="@string/dedicated_send"
+			app:icon="@drawable/ic_baseline_send_24" />
 
 	</LinearLayout>
 

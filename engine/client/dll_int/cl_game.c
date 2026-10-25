@@ -666,6 +666,8 @@ Render callback for studio models
 */
 int GAME_EXPORT CL_GetMaxClients( void )
 {
+	if( Host_IsDedicated( ))
+		return SV_GetMaxClients();
 	return cl.maxclients;
 }
 
