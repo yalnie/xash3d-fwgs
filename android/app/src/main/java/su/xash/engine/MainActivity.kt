@@ -327,12 +327,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         val filter = IntentFilter(AppUpdater.INSTALL_ACTION)
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.registerReceiver(
+            this,
+            installReceiver,
+            filter,
             ContextCompat.RECEIVER_EXPORTED
-        } else {
-            0
-        }
-        ContextCompat.registerReceiver(this, installReceiver, filter, flags)
+        )
 
         val lifecycleObserver = object : DefaultLifecycleObserver {
             override fun onResume(owner: LifecycleOwner) {
