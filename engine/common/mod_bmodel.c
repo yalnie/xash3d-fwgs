@@ -132,6 +132,10 @@ typedef struct
 	byte          *shadowdata_out; // occlusion data pointer
 	dclipnode32_t *clipnodes_out;  // temporary 32-bit array to hold clipnodes
 
+	// temporary aligned copies for lumps with misaligned file offsets (e.g. on 32-bit ARM)
+	void          *aligned_lumps[32];
+	int           num_aligned_lumps;
+
 	// misc stuff
 	int       lightmap_samples; // samples per lightmap (1 or 3)
 	int       version;          // model version
@@ -747,6 +751,16 @@ static void Mod_CreateDefaultTexture( model_t *mod, texture_t **texture )
 
 ===============================================================================
 */
+static void Mod_FreeAlignedLumps( dbspmodel_t *bmod )
+{
+	for( int i = 0; i < bmod->num_aligned_lumps; i++ )
+	{
+		Mem_Free( bmod->aligned_lumps[i] );
+		bmod->aligned_lumps[i] = NULL;
+	}
+	bmod->num_aligned_lumps = 0;
+}
+
 /*
 =================
 Mod_LoadLump
@@ -924,6 +938,16 @@ static void Mod_LoadLump( const void *in, const mlumpinfo_t *info, mlumpstat_t *
 		return;
 
 	byte *data = (byte *)in + l.fileofs;
+
+	if( l.filelen > 0 && (((uintptr_t)data & 3) != 0) )
+	{
+		byte *aligned = Mem_Malloc( host.mempool, l.filelen + 4 );
+		memcpy( aligned, data, l.filelen );
+		data = aligned;
+
+		if( bmod->num_aligned_lumps < (int)ARRAYSIZE( bmod->aligned_lumps ))
+			bmod->aligned_lumps[bmod->num_aligned_lumps++] = aligned;
+	}
 
 	// all checks are passed, store pointers
 	*(byte **)((byte *)bmod + info->dataofs) = data;
@@ -4257,6 +4281,7 @@ static qboolean Mod_LoadBmodelLumps( model_t *mod, byte *mod_base, size_t buffer
 		if( loadstat.numerrors )
 		{
 			Con_DPrintf( "%s: %i error(s), %i warning(s)\n", __func__, loadstat.numerrors, loadstat.numwarnings );
+			Mod_FreeAlignedLumps( bmod );
 			Mem_Free( bmod );
 			return false; // there were errors, we can't load this map
 		}
@@ -4322,6 +4347,7 @@ static qboolean Mod_LoadBmodelLumps( model_t *mod, byte *mod_base, size_t buffer
 		Con_Reportf( "Wad files required to run the map: \"%s\"\n", wadvalue );
 	}
 
+	Mod_FreeAlignedLumps( bmod );
 	Mem_Free( bmod );
 	return true;
 }
