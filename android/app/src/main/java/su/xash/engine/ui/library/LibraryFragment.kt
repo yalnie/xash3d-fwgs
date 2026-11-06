@@ -31,7 +31,7 @@ class LibraryFragment : Fragment() {
 	private val startActivityForResult =
 		registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
 			if (hasStoragePermission()) {
-				libraryViewModel.reloadGames(requireContext())
+				libraryViewModel.reloadGames()
 				checkNotificationPermission()
 			}
 		}
@@ -46,7 +46,7 @@ class LibraryFragment : Fragment() {
 	) { permissions ->
 		val granted = permissions.entries.all { it.value }
 		if (granted) {
-			libraryViewModel.reloadGames(requireContext())
+			libraryViewModel.reloadGames()
 			checkNotificationPermission()
 		}
 	}
@@ -81,6 +81,11 @@ class LibraryFragment : Fragment() {
 							)
 						)
 					}
+					setNeutralButton(R.string.done_check_permissions) { _, _ ->
+						if (hasStoragePermission()) {
+							libraryViewModel.reloadGames()
+						}
+					}
 					setCancelable(false)
 					show()
 				}
@@ -104,6 +109,11 @@ class LibraryFragment : Fragment() {
 								data = Uri.fromParts("package", requireContext().packageName, null)
 							}
 							startActivity(intent)
+						}
+						setNeutralButton(R.string.done_check_permissions) { _, _ ->
+							if (hasStoragePermission()) {
+								libraryViewModel.reloadGames()
+							}
 						}
 						setCancelable(false)
 						show()
@@ -143,7 +153,7 @@ class LibraryFragment : Fragment() {
 
 		binding.swipeRefresh.setOnRefreshListener {
 			if (hasStoragePermission()) {
-				libraryViewModel.reloadGames(requireContext())
+				libraryViewModel.reloadGames()
 			} else {
 				binding.swipeRefresh.isRefreshing = false
 				showPermissionDialog()
@@ -163,7 +173,7 @@ class LibraryFragment : Fragment() {
 		super.onResume()
 
 		if (hasStoragePermission()) {
-			libraryViewModel.reloadGames(requireContext())
+			libraryViewModel.reloadGames()
 			checkNotificationPermission()
 		} else {
 			showPermissionDialog()
