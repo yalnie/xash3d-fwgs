@@ -13,4 +13,16 @@
         <item>fixed_light</item>
         <item>fixed_dark</item>
     </string-array>
+
+    <string-array name="file_picker_entries">
+        <item>@string/file_picker_ask</item>
+        <item>@string/file_picker_internal</item>
+        <item>@string/file_picker_saf</item>
+    </string-array>
+
+    <string-array name="file_picker_values">
+        <item>ask</item>
+        <item>internal</item>
+        <item>saf</item>
+    </string-array>
 </resources>

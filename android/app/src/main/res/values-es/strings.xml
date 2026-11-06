@@ -18,4 +18,11 @@
 	<string name="select_current_directory">Seleccionar directorio actual</string>
 	<string name="external_storage_required">Se requiere acceso al almacenamiento externo</string>
 	<string name="external_storage_message">Se requiere acceso al almacenamiento externo para que la aplicación funcione correctamente.</string>
+
+	<!-- File Picker Selection -->
+	<string name="pref_file_picker_title">Gestor de archivos</string>
+	<string name="select_file_picker_title">Seleccionar gestor de archivos</string>
+	<string name="file_picker_ask">Preguntar siempre</string>
+	<string name="file_picker_internal">Selector de archivos interno</string>
+	<string name="file_picker_saf">Selector de archivos del sistema (SAF)</string>
 </resources>

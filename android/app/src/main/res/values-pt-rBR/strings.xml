@@ -126,4 +126,11 @@
         <item quantity="other">%d pastas</item>
 	</plurals>
 	<!-- /FPicker -->
+
+	<!-- File Picker Selection -->
+	<string name="pref_file_picker_title">Gerenciador de arquivos</string>
+	<string name="select_file_picker_title">Selecionar gerenciador de arquivos</string>
+	<string name="file_picker_ask">Perguntar sempre</string>
+	<string name="file_picker_internal">Seletor interno de arquivos</string>
+	<string name="file_picker_saf">Seletor de arquivos do sistema (SAF)</string>
 </resources>

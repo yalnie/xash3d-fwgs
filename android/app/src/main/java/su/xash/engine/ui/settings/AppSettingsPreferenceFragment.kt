@@ -1,7 +1,9 @@
 package su.xash.engine.ui.settings
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -18,6 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import su.xash.engine.BuildConfig
+import su.xash.engine.FPicker
 import su.xash.engine.MainActivity
 import su.xash.engine.R
 import su.xash.engine.model.Game
@@ -35,13 +38,24 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat() {
 	private val appPreferences
 		get() = requireContext().getSharedPreferences(Prefs.APP_PREFERENCES, Context.MODE_PRIVATE)
 
+	private val internalPickerLauncher = registerForActivityResult(
+		ActivityResultContracts.StartActivityForResult()
+	) { result ->
+		if (result.resultCode == Activity.RESULT_OK) {
+			val selectedPath = result.data?.getStringExtra("GetPath")
+			if (!selectedPath.isNullOrEmpty()) {
+				handlePickedGameDirectoryFile(File(selectedPath))
+			}
+		}
+	}
+
 	private val gameDirectoryPicker = registerForActivityResult(
 		ActivityResultContracts.OpenDocumentTree()
 	) { uri ->
 		if (uri == null)
 			return@registerForActivityResult
 
-		handlePickedGameDirectory(uri)
+		handlePickedGameDirectoryUri(uri)
 	}
 
 	override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -63,12 +77,10 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat() {
 
 		findPreference<GamePathPreference>(Prefs.GAME_PATH)?.apply {
 			setOnPreferenceClickListener {
-				cancelPendingGameDirectorySelection()
-				try {
-					gameDirectoryPicker.launch(null)
-				} catch (e: ActivityNotFoundException) {
-					// Some devices have no document picker
-					showGameDirectoryError(R.string.game_data_location_picker_unavailable)
+				when (prefs.getString("file_picker_type", "ask")) {
+					"internal" -> openInternalPicker()
+					"saf" -> openSafPicker()
+					else -> showFilePickerSelectionDialog()
 				}
 				true
 			}
@@ -110,7 +122,41 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat() {
 		}
 	}
 
-	private fun handlePickedGameDirectory(uri: Uri) {
+	private fun openInternalPicker() {
+		cancelPendingGameDirectorySelection()
+		val intent = Intent(requireContext(), FPicker::class.java)
+		internalPickerLauncher.launch(intent)
+	}
+
+	private fun openSafPicker() {
+		cancelPendingGameDirectorySelection()
+		try {
+			gameDirectoryPicker.launch(null)
+		} catch (e: ActivityNotFoundException) {
+			// Some devices have no document picker
+			showGameDirectoryError(R.string.game_data_location_picker_unavailable)
+		}
+	}
+
+	private fun showFilePickerSelectionDialog() {
+		val options = arrayOf(
+			getString(R.string.file_picker_internal),
+			getString(R.string.file_picker_saf)
+		)
+		showDialog(
+			MaterialAlertDialogBuilder(requireContext())
+				.setTitle(R.string.select_file_picker_title)
+				.setItems(options) { _, which ->
+					when (which) {
+						0 -> openInternalPicker()
+						1 -> openSafPicker()
+					}
+				}
+				.setNegativeButton(android.R.string.cancel, null)
+		)
+	}
+
+	private fun handlePickedGameDirectoryUri(uri: Uri) {
 		cancelPendingGameDirectorySelection()
 		val requestId = gameDirectoryRequestId
 		val context = requireContext()
@@ -132,26 +178,37 @@ class AppSettingsPreferenceFragment : PreferenceFragmentCompat() {
 				}
 			}
 
-			val directory = success.directory
+			validateAndSaveGameDirectory(success.directory, requestId)
+		}
+	}
 
-			// The library expects a root containing game directories, not a single game's directory
-			val isSingleGame = withContext(Dispatchers.IO) {
-				Game.checkIfGamedir(directory) != null
-			}
-			if (requestId != gameDirectoryRequestId) return@launch
-			if (isSingleGame) {
-				showGameDirectoryError(R.string.game_data_location_select_parent)
-				return@launch
-			}
+	private fun handlePickedGameDirectoryFile(directory: File) {
+		cancelPendingGameDirectorySelection()
+		val requestId = gameDirectoryRequestId
 
-			val hasGames = withContext(Dispatchers.IO) { hasGameDirectories(directory) }
-			if (requestId != gameDirectoryRequestId) return@launch
+		gameDirectoryJob = lifecycleScope.launch {
+			validateAndSaveGameDirectory(directory, requestId)
+		}
+	}
 
-			when (hasGames) {
-				null -> showGameDirectoryError(R.string.game_data_location_unreadable)
-				true -> saveGamePath(directory, requestId)
-				false -> confirmGamePathWithoutGames(directory, requestId)
-			}
+	private suspend fun validateAndSaveGameDirectory(directory: File, requestId: Int) {
+		// The library expects a root containing game directories, not a single game's directory
+		val isSingleGame = withContext(Dispatchers.IO) {
+			Game.checkIfGamedir(directory) != null
+		}
+		if (requestId != gameDirectoryRequestId) return
+		if (isSingleGame) {
+			showGameDirectoryError(R.string.game_data_location_select_parent)
+			return
+		}
+
+		val hasGames = withContext(Dispatchers.IO) { hasGameDirectories(directory) }
+		if (requestId != gameDirectoryRequestId) return
+
+		when (hasGames) {
+			null -> showGameDirectoryError(R.string.game_data_location_unreadable)
+			true -> saveGamePath(directory, requestId)
+			false -> confirmGamePathWithoutGames(directory, requestId)
 		}
 	}
 

@@ -23,4 +23,11 @@
 	<string name="game_apk_required">需要带有游戏库的APK</string>
 	<string name="game_apk_message">要运行此游戏，您需要安装额外的APK</string>
 	<string name="game_apk_install">下载</string>
+
+	<!-- File Picker Selection -->
+	<string name="pref_file_picker_title">文件管理器</string>
+	<string name="select_file_picker_title">选择文件管理器</string>
+	<string name="file_picker_ask">每次询问</string>
+	<string name="file_picker_internal">内置文件选择器</string>
+	<string name="file_picker_saf">系统文件选择器 (SAF)</string>
 </resources>

@@ -8,6 +8,15 @@
 		app:title="@string/game_data_location"
 		tools:summary="/storage/emulated/0/xash" />
 
+	<ListPreference
+		app:key="file_picker_type"
+		app:layout="@layout/edit_text_preference"
+		app:title="@string/pref_file_picker_title"
+		app:entries="@array/file_picker_entries"
+		app:entryValues="@array/file_picker_values"
+		app:defaultValue="ask"
+		app:useSimpleSummaryProvider="true" />
+
 	<!-- <SwitchPreferenceCompat
 		app:key="use_icons"
 		app:layout="@layout/switch_preference"

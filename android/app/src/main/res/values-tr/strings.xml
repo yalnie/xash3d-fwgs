@@ -138,4 +138,11 @@
         <item quantity="other">%d klasör</item>
 	</plurals>
 	<!-- /FPicker -->
+
+	<!-- File Picker Selection -->
+	<string name="pref_file_picker_title">Dosya yöneticisi</string>
+	<string name="select_file_picker_title">Dosya yöneticisi seçin</string>
+	<string name="file_picker_ask">Her zaman sor</string>
+	<string name="file_picker_internal">Dahili dosya seçici</string>
+	<string name="file_picker_saf">Sistem dosya seçici (SAF)</string>
 </resources>

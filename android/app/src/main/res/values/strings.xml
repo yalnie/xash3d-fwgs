@@ -159,4 +159,11 @@
         <item quantity="other">%d folders</item>
 	</plurals>
 	<!-- /FPicker -->
+
+	<!-- File Picker Selection -->
+	<string name="pref_file_picker_title">File manager</string>
+	<string name="select_file_picker_title">Select file manager</string>
+	<string name="file_picker_ask">Ask every time</string>
+	<string name="file_picker_internal">Internal file picker</string>
+	<string name="file_picker_saf">System file picker (SAF)</string>
 </resources>

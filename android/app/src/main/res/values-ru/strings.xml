@@ -146,4 +146,11 @@
 		<item quantity="other">%d папок</item>
 	</plurals>
 	<!-- /FPicker -->
+
+	<!-- File Picker Selection -->
+	<string name="pref_file_picker_title">Файловый менеджер</string>
+	<string name="select_file_picker_title">Выберите файловый менеджер</string>
+	<string name="file_picker_ask">Спрашивать каждый раз</string>
+	<string name="file_picker_internal">Встроенный проводник</string>
+	<string name="file_picker_saf">Системный проводник (SAF)</string>
 </resources>
