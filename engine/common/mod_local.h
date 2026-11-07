@@ -169,6 +169,7 @@ void Mod_LoadAliasModel( model_t *mod, const void *buffer, qboolean *loaded );
 //
 // mod_bmodel.c
 //
+byte *Mod_AlignBSP( byte *buf, fs_offset_t *bufferlen );
 void Mod_LoadBrushModel( model_t *mod, void *buffer, size_t buffersize, qboolean *loaded );
 qboolean Mod_TestBmodelLumps( file_t *f, const char *name, byte *mod_base, size_t buffersize, qboolean silent, dlump_t *entities );
 int Mod_FatPVS( const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis, qboolean phs );

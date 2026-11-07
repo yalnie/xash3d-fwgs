@@ -341,6 +341,17 @@ static model_t *Mod_LoadModel( model_t *mod, qboolean crash )
 	mod->needload = NL_PRESENT;
 	mod->type = mod_bad;
 
+	model_info_t *p = &mod_crcinfo[mod - mod_known];
+	uint32_t currentCRC = 0;
+	qboolean check_crc = FBitSet( p->flags, FCRC_SHOULD_CHECKSUM );
+
+	if( check_crc )
+	{
+		CRC32_Init( &currentCRC );
+		CRC32_ProcessBuffer( &currentCRC, buf, length );
+		currentCRC = CRC32_Final( currentCRC );
+	}
+
 	// call the apropriate loader
 	switch( *(uint *)buf )
 	{
@@ -356,6 +367,7 @@ static model_t *Mod_LoadModel( model_t *mod, qboolean crash )
 	case LittleLong( Q1BSP_VERSION ):
 	case LittleLong( HLBSP_VERSION ):
 	case LittleLong( QBSP2_VERSION ):
+		buf = Mod_AlignBSP( buf, &length );
 		Mod_LoadBrushModel( mod, buf, length, &loaded );
 		break;
 	default:
@@ -405,17 +417,10 @@ static model_t *Mod_LoadModel( model_t *mod, qboolean crash )
 		return NULL;
 	}
 
-	model_info_t *p = &mod_crcinfo[mod - mod_known];
 	mod->needload = NL_PRESENT;
 
-	if( FBitSet( p->flags, FCRC_SHOULD_CHECKSUM ))
+	if( check_crc )
 	{
-		uint32_t currentCRC;
-
-		CRC32_Init( &currentCRC );
-		CRC32_ProcessBuffer( &currentCRC, buf, length );
-		currentCRC = CRC32_Final( currentCRC );
-
 		if( FBitSet( p->flags, FCRC_CHECKSUM_DONE ))
 		{
 			if( currentCRC != p->initialCRC )

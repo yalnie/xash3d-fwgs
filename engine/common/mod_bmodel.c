@@ -132,10 +132,6 @@ typedef struct
 	byte          *shadowdata_out; // occlusion data pointer
 	dclipnode32_t *clipnodes_out;  // temporary 32-bit array to hold clipnodes
 
-	// temporary aligned copies for lumps with misaligned file offsets (e.g. on 32-bit ARM)
-	void          *aligned_lumps[32];
-	int           num_aligned_lumps;
-
 	// misc stuff
 	int       lightmap_samples; // samples per lightmap (1 or 3)
 	int       version;          // model version
@@ -751,16 +747,6 @@ static void Mod_CreateDefaultTexture( model_t *mod, texture_t **texture )
 
 ===============================================================================
 */
-static void Mod_FreeAlignedLumps( dbspmodel_t *bmod )
-{
-	for( int i = 0; i < bmod->num_aligned_lumps; i++ )
-	{
-		Mem_Free( bmod->aligned_lumps[i] );
-		bmod->aligned_lumps[i] = NULL;
-	}
-	bmod->num_aligned_lumps = 0;
-}
-
 /*
 =================
 Mod_LoadLump
@@ -938,16 +924,6 @@ static void Mod_LoadLump( const void *in, const mlumpinfo_t *info, mlumpstat_t *
 		return;
 
 	byte *data = (byte *)in + l.fileofs;
-
-	if( l.filelen > 0 && (((uintptr_t)data & 3) != 0) )
-	{
-		byte *aligned = Mem_Malloc( host.mempool, l.filelen + 4 );
-		memcpy( aligned, data, l.filelen );
-		data = aligned;
-
-		if( bmod->num_aligned_lumps < (int)ARRAYSIZE( bmod->aligned_lumps ))
-			bmod->aligned_lumps[bmod->num_aligned_lumps++] = aligned;
-	}
 
 	// all checks are passed, store pointers
 	*(byte **)((byte *)bmod + info->dataofs) = data;
@@ -4281,7 +4257,6 @@ static qboolean Mod_LoadBmodelLumps( model_t *mod, byte *mod_base, size_t buffer
 		if( loadstat.numerrors )
 		{
 			Con_DPrintf( "%s: %i error(s), %i warning(s)\n", __func__, loadstat.numerrors, loadstat.numwarnings );
-			Mod_FreeAlignedLumps( bmod );
 			Mem_Free( bmod );
 			return false; // there were errors, we can't load this map
 		}
@@ -4347,7 +4322,6 @@ static qboolean Mod_LoadBmodelLumps( model_t *mod, byte *mod_base, size_t buffer
 		Con_Reportf( "Wad files required to run the map: \"%s\"\n", wadvalue );
 	}
 
-	Mod_FreeAlignedLumps( bmod );
 	Mem_Free( bmod );
 	return true;
 }
@@ -4462,6 +4436,213 @@ qboolean Mod_TestBmodelLumps( file_t *f, const char *name, byte *mod_base, size_
 	}
 
 	return loadstat.numerrors ? false : true;
+}
+
+/*
+=================
+Mod_AlignBSP
+
+realigns bsp lumps in memory to 4-byte boundaries on 32-bit architectures (e.g. arm)
+in goldsrc bsp files, odd-length ASCII LUMP_ENTITIES can cause subsequent lumps
+(planes, vertexes, nodes, etc.) to start at unaligned file offsets.
+this creates an aligned copy in memory without modifying the file on disk.
+=================
+*/
+typedef struct
+{
+	int32_t ofs;
+	int32_t len;
+	int     idx;
+} bsp_lump_sort_t;
+
+byte *Mod_AlignBSP( byte *buf, fs_offset_t *bufferlen )
+{
+	if( !buf || !bufferlen || *bufferlen < (fs_offset_t)sizeof( dheader_t ))
+		return buf;
+
+	dheader_t *header = (dheader_t *)buf;
+	int32_t version = LittleLong( header->version );
+
+	if( version != HLBSP_VERSION && version != Q1BSP_VERSION && version != QBSP2_VERSION )
+		return buf;
+
+	size_t orig_len = (size_t)*bufferlen;
+
+	// check for BSP30ext header immediately after dheader_t
+	qboolean is_bsp30ext = false;
+	dextrahdr_t *ext_header = NULL;
+	if( version == HLBSP_VERSION && orig_len >= sizeof( dheader_t ) + sizeof( dextrahdr_t ))
+	{
+		dextrahdr_t *ext = (dextrahdr_t *)( buf + sizeof( dheader_t ));
+		if( ext->id == LittleLong( IDEXTRAHEADER ) && ext->version == LittleLong( EXTRA_VERSION ))
+		{
+			is_bsp30ext = true;
+			ext_header = ext;
+		}
+	}
+
+	// check if any lump has length > 0 and unaligned fileofs
+	qboolean needs_align = false;
+	for( int i = 0; i < HEADER_LUMPS; i++ )
+	{
+		int32_t ofs = LittleLong( header->lumps[i].fileofs );
+		int32_t flen = LittleLong( header->lumps[i].filelen );
+		if( flen > 0 && ( ofs & 3 ) != 0 )
+		{
+			needs_align = true;
+			break;
+		}
+	}
+
+	if( !needs_align && is_bsp30ext )
+	{
+		for( int i = 0; i < EXTRA_LUMPS; i++ )
+		{
+			int32_t ofs = LittleLong( ext_header->lumps[i].fileofs );
+			int32_t flen = LittleLong( ext_header->lumps[i].filelen );
+			if( flen > 0 && ( ofs & 3 ) != 0 )
+			{
+				needs_align = true;
+				break;
+			}
+		}
+	}
+
+	if( !needs_align )
+		return buf;
+
+	int total_lumps = HEADER_LUMPS + ( is_bsp30ext ? EXTRA_LUMPS : 0 );
+	bsp_lump_sort_t active_lumps[HEADER_LUMPS + EXTRA_LUMPS];
+	int num_active = 0;
+
+	for( int i = 0; i < HEADER_LUMPS; i++ )
+	{
+		int32_t ofs = LittleLong( header->lumps[i].fileofs );
+		int32_t flen = LittleLong( header->lumps[i].filelen );
+		if( flen > 0 && ofs > 0 && (size_t)ofs + flen <= orig_len )
+		{
+			active_lumps[num_active].ofs = ofs;
+			active_lumps[num_active].len = flen;
+			active_lumps[num_active].idx = i;
+			num_active++;
+		}
+	}
+
+	if( is_bsp30ext )
+	{
+		for( int i = 0; i < EXTRA_LUMPS; i++ )
+		{
+			int32_t ofs = LittleLong( ext_header->lumps[i].fileofs );
+			int32_t flen = LittleLong( ext_header->lumps[i].filelen );
+			if( flen > 0 && ofs > 0 && (size_t)ofs + flen <= orig_len )
+			{
+				active_lumps[num_active].ofs = ofs;
+				active_lumps[num_active].len = flen;
+				active_lumps[num_active].idx = HEADER_LUMPS + i;
+				num_active++;
+			}
+		}
+	}
+
+	// sort active lumps by original fileofs (stable sort)
+	for( int i = 1; i < num_active; i++ )
+	{
+		bsp_lump_sort_t key = active_lumps[i];
+		int j = i - 1;
+		while( j >= 0 && ( active_lumps[j].ofs > key.ofs || ( active_lumps[j].ofs == key.ofs && active_lumps[j].idx > key.idx )))
+		{
+			active_lumps[j + 1] = active_lumps[j];
+			j--;
+		}
+		active_lumps[j + 1] = key;
+	}
+
+	// allocate new buffer with padding headroom (at most 3 bytes per lump + 128 bytes)
+	size_t new_alloc = orig_len + ( total_lumps * 4 ) + 128;
+	byte *new_buf = (byte *)Mem_Malloc( host.mempool, new_alloc );
+	if( !new_buf )
+		return buf;
+
+	memset( new_buf, 0, new_alloc );
+
+	size_t header_bytes = sizeof( dheader_t ) + ( is_bsp30ext ? sizeof( dextrahdr_t ) : 0 );
+	memcpy( new_buf, buf, header_bytes );
+
+	dheader_t *new_header = (dheader_t *)new_buf;
+	dextrahdr_t *new_ext = is_bsp30ext ? (dextrahdr_t *)( new_buf + sizeof( dheader_t )) : NULL;
+
+	size_t cur_ofs = header_bytes;
+	if( num_active > 0 && (size_t)active_lumps[0].ofs > cur_ofs )
+	{
+		// preserve any intermediate data between header and first lump
+		size_t gap = (size_t)active_lumps[0].ofs - cur_ofs;
+		memcpy( new_buf + cur_ofs, buf + cur_ofs, gap );
+		cur_ofs += gap;
+	}
+
+	// copy lumps aligned to 4-byte boundaries
+	for( int i = 0; i < num_active; i++ )
+	{
+		int idx = active_lumps[i].idx;
+		int32_t ofs = active_lumps[i].ofs;
+		int32_t flen = active_lumps[i].len;
+
+		cur_ofs = ( cur_ofs + 3 ) & ~3;
+		memcpy( new_buf + cur_ofs, buf + ofs, flen );
+
+		if( idx < HEADER_LUMPS )
+			new_header->lumps[idx].fileofs = LittleLong( (int32_t)cur_ofs );
+		else if( new_ext )
+			new_ext->lumps[idx - HEADER_LUMPS].fileofs = LittleLong( (int32_t)cur_ofs );
+
+		cur_ofs += flen;
+	}
+
+	// find the highest end offset among active lumps in the original buffer
+	size_t orig_bsp_end = header_bytes;
+	for( int i = 0; i < num_active; i++ )
+	{
+		size_t end = (size_t)active_lumps[i].ofs + active_lumps[i].len;
+		if( end > orig_bsp_end )
+			orig_bsp_end = end;
+	}
+
+	// copy trailing data (e.g. BSPX) if present
+	if( orig_len > orig_bsp_end )
+	{
+		size_t trailing_len = orig_len - orig_bsp_end;
+		size_t orig_bspx_pos = ( orig_bsp_end + 3 ) & ~3;
+		cur_ofs = ( cur_ofs + 3 ) & ~3;
+		size_t new_bspx_pos = cur_ofs;
+		memcpy( new_buf + cur_ofs, buf + orig_bsp_end, trailing_len );
+		cur_ofs += trailing_len;
+
+		if( orig_bspx_pos + sizeof( dbspx_hdr_t ) <= orig_len )
+		{
+			dbspx_hdr_t *bspx = (dbspx_hdr_t *)( new_buf + new_bspx_pos );
+			if( bspx->id == LittleLong( IDBSPXHEADER ))
+			{
+				int32_t shift = (int32_t)( new_bspx_pos - orig_bspx_pos );
+				int32_t numlumps = LittleLong( bspx->numlumps );
+				if( numlumps > 0 && numlumps <= 100 &&
+					new_bspx_pos + sizeof( dbspx_hdr_t ) + numlumps * sizeof( dbspx_lump_t ) <= cur_ofs )
+				{
+					for( int i = 0; i < numlumps; i++ )
+					{
+						int32_t ofs = LittleLong( bspx->lumps[i].fileofs );
+						if( ofs > 0 )
+							bspx->lumps[i].fileofs = LittleLong( ofs + shift );
+					}
+				}
+			}
+		}
+	}
+
+	Con_Reportf( S_NOTE "Mod_AlignBSP: Realigned BSP lumps in memory (%zu -> %zu bytes)\n", orig_len, cur_ofs );
+
+	Mem_Free( buf );
+	*bufferlen = (fs_offset_t)cur_ofs;
+	return new_buf;
 }
 
 /*
