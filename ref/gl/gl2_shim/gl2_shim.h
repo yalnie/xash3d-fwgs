@@ -22,3 +22,4 @@ int GL2_ShimInit( void );
 void GL2_ShimInstall( void );
 void GL2_ShimShutdown( void );
 void GL2_ShimEndFrame( void );
+void *GL2_ShimGetProcAddress( const char *name );

@@ -1875,4 +1875,46 @@ void GL2_ShimInstall( void )
 #endif
 	GL2_AllocArrays();
 }
+
+void *GL2_ShimGetProcAddress( const char *name )
+{
+	if( !name ) return NULL;
+	if( !Q_strcmp( name, "glBegin" ) ) return (void *)GL2_Begin;
+	if( !Q_strcmp( name, "glEnd" ) ) return (void *)GL2_End;
+	if( !Q_strcmp( name, "glVertex2f" ) ) return (void *)GL2_Vertex2f;
+	if( !Q_strcmp( name, "glVertex3f" ) ) return (void *)GL2_Vertex3f;
+	if( !Q_strcmp( name, "glVertex3fv" ) ) return (void *)GL2_Vertex3fv;
+	if( !Q_strcmp( name, "glColor3f" ) ) return (void *)GL2_Color3f;
+	if( !Q_strcmp( name, "glColor4f" ) ) return (void *)GL2_Color4f;
+	if( !Q_strcmp( name, "glColor4ub" ) ) return (void *)GL2_Color4ub;
+	if( !Q_strcmp( name, "glColor4ubv" ) ) return (void *)GL2_Color4ubv;
+	if( !Q_strcmp( name, "glNormal3fv" ) ) return (void *)GL2_Normal3fv;
+	if( !Q_strcmp( name, "glTexCoord2f" ) ) return (void *)GL2_TexCoord2f;
+	if( !Q_strcmp( name, "glMultiTexCoord2f" ) ) return (void *)GL2_MultiTexCoord2f;
+	if( !Q_strcmp( name, "glAlphaFunc" ) ) return (void *)GL2_AlphaFunc;
+	if( !Q_strcmp( name, "glFogf" ) ) return (void *)GL2_Fogf;
+	if( !Q_strcmp( name, "glFogfv" ) ) return (void *)GL2_Fogfv;
+	if( !Q_strcmp( name, "glFogi" ) ) return (void *)GL2_Fogi;
+	if( !Q_strcmp( name, "glShadeModel" ) ) return (void *)GL2_ShadeModel;
+	if( !Q_strcmp( name, "glMatrixMode" ) ) return (void *)GL2_MatrixMode;
+	if( !Q_strcmp( name, "glLoadIdentity" ) ) return (void *)GL2_LoadIdentity;
+	if( !Q_strcmp( name, "glLoadMatrixf" ) ) return (void *)GL2_LoadMatrixf;
+	if( !Q_strcmp( name, "glOrtho" ) ) return (void *)GL2_Ortho;
+	if( !Q_strcmp( name, "glScalef" ) ) return (void *)GL2_Scalef;
+	if( !Q_strcmp( name, "glTranslatef" ) ) return (void *)GL2_Translatef;
+	if( !Q_strcmp( name, "glTexEnvi" ) ) return (void *)GL2_TexEnvi;
+	if( !Q_strcmp( name, "glTexEnvf" ) ) return (void *)GL2_TexEnvf;
+	if( !Q_strcmp( name, "glClientActiveTextureARB" ) ) return (void *)GL2_ClientActiveTextureARB;
+	if( !Q_strcmp( name, "glEnableClientState" ) ) return (void *)GL2_EnableClientState;
+	if( !Q_strcmp( name, "glDisableClientState" ) ) return (void *)GL2_DisableClientState;
+	if( !Q_strcmp( name, "glVertexPointer" ) ) return (void *)GL2_VertexPointer;
+	if( !Q_strcmp( name, "glColorPointer" ) ) return (void *)GL2_ColorPointer;
+	if( !Q_strcmp( name, "glTexCoordPointer" ) ) return (void *)GL2_TexCoordPointer;
+	return NULL;
+}
+#else
+void *GL2_ShimGetProcAddress( const char *name )
+{
+	return NULL;
+}
 #endif

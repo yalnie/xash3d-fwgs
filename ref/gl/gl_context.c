@@ -20,6 +20,8 @@ GNU General Public License for more details.
 
 #if XASH_GL4ES
 #include "gl4es/include/gl4esinit.h"
+#elif XASH_GLES3COMPAT
+#include "gl2_shim/gl2_shim.h"
 #endif
 
 
@@ -377,6 +379,10 @@ static void* GAME_EXPORT R_GetProcAddress( const char *name )
 {
 #if XASH_GL4ES
 	return gl4es_GetProcAddress( name );
+#elif XASH_GLES3COMPAT
+	void *p = GL2_ShimGetProcAddress( name );
+	if( p ) return p;
+	return GL_GetProcAddress( name );
 #else // TODO: other wrappers
 	return GL_GetProcAddress( name );
 #endif
