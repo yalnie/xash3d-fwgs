@@ -477,7 +477,10 @@ static qboolean SCR_DrawPlaque( void )
 	{
 		int levelshot = ref.dllFuncs.GL_LoadTexture( cl_levelshot_name.string, NULL, 0, TF_IMAGE );
 		ref.dllFuncs.GL_SetRenderMode( kRenderNormal );
-		ref.dllFuncs.R_DrawStretchPic( 0, 0, refState.width, refState.height, 0, 0, 1, 1, levelshot );
+		if( levelshot > 0 )
+			ref.dllFuncs.R_DrawStretchPic( 0, 0, refState.width, refState.height, 0, 0, 1, 1, levelshot );
+		else
+			ref.dllFuncs.FillRGBA( kRenderNormal, 0, 0, refState.width, refState.height, 0, 0, 0, 255 );
 		if( !cl.background ) CL_DrawHUD( CL_LOADING );
 
 		return true;
@@ -700,7 +703,7 @@ void SCR_UpdateScreen( void )
 	// during changelevel we might have a few frames when we have nothing to draw
 	// (assuming levelshots are off) and drawing 2d on top of nothing or cleared screen
 	// is ugly, specifically with Adreno and ImgTec GPUs
-	if( screen_redraw || !cls.changelevel || !cls.changedemo )
+	if( screen_redraw || ( !cls.changelevel && !cls.changedemo ))
 		V_PostRender();
 }
 
