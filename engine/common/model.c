@@ -362,7 +362,7 @@ static model_t *Mod_LoadModel( model_t *mod, qboolean crash )
 		Mod_LoadSpriteModel( mod, buf, length, &loaded );
 		break;
 	case LittleLong( IDALIASHEADER ):
-		Mod_LoadAliasModel( mod, buf, &loaded );
+		Mod_LoadAliasModel( mod, buf, length, &loaded );
 		break;
 	case LittleLong( Q1BSP_VERSION ):
 	case LittleLong( HLBSP_VERSION ):
